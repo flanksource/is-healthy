@@ -23,6 +23,17 @@ const (
 	HealthStatusDegraded HealthStatusCode = "Degraded"
 	// Indicates that resource is missing in the cluster.
 	HealthStatusMissing HealthStatusCode = "Missing"
+
+	HealthStatusCreating    = "Creating"
+	HealthStatusDeleting    = "Deleting"
+	HealthStatusError       = "Error"
+	HealthStatusInaccesible = "Inaccesible"
+	HealthStatusInfo        = "Info"
+	HealthStatusPending     = "Pending"
+	HealthStatusScaling     = "Scaling"
+	HealthStatusUnhealthy   = "Unhealthy"
+	HealthStatusUpdating    = "Updating"
+	HealthStatusWarning     = "Warning"
 )
 
 // Implements custom health assessment that overrides built-in assessment
