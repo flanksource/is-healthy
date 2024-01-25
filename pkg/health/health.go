@@ -25,15 +25,18 @@ const (
 	HealthStatusMissing HealthStatusCode = "Missing"
 
 	HealthStatusCreating    = "Creating"
+	HealthStatusDeleted     = "Deleted"
 	HealthStatusDeleting    = "Deleting"
 	HealthStatusError       = "Error"
 	HealthStatusInaccesible = "Inaccesible"
 	HealthStatusInfo        = "Info"
 	HealthStatusPending     = "Pending"
+	HealthStatusMaintenance = "Maintenance"
 	HealthStatusScaling     = "Scaling"
 	HealthStatusUnhealthy   = "Unhealthy"
 	HealthStatusUpdating    = "Updating"
 	HealthStatusWarning     = "Warning"
+	HealthStatusStopping    = "Stopping"
 )
 
 // Implements custom health assessment that overrides built-in assessment
