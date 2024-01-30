@@ -24,19 +24,20 @@ const (
 	// Indicates that resource is missing in the cluster.
 	HealthStatusMissing HealthStatusCode = "Missing"
 
-	HealthStatusCreating    = "Creating"
-	HealthStatusDeleted     = "Deleted"
-	HealthStatusDeleting    = "Deleting"
-	HealthStatusError       = "Error"
-	HealthStatusInaccesible = "Inaccesible"
-	HealthStatusInfo        = "Info"
-	HealthStatusPending     = "Pending"
-	HealthStatusMaintenance = "Maintenance"
-	HealthStatusScaling     = "Scaling"
-	HealthStatusUnhealthy   = "Unhealthy"
-	HealthStatusUpdating    = "Updating"
-	HealthStatusWarning     = "Warning"
-	HealthStatusStopping    = "Stopping"
+	HealthStatusCreating    HealthStatusCode = "Creating"
+	HealthStatusDeleted     HealthStatusCode = "Deleted"
+	HealthStatusDeleting    HealthStatusCode = "Deleting"
+	HealthStatusError       HealthStatusCode = "Error"
+	HealthStatusInaccesible HealthStatusCode = "Inaccesible"
+	HealthStatusInfo        HealthStatusCode = "Info"
+	HealthStatusPending     HealthStatusCode = "Pending"
+	HealthStatusMaintenance HealthStatusCode = "Maintenance"
+	HealthStatusScaling     HealthStatusCode = "Scaling"
+	HealthStatusUnhealthy   HealthStatusCode = "Unhealthy"
+	HealthStatusUpdating    HealthStatusCode = "Updating"
+	HealthStatusWarning     HealthStatusCode = "Warning"
+	HealthStatusStopped     HealthStatusCode = "Stopped"
+	HealthStatusStopping    HealthStatusCode = "Stopping"
 )
 
 // Implements custom health assessment that overrides built-in assessment
