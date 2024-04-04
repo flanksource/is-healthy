@@ -8,8 +8,6 @@ import (
 )
 
 const (
-	CertificateKind              = "Certificate"
-	CertificateRequestKind       = "CertificateRequest"
 	SecretKind                   = "Secret"
 	ServiceKind                  = "Service"
 	ServiceAccountKind           = "ServiceAccount"

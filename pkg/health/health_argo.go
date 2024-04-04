@@ -26,7 +26,7 @@ type argoWorkflow struct {
 	}
 }
 
-func getArgoWorkflowHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
+func GetArgoWorkflowHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	var wf argoWorkflow
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &wf)
 	if err != nil {
