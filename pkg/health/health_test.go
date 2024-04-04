@@ -33,6 +33,11 @@ func getHealthStatus(yamlPath string, t *testing.T) *health.HealthStatus {
 	return health
 }
 
+func TestNamespace(t *testing.T) {
+	assertAppHealth(t, "./testdata/namespace.yaml", health.HealthStatusHealthy)
+	assertAppHealth(t, "./testdata/namespace-terminating.yaml", health.HealthStatusDeleting)
+}
+
 func TestCertificate(t *testing.T) {
 	assertAppHealth(t, "./testdata/certificate-healthy.yaml", health.HealthStatusHealthy)
 }

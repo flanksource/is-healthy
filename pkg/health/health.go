@@ -175,6 +175,8 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 			return getPVCHealth
 		case PodKind:
 			return getPodHealth
+		case NamespaceKind:
+			return getNamespaceHealth
 		}
 	case "batch":
 		switch gvk.Kind {
