@@ -161,6 +161,15 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 	// 	case APIServiceKind:
 	// 		return getAPIServiceHealth
 	// 	}
+
+	case "cert-manager.io":
+		switch gvk.Kind {
+		case CertificateKind:
+			return getCertificateHealth
+		case CertificateRequestKind:
+			return getCertificateRequestHealth
+		}
+
 	case "networking.k8s.io":
 		switch gvk.Kind {
 		case IngressKind:
