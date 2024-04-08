@@ -33,14 +33,16 @@ func GetArgoWorkflowHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 		return nil, err
 	}
 	switch wf.Status.Phase {
-	case "", nodePending, nodeRunning:
-		return &HealthStatus{Status: HealthStatusProgressing, Message: wf.Status.Message}, nil
+	case "", nodePending:
+		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusProgressing, Message: wf.Status.Message}, nil
+	case nodeRunning:
+		return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusProgressing, Message: wf.Status.Message}, nil
 	case nodeSucceeded:
-		return &HealthStatus{Status: HealthStatusHealthy, Message: wf.Status.Message}, nil
+		return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusHealthy, Message: wf.Status.Message}, nil
 	case nodeFailed, nodeError:
-		return &HealthStatus{Status: HealthStatusDegraded, Message: wf.Status.Message}, nil
+		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: wf.Status.Message}, nil
 	}
-	return &HealthStatus{Status: HealthStatusUnknown, Message: wf.Status.Message}, nil
+	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: wf.Status.Message}, nil
 }
 
 // An agnostic workflow object only considers Status.Phase and Status.Message. It is agnostic to the API version or any
@@ -59,17 +61,18 @@ func getArgoApplicationHealth(obj *unstructured.Unstructured) (*HealthStatus, er
 
 	switch app.Status.Health.Status {
 	case HealthStatusProgressing:
-		return &HealthStatus{Status: HealthStatusProgressing, Message: app.Status.Health.Message}, nil
+		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusProgressing, Message: app.Status.Health.Message}, nil
 	case HealthStatusHealthy:
-		return &HealthStatus{Status: HealthStatusHealthy, Message: app.Status.Health.Message}, nil
+		return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusHealthy, Message: app.Status.Health.Message}, nil
 	case HealthStatusSuspended:
-		return &HealthStatus{Status: HealthStatusSuspended, Message: app.Status.Health.Message}, nil
+		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusSuspended, Message: app.Status.Health.Message}, nil
 	case HealthStatusDegraded:
-		return &HealthStatus{Status: HealthStatusDegraded, Message: app.Status.Health.Message}, nil
+		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: app.Status.Health.Message}, nil
 	case HealthStatusMissing:
-		return &HealthStatus{Status: HealthStatusMissing, Message: app.Status.Health.Message}, nil
+		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusMissing, Message: app.Status.Health.Message}, nil
 	case HealthStatusUnknown:
-		return &HealthStatus{Status: HealthStatusUnknown, Message: app.Status.Health.Message}, nil
+		return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: app.Status.Health.Message}, nil
 	}
-	return &HealthStatus{Status: HealthStatusUnknown, Message: app.Status.Health.Message}, nil
+
+	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: app.Status.Health.Message}, nil
 }

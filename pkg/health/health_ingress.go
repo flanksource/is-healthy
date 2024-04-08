@@ -11,10 +11,13 @@ func getIngressHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	if err != nil {
 		return &HealthStatus{Status: HealthStatusError, Message: fmt.Sprintf("failed to ingress status: %v", err)}, nil
 	} else if !found {
-		return &HealthStatus{Status: HealthStatusPending, Message: "ingress loadbalancer status not found"}, nil
+		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusPending, Message: "ingress loadbalancer status not found"}, nil
 	}
 
-	health := HealthStatus{}
+	health := HealthStatus{
+		// Ready:  false, // not possible to decide this from the information available
+		Health: HealthHealthy,
+	}
 	if len(ingresses) > 0 {
 		health.Status = HealthStatusHealthy
 	} else {

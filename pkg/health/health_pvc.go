@@ -24,16 +24,20 @@ func getPVCHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getCorev1PVCHealth(pvc *corev1.PersistentVolumeClaim) (*HealthStatus, error) {
-	var status HealthStatusCode
+	health := HealthStatus{Health: HealthHealthy}
 	switch pvc.Status.Phase {
 	case corev1.ClaimLost:
-		status = HealthStatusDegraded
+		health.Health = HealthUnhealthy
+		health.Status = HealthStatusDegraded
 	case corev1.ClaimPending:
-		status = HealthStatusProgressing
+		health.Status = HealthStatusProgressing
 	case corev1.ClaimBound:
-		status = HealthStatusHealthy
+		health.Ready = true
+		health.Status = HealthStatusHealthy
 	default:
-		status = HealthStatusUnknown
+		health.Health = HealthUnknown
+		health.Status = HealthStatusUnknown
 	}
-	return &HealthStatus{Status: status}, nil
+
+	return &health, nil
 }

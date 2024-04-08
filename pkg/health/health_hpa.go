@@ -14,6 +14,7 @@ import (
 
 var (
 	progressingStatus = &HealthStatus{
+		Health:  HealthHealthy,
 		Status:  HealthStatusProgressing,
 		Message: "Waiting to Autoscale",
 	}
@@ -133,6 +134,7 @@ func checkConditions(conditions []hpaCondition, progressingStatus *HealthStatus)
 	for _, condition := range conditions {
 		if isDegraded(&condition) {
 			return &HealthStatus{
+				Health:  HealthUnhealthy,
 				Status:  HealthStatusDegraded,
 				Message: condition.Message,
 			}, nil
@@ -140,6 +142,7 @@ func checkConditions(conditions []hpaCondition, progressingStatus *HealthStatus)
 
 		if isHealthy(&condition) {
 			return &HealthStatus{
+				Health:  HealthHealthy,
 				Status:  HealthStatusHealthy,
 				Message: condition.Message,
 			}, nil
