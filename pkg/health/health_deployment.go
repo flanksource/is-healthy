@@ -30,38 +30,50 @@ func getAppsv1DeploymentHealth(deployment *appsv1.Deployment) (*HealthStatus, er
 			Message: "Deployment is paused",
 		}, nil
 	}
+
 	// Borrowed at kubernetes/kubectl/rollout_status.go https://github.com/kubernetes/kubernetes/blob/5232ad4a00ec93942d0b2c6359ee6cd1201b46bc/pkg/kubectl/rollout_status.go#L80
 	if deployment.Generation <= deployment.Status.ObservedGeneration {
 		cond := getAppsv1DeploymentCondition(deployment.Status, appsv1.DeploymentProgressing)
 		if cond != nil && cond.Reason == "ProgressDeadlineExceeded" {
 			return &HealthStatus{
+				Health:  HealthWarning,
 				Status:  HealthStatusDegraded,
 				Message: fmt.Sprintf("Deployment %q exceeded its progress deadline", deployment.Name),
 			}, nil
 		} else if deployment.Spec.Replicas != nil && deployment.Status.UpdatedReplicas < *deployment.Spec.Replicas {
 			return &HealthStatus{
-				Status:  HealthStatusProgressing,
+				Ready:   *deployment.Spec.Replicas != 0,
+				Health:  HealthHealthy,
 				Message: fmt.Sprintf("Waiting for rollout to finish: %d out of %d new replicas have been updated...", deployment.Status.UpdatedReplicas, *deployment.Spec.Replicas),
+				Status:  HealthStatusProgressing,
 			}, nil
 		} else if deployment.Status.Replicas > deployment.Status.UpdatedReplicas {
 			return &HealthStatus{
+				Ready:   *deployment.Spec.Replicas != 0,
 				Status:  HealthStatusProgressing,
+				Health:  HealthHealthy,
 				Message: fmt.Sprintf("Waiting for rollout to finish: %d old replicas are pending termination...", deployment.Status.Replicas-deployment.Status.UpdatedReplicas),
 			}, nil
 		} else if deployment.Status.AvailableReplicas < deployment.Status.UpdatedReplicas {
 			return &HealthStatus{
+				Ready:   *deployment.Spec.Replicas != 0,
 				Status:  HealthStatusProgressing,
+				Health:  HealthHealthy,
 				Message: fmt.Sprintf("Waiting for rollout to finish: %d of %d updated replicas are available...", deployment.Status.AvailableReplicas, deployment.Status.UpdatedReplicas),
 			}, nil
 		}
 	} else {
 		return &HealthStatus{
+			Ready:   *deployment.Spec.Replicas != 0,
 			Status:  HealthStatusProgressing,
+			Health:  HealthHealthy,
 			Message: "Waiting for rollout to finish: observed deployment generation less than desired generation",
 		}, nil
 	}
 
 	return &HealthStatus{
+		Ready:  *deployment.Spec.Replicas != 0,
+		Health: HealthHealthy,
 		Status: HealthStatusHealthy,
 	}, nil
 }

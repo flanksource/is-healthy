@@ -5,6 +5,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+type Health string
+
+const (
+	HealthHealthy   Health = "Healthy"
+	HealthUnhealthy Health = "Unhealthy"
+	HealthWarning   Health = "Warning"
+)
+
 // Represents resource health status
 type HealthStatusCode string
 

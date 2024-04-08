@@ -27,6 +27,8 @@ const (
 )
 
 type HealthStatus struct {
+	Ready  bool   `json:"ready"`
+	Health Health `json:"health"`
 	// Status holds the status code of the application or resource
 	Status HealthStatusCode `json:"status,omitempty" protobuf:"bytes,1,opt,name=status"`
 	// Message is a human-readable informational message describing the health status
