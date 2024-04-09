@@ -8,9 +8,10 @@ import (
 type Health string
 
 const (
-	HealthHealthy   Health = "Healthy"
-	HealthUnhealthy Health = "Unhealthy"
-	HealthWarning   Health = "Warning"
+	HealthHealthy   Health = "healthy"
+	HealthUnhealthy Health = "unhealthy"
+	HealthUnknown   Health = "unknown"
+	HealthWarning   Health = "warning"
 )
 
 // Represents resource health status
@@ -163,13 +164,6 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 		case "HelmRepository", "GitRepository":
 			return getFluxRepositoryHealth
 		}
-
-	// case "apiregistration.k8s.io":
-	// 	switch gvk.Kind {
-	// 	case APIServiceKind:
-	// 		return getAPIServiceHealth
-	// 	}
-
 	case "networking.k8s.io":
 		switch gvk.Kind {
 		case IngressKind:

@@ -47,29 +47,30 @@ func getFluxKustomizationHealth(obj *unstructured.Unstructured) (*HealthStatus, 
 		msg := fmt.Sprintf("%s: %s", c.Reason, c.Message)
 		if c.Type == fluxHealthy {
 			if c.Status == v1.ConditionTrue {
-				return &HealthStatus{Status: HealthStatusHealthy, Message: msg}, nil
+				return &HealthStatus{Health: HealthHealthy, Status: HealthStatusHealthy, Message: msg}, nil
 			} else {
-				return &HealthStatus{Status: HealthStatusDegraded, Message: msg}, nil
+				return &HealthStatus{Health: HealthHealthy, Status: HealthStatusDegraded, Message: msg}, nil
 			}
 		}
 
 		if c.Type == fluxReady {
 			if c.Status == v1.ConditionTrue {
-				return &HealthStatus{Status: HealthStatusHealthy, Message: msg}, nil
+				return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusHealthy, Message: msg}, nil
 			} else {
-				return &HealthStatus{Status: HealthStatusDegraded, Message: msg}, nil
+				return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: msg}, nil
 			}
 		}
 		// All conditions apart from Healthy/Ready should be false
 		if c.Status == v1.ConditionTrue {
 			return &HealthStatus{
+				Health:  HealthUnhealthy,
 				Status:  HealthStatusDegraded,
 				Message: msg,
 			}, nil
 		}
 	}
 
-	return &HealthStatus{Status: HealthStatusUnknown, Message: ""}, nil
+	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: ""}, nil
 }
 
 type helmStatusType string
@@ -109,29 +110,30 @@ func getFluxHelmReleaseHealth(obj *unstructured.Unstructured) (*HealthStatus, er
 		msg := fmt.Sprintf("%s: %s", c.Reason, c.Message)
 		if c.Type == helmReleased {
 			if c.Status == v1.ConditionTrue {
-				return &HealthStatus{Status: HealthStatusHealthy, Message: msg}, nil
+				return &HealthStatus{Health: HealthHealthy, Status: HealthStatusHealthy, Message: msg}, nil
 			} else {
-				return &HealthStatus{Status: HealthStatusDegraded, Message: msg}, nil
+				return &HealthStatus{Health: HealthHealthy, Status: HealthStatusDegraded, Message: msg}, nil
 			}
 		}
 
 		if c.Type == helmReady {
 			if c.Status == v1.ConditionTrue {
-				return &HealthStatus{Status: HealthStatusHealthy, Message: msg}, nil
+				return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusHealthy, Message: msg}, nil
 			} else {
-				return &HealthStatus{Status: HealthStatusDegraded, Message: msg}, nil
+				return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: msg}, nil
 			}
 		}
 		// All conditions apart from Healthy/Ready should be false
 		if c.Status == v1.ConditionTrue {
 			return &HealthStatus{
+				Health:  HealthUnhealthy,
 				Status:  HealthStatusDegraded,
 				Message: msg,
 			}, nil
 		}
 	}
 
-	return &HealthStatus{Status: HealthStatusUnknown, Message: ""}, nil
+	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: ""}, nil
 }
 
 type fluxRepoStatusType string
@@ -174,19 +176,21 @@ func getFluxRepositoryHealth(obj *unstructured.Unstructured) (*HealthStatus, err
 		msg := fmt.Sprintf("%s: %s", c.Reason, c.Message)
 		if c.Type == fluxRepoReady {
 			if c.Status == v1.ConditionTrue {
-				return &HealthStatus{Status: HealthStatusHealthy, Message: msg}, nil
+				return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusHealthy, Message: msg}, nil
 			} else {
-				return &HealthStatus{Status: HealthStatusDegraded, Message: msg}, nil
+				return &HealthStatus{Health: HealthHealthy, Status: HealthStatusDegraded, Message: msg}, nil
 			}
 		}
 
 		// All conditions apart from Healthy/Ready should be false
 		if c.Status == v1.ConditionTrue {
 			return &HealthStatus{
+				Health:  HealthUnhealthy,
 				Status:  HealthStatusDegraded,
 				Message: msg,
 			}, nil
 		}
 	}
-	return &HealthStatus{Status: HealthStatusUnknown, Message: ""}, nil
+
+	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: ""}, nil
 }

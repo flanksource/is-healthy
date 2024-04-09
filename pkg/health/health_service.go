@@ -24,7 +24,7 @@ func getServiceHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getCorev1ServiceHealth(service *corev1.Service) (*HealthStatus, error) {
-	health := HealthStatus{Status: HealthStatusHealthy}
+	health := HealthStatus{Health: HealthHealthy, Status: HealthStatusHealthy}
 	if service.Spec.Type == corev1.ServiceTypeLoadBalancer {
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
 			health.Status = HealthStatusHealthy
