@@ -33,12 +33,14 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	// completed.
 	if pod.Spec.RestartPolicy == corev1.RestartPolicyAlways {
 		var status HealthStatusCode
+		var health Health
 		var messages []string
 
 		for _, containerStatus := range pod.Status.ContainerStatuses {
 			waiting := containerStatus.State.Waiting
 			// Article listing common container errors: https://medium.com/kokster/debugging-crashloopbackoffs-with-init-containers-26f79e9fb5bf
 			if waiting != nil && (strings.HasPrefix(waiting.Reason, "Err") || strings.HasSuffix(waiting.Reason, "Error") || strings.HasSuffix(waiting.Reason, "BackOff")) {
+				health = HealthUnhealthy
 				status = HealthStatusDegraded
 				messages = append(messages, waiting.Message)
 			}
@@ -46,6 +48,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 
 		if status != "" {
 			return &HealthStatus{
+				Health:  health,
 				Status:  status,
 				Message: strings.Join(messages, ", "),
 			}, nil
@@ -70,32 +73,36 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	switch pod.Status.Phase {
 	case corev1.PodPending:
 		return &HealthStatus{
+			Health:  HealthHealthy,
 			Status:  HealthStatusProgressing,
 			Message: pod.Status.Message,
 		}, nil
 	case corev1.PodSucceeded:
 		return &HealthStatus{
+			Health:  HealthHealthy,
 			Status:  HealthStatusHealthy,
 			Message: pod.Status.Message,
 		}, nil
 	case corev1.PodFailed:
 		if pod.Status.Message != "" {
 			// Pod has a nice error message. Use that.
-			return &HealthStatus{Status: HealthStatusDegraded, Message: pod.Status.Message}, nil
+			return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: pod.Status.Message}, nil
 		}
 		for _, ctr := range append(pod.Status.InitContainerStatuses, pod.Status.ContainerStatuses...) {
 			if msg := getFailMessage(&ctr); msg != "" {
-				return &HealthStatus{Status: HealthStatusDegraded, Message: msg}, nil
+				return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: msg}, nil
 			}
 		}
 
-		return &HealthStatus{Status: HealthStatusDegraded, Message: ""}, nil
+		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: ""}, nil
 	case corev1.PodRunning:
 		switch pod.Spec.RestartPolicy {
 		case corev1.RestartPolicyAlways:
 			// if pod is ready, it is automatically healthy
 			if IsPodReady(pod) {
 				return &HealthStatus{
+					Health:  HealthHealthy,
+					Ready:   true,
 					Status:  HealthStatusHealthy,
 					Message: pod.Status.Message,
 				}, nil
@@ -104,6 +111,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 			for _, ctrStatus := range pod.Status.ContainerStatuses {
 				if ctrStatus.LastTerminationState.Terminated != nil {
 					return &HealthStatus{
+						Health:  HealthUnhealthy,
 						Status:  HealthStatusDegraded,
 						Message: pod.Status.Message,
 					}, nil
@@ -111,6 +119,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 			}
 			// otherwise we are progressing towards a ready state
 			return &HealthStatus{
+				Health:  HealthHealthy,
 				Status:  HealthStatusProgressing,
 				Message: pod.Status.Message,
 			}, nil
@@ -119,12 +128,15 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 			// These pods are typically resource hooks. Thus, we consider these as Progressing
 			// instead of healthy.
 			return &HealthStatus{
+				Health:  HealthHealthy,
 				Status:  HealthStatusProgressing,
 				Message: pod.Status.Message,
 			}, nil
 		}
 	}
+
 	return &HealthStatus{
+		Health:  HealthUnknown,
 		Status:  HealthStatusUnknown,
 		Message: pod.Status.Message,
 	}, nil
