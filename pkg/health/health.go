@@ -33,20 +33,33 @@ const (
 	// Indicates that resource is missing in the cluster.
 	HealthStatusMissing HealthStatusCode = "Missing"
 
-	HealthStatusCreating    HealthStatusCode = "Creating"
-	HealthStatusDeleted     HealthStatusCode = "Deleted"
-	HealthStatusDeleting    HealthStatusCode = "Deleting"
-	HealthStatusError       HealthStatusCode = "Error"
-	HealthStatusInaccesible HealthStatusCode = "Inaccesible"
-	HealthStatusInfo        HealthStatusCode = "Info"
-	HealthStatusPending     HealthStatusCode = "Pending"
-	HealthStatusMaintenance HealthStatusCode = "Maintenance"
-	HealthStatusScaling     HealthStatusCode = "Scaling"
-	HealthStatusUnhealthy   HealthStatusCode = "Unhealthy"
-	HealthStatusUpdating    HealthStatusCode = "Updating"
-	HealthStatusWarning     HealthStatusCode = "Warning"
-	HealthStatusStopped     HealthStatusCode = "Stopped"
-	HealthStatusStopping    HealthStatusCode = "Stopping"
+	HealthStatusCompleted        HealthStatusCode = "Completed"
+	HealthStatusCrashLoopBackoff HealthStatusCode = "CrashLoopBackOff"
+	HealthStatusCreating         HealthStatusCode = "Creating"
+	HealthStatusDeleted          HealthStatusCode = "Deleted"
+	HealthStatusDeleting         HealthStatusCode = "Deleting"
+	HealthStatusError            HealthStatusCode = "Error"
+	HealthStatusRolloutFailed    HealthStatusCode = "Rollout Failed"
+	HealthStatusInaccesible      HealthStatusCode = "Inaccesible"
+	HealthStatusInfo             HealthStatusCode = "Info"
+	HealthStatusPending          HealthStatusCode = "Pending"
+	HealthStatusMaintenance      HealthStatusCode = "Maintenance"
+	HealthStatusScaling          HealthStatusCode = "Scaling"
+	HealthStatusRestart          HealthStatusCode = "Restarting"
+	HealthStatusStarting         HealthStatusCode = "Starting"
+
+	HealthStatusScalingUp    HealthStatusCode = "Scaling Up"
+	HealthStatusScaledToZero HealthStatusCode = "Scaled to Zero"
+	HealthStatusScalingDown  HealthStatusCode = "Scaling Down"
+	HealthStatusRunning      HealthStatusCode = "Running"
+
+	HealthStatusRollingOut HealthStatusCode = "Rolling Out"
+
+	HealthStatusUnhealthy HealthStatusCode = "Unhealthy"
+	HealthStatusUpdating  HealthStatusCode = "Updating"
+	HealthStatusWarning   HealthStatusCode = "Warning"
+	HealthStatusStopped   HealthStatusCode = "Stopped"
+	HealthStatusStopping  HealthStatusCode = "Stopping"
 )
 
 // Implements custom health assessment that overrides built-in assessment
@@ -81,11 +94,15 @@ func IsWorse(current, new HealthStatusCode) bool {
 
 // GetResourceHealth returns the health of a k8s resource
 func GetResourceHealth(obj *unstructured.Unstructured, healthOverride HealthOverride) (health *HealthStatus, err error) {
-	if obj.GetDeletionTimestamp() != nil {
-		return &HealthStatus{
-			Status:  HealthStatusProgressing,
-			Message: "Pending deletion",
-		}, nil
+	if healthCheck := GetHealthCheckFunc(obj.GroupVersionKind()); healthCheck != nil {
+		if health, err = healthCheck(obj); err != nil {
+			health = &HealthStatus{
+				Status:  HealthStatusUnknown,
+				Message: err.Error(),
+			}
+		} else {
+			return health, nil
+		}
 	}
 
 	if healthOverride != nil {
@@ -102,18 +119,16 @@ func GetResourceHealth(obj *unstructured.Unstructured, healthOverride HealthOver
 		}
 	}
 
-	if healthCheck := GetHealthCheckFunc(obj.GroupVersionKind()); healthCheck != nil {
-		if health, err = healthCheck(obj); err != nil {
-			health = &HealthStatus{
-				Status:  HealthStatusUnknown,
-				Message: err.Error(),
-			}
-		}
+	if obj.GetDeletionTimestamp() != nil {
+		return &HealthStatus{
+			Status: HealthStatusDeleting,
+		}, nil
 	}
 
 	if health == nil {
 		return &HealthStatus{
 			Status: HealthStatusUnknown,
+			Ready:  true,
 		}, nil
 	}
 	return health, err
@@ -149,21 +164,10 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 		case "Application":
 			return getArgoApplicationHealth
 		}
-	case "kustomize.toolkit.fluxcd.io":
-		switch gvk.Kind {
-		case "Kustomization":
-			return getFluxKustomizationHealth
-		}
-	case "helm.toolkit.fluxcd.io":
-		switch gvk.Kind {
-		case "HelmRelease":
-			return getFluxHelmReleaseHealth
-		}
-	case "source.toolkit.fluxcd.io":
-		switch gvk.Kind {
-		case "HelmRepository", "GitRepository":
-			return getFluxRepositoryHealth
-		}
+	case "kustomize.toolkit.fluxcd.io", "helm.toolkit.fluxcd.io", "source.toolkit.fluxcd.io":
+		return GetDefaultHealth
+	case "cert-manager.io":
+		return GetDefaultHealth
 	case "networking.k8s.io":
 		switch gvk.Kind {
 		case IngressKind:
@@ -184,6 +188,8 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 		switch gvk.Kind {
 		case JobKind:
 			return getJobHealth
+		case CronJobKind:
+			return getCronJobHealth
 		}
 	case "autoscaling":
 		switch gvk.Kind {

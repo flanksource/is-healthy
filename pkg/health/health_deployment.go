@@ -17,73 +17,68 @@ func getDeploymentHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert unstructured Deployment to typed: %v", err)
 		}
-		return getAppsv1DeploymentHealth(&deployment)
+		return getAppsv1DeploymentHealth(&deployment, obj)
 	default:
 		return nil, fmt.Errorf("unsupported Deployment GVK: %s", gvk)
 	}
 }
 
-func getAppsv1DeploymentHealth(deployment *appsv1.Deployment) (*HealthStatus, error) {
-	if deployment.Spec.Paused {
+func getAppsv1DeploymentHealth(deployment *appsv1.Deployment, obj *unstructured.Unstructured) (*HealthStatus, error) {
+	status, err := GetDefaultHealth(obj)
+	if err != nil {
+		return status, err
+	}
+
+	replicas := int32(0)
+
+	if deployment.Spec.Replicas != nil {
+		replicas = *deployment.Spec.Replicas
+	}
+
+	if replicas == 0 && deployment.Status.Replicas == 0 {
 		return &HealthStatus{
-			Status:  HealthStatusSuspended,
-			Message: "Deployment is paused",
+			Ready:  true,
+			Status: HealthStatusScaledToZero,
+			Health: HealthUnknown,
 		}, nil
 	}
 
-	// Borrowed at kubernetes/kubectl/rollout_status.go https://github.com/kubernetes/kubernetes/blob/5232ad4a00ec93942d0b2c6359ee6cd1201b46bc/pkg/kubectl/rollout_status.go#L80
-	if deployment.Generation <= deployment.Status.ObservedGeneration {
-		cond := getAppsv1DeploymentCondition(deployment.Status, appsv1.DeploymentProgressing)
-		if cond != nil && cond.Reason == "ProgressDeadlineExceeded" {
-			return &HealthStatus{
-				Health:  HealthWarning,
-				Status:  HealthStatusDegraded,
-				Message: fmt.Sprintf("Deployment %q exceeded its progress deadline", deployment.Name),
-			}, nil
-		} else if deployment.Spec.Replicas != nil && deployment.Status.UpdatedReplicas < *deployment.Spec.Replicas {
-			return &HealthStatus{
-				Ready:   *deployment.Spec.Replicas != 0,
-				Health:  HealthHealthy,
-				Message: fmt.Sprintf("Waiting for rollout to finish: %d out of %d new replicas have been updated...", deployment.Status.UpdatedReplicas, *deployment.Spec.Replicas),
-				Status:  HealthStatusProgressing,
-			}, nil
-		} else if deployment.Status.Replicas > deployment.Status.UpdatedReplicas {
-			return &HealthStatus{
-				Ready:   *deployment.Spec.Replicas != 0,
-				Status:  HealthStatusProgressing,
-				Health:  HealthHealthy,
-				Message: fmt.Sprintf("Waiting for rollout to finish: %d old replicas are pending termination...", deployment.Status.Replicas-deployment.Status.UpdatedReplicas),
-			}, nil
-		} else if deployment.Status.AvailableReplicas < deployment.Status.UpdatedReplicas {
-			return &HealthStatus{
-				Ready:   *deployment.Spec.Replicas != 0,
-				Status:  HealthStatusProgressing,
-				Health:  HealthHealthy,
-				Message: fmt.Sprintf("Waiting for rollout to finish: %d of %d updated replicas are available...", deployment.Status.AvailableReplicas, deployment.Status.UpdatedReplicas),
-			}, nil
-		}
+	if deployment.Status.ReadyReplicas == replicas {
+		status.PreppendMessage("%d pods ready", deployment.Status.ReadyReplicas)
 	} else {
-		return &HealthStatus{
-			Ready:   *deployment.Spec.Replicas != 0,
-			Status:  HealthStatusProgressing,
-			Health:  HealthHealthy,
-			Message: "Waiting for rollout to finish: observed deployment generation less than desired generation",
-		}, nil
+		status.PreppendMessage("%d of %d pods ready", deployment.Status.ReadyReplicas, replicas)
 	}
 
-	return &HealthStatus{
-		Ready:  *deployment.Spec.Replicas != 0,
-		Health: HealthHealthy,
-		Status: HealthStatusHealthy,
-	}, nil
-}
+	if deployment.Spec.Paused {
+		status.Ready = false
+		status.Status = HealthStatusSuspended
+		return status, err
+	}
 
-func getAppsv1DeploymentCondition(status appsv1.DeploymentStatus, condType appsv1.DeploymentConditionType) *appsv1.DeploymentCondition {
-	for i := range status.Conditions {
-		c := status.Conditions[i]
-		if c.Type == condType {
-			return &c
+	if deployment.Status.ReadyReplicas > 0 {
+		status.Status = HealthStatusRunning
+	}
+
+	if status.Health == HealthUnhealthy {
+		return status, nil
+	}
+
+	if deployment.Status.ReadyReplicas < replicas {
+		status.AppendMessage("%d starting", deployment.Status.Replicas-deployment.Status.ReadyReplicas)
+		if deployment.Status.Replicas < replicas {
+			status.AppendMessage("%d creating", replicas-deployment.Status.Replicas)
 		}
+		status.Ready = false
+		status.Status = HealthStatusStarting
+	} else if deployment.Status.UpdatedReplicas < replicas {
+		status.AppendMessage("%d updating", replicas-deployment.Status.UpdatedReplicas)
+		status.Ready = false
+		status.Status = HealthStatusRollingOut
+	} else if deployment.Status.Replicas > replicas {
+		status.AppendMessage("%d pods terminating", deployment.Status.Replicas-replicas)
+		status.Ready = false
+		status.Status = HealthStatusScalingDown
 	}
-	return nil
+
+	return status, nil
 }

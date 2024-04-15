@@ -1,0 +1,176 @@
+Issuer:
+  conditions:
+    Ready:
+      ready: true
+      health: healthy
+ClusterIssuer:
+  conditions:
+    Ready:
+      ready: true
+      health: healthy
+Certificate:
+  conditions:
+    Ready:
+      ready: true
+      health: healthy
+      status: Issued
+      onFalse:
+        status: Issuing
+        health: unknown
+      reasons:
+        ConfigError:
+          ready: true
+          health: unhealthy
+
+CertificateRequest:
+  conditions:
+    InvalidRequest:
+      ready: true
+      health: unhealthy
+      message: true
+    Denied:
+      ready: true
+      health: unhealthy
+      message: true
+    Ready:
+      ready: true
+      health: healthy
+      reasons:
+        Pending:
+          status: Issuing
+        Failed:
+          ready: true
+
+  status:
+    acme:
+      order:
+        url: https://acme-v02.api.letsencrypt.org/acme/order/45250083/316944902
+    conditions:
+      - lastTransitionTime: "2019-02-15T18:21:10Z"
+        message: Order validated
+        reason: OrderValidated
+        status: "False"
+        type: ValidateFailed
+      - lastTransitionTime: null
+        message: Certificate issued successfully
+        reason: CertIssued
+        status: "True"
+        type: Ready
+
+Deployment:
+  conditions:
+    ReplicaFailure:
+      health: unhealthy
+      notReady: true
+      message: true
+    Progressing:
+      ready: true
+      status: Running
+      onFalse:
+        status: Rolling Out
+      reasons:
+        ProgressDeadlineExceeded:
+          health: unhealthy
+          notReady: true
+          status: Rollout Failed
+          order: 1
+          message: true
+    Available:
+      health: healthy
+      onFalse:
+        health: unhealthy
+        message: true
+
+Kustomization:
+  conditions:
+    Ready:
+      ready: true
+      message: true
+      reasons:
+        Progressing:
+          status: Progressing
+          health: unknown
+        BuildFailed:
+          health: unhealthy
+        FetchFailed:
+          health: warning
+        StorageOperationFailed:
+          health: unhealthy
+        ArtifactOutdated:
+          health: warning
+        DependencyNotReady:
+          health: warning
+    Healthy:
+      health: healthy
+      onFalse:
+        message: true
+        health: warning
+
+#helm.toolkit.fluxcd.io
+HelmRelease: &flux
+  conditions:
+    Remediated:
+      health: warning
+      message: true
+    TestSuccess:
+      health: true
+      order: 2
+    Ready:
+      ready: true
+      health: healthy
+      message: true
+      onUnknown:
+        status: Reconciling
+        nonReady: true
+
+    Reconciling:
+      status: Reconciling
+      reasons:
+        ProgressingWithRetry:
+          health: warning
+          order: 1
+
+HelmRepository: &flux
+  conditions:
+    Reconciling:
+      status: Reconciling
+      reasons:
+        ProgressingWithRetry:
+          health: warning
+          order: 2
+    ArtifactOutdated:
+      order: 1
+      status: Updating
+      nonReady: true
+    Ready:
+      ready: true
+      health: healthy
+      onFalse:
+        order: 3
+        health: unhealthy
+        message: true
+    Stalled:
+      order: 2
+      healthy: unhealthy
+      nonReady: true
+    IncludeUnavailable:
+      health: unhealthy
+    FetchFailed:
+      health: unhealthy
+    StorageOperationFailed:
+      health: unhealthy
+    SourceVerified:
+      onFalse:
+        health: warning
+        message: true
+        order: -1
+
+#source.toolkit.fluxcd.io:
+GitRepository: *flux
+HelmChart: *flux
+OCIRepository: *flux
+source.toolkit.fluxcd.io/v1beta2/Bucket: *flux
+source.toolkit.fluxcd.io/v1beta1/Bucket: *flux
+image.toolkit.fluxcd.io/v1beta2/ImagePolicy: *flux
+image.toolkit.fluxcd.io/v1beta2/ImageRepository: *flux
+image.toolkit.fluxcd.io/v1beta2/ImageUpdateAutomation: *flux
