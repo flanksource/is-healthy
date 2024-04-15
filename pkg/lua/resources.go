@@ -2,7 +2,6 @@ package lua
 
 import (
 	"encoding/json"
-	"regexp"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -119,46 +118,6 @@ type ResourceActionParam struct {
 	Value   string `json:"value,omitempty" protobuf:"bytes,2,opt,name=value"`
 	Type    string `json:"type,omitempty" protobuf:"bytes,3,opt,name=type"`
 	Default string `json:"default,omitempty" protobuf:"bytes,4,opt,name=default"`
-}
-
-// TODO: refactor to use rbacpolicy.ActionGet, rbacpolicy.ActionCreate, without import cycle
-var validActions = map[string]bool{
-	"get":      true,
-	"create":   true,
-	"update":   true,
-	"delete":   true,
-	"sync":     true,
-	"override": true,
-	"*":        true,
-}
-
-var validActionPatterns = []*regexp.Regexp{
-	regexp.MustCompile("action/.*"),
-}
-
-func isValidAction(action string) bool {
-	if validActions[action] {
-		return true
-	}
-	for i := range validActionPatterns {
-		if validActionPatterns[i].MatchString(action) {
-			return true
-		}
-	}
-	return false
-}
-
-// TODO: same as validActions, refacotor to use rbacpolicy.ResourceApplications etc.
-var validResources = map[string]bool{
-	"applications": true,
-	"repositories": true,
-	"clusters":     true,
-	"exec":         true,
-	"logs":         true,
-}
-
-func isValidResource(resource string) bool {
-	return validResources[resource]
 }
 
 // UnmarshalToUnstructured unmarshals a resource representation in JSON to unstructured data

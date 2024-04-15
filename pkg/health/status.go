@@ -82,19 +82,19 @@ func GetGenericStatus(obj *unstructured.Unstructured) GenericStatus {
 
 type OnCondition struct {
 	// When 2 conditions are true, which one takes precedence from a status/message perspective
-	Order int `yaml:"order:onempty" json:"order,omitempty"`
+	Order int `yaml:"order:omitempty" json:"order,omitempty"`
 	// If the condition matches, mark ready
-	Ready bool `yaml:"ready" yaml:"ready,omitempty"`
+	Ready bool `json:"ready" yaml:"ready"`
 
 	// If the condition matches, mark not ready
-	NotReady bool `yaml:"notReady" yaml:"notRead,omitempty"`
+	NotReady bool `json:"notReady" yaml:"notReady,omitempty"`
 
 	// If the condition is true, use the conditions message
-	Message bool   `yaml:"message" yaml:"message,omitempty"`
-	Health  Health `yaml:"health,omitempty" yaml:"health,omitempty"`
+	Message bool   `json:"message" yaml:"message"`
+	Health  Health `json:"health,omitempty" yaml:"health,omitempty"`
 	// Health to set if the condition is false
 
-	Status HealthStatusCode `yaml:"status,omitempty" yaml:"status,omitempty"`
+	Status HealthStatusCode `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 func (mapped *OnCondition) Apply(health *HealthStatus, c *metav1.Condition) {

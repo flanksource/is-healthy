@@ -36,7 +36,7 @@ type HealthStatus struct {
 	// Message is a human-readable informational message describing the health status
 	Message string `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
 
-	order int `json:"-", yaml:"-"`
+	order int `json:"-" yaml:"-"`
 }
 
 func (hs *HealthStatus) AppendMessage(msg string, args ...interface{}) {

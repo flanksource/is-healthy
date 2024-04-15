@@ -432,14 +432,6 @@ func (vm VM) getPredefinedLuaScripts(objKey string, scriptFile string) (string, 
 	return string(data), nil
 }
 
-func isValidHealthStatusCode(statusCode health.HealthStatusCode) bool {
-	switch statusCode {
-	case health.HealthStatusUnknown, health.HealthStatusProgressing, health.HealthStatusSuspended, health.HealthStatusHealthy, health.HealthStatusDegraded, health.HealthStatusMissing:
-		return true
-	}
-	return false
-}
-
 // Took logic from the link below and added the int, int32, and int64 types since the value would have type int64
 // while actually running in the controller and it was not reproducible through testing.
 // https://github.com/layeh/gopher-json/blob/97fed8db84274c421dbfffbb28ec859901556b97/json.go#L154
