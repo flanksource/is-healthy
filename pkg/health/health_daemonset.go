@@ -24,40 +24,50 @@ func getDaemonSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getAppsv1DaemonSetHealth(daemon *appsv1.DaemonSet) (*HealthStatus, error) {
-	// Borrowed at kubernetes/kubectl/rollout_status.go https://github.com/kubernetes/kubernetes/blob/5232ad4a00ec93942d0b2c6359ee6cd1201b46bc/pkg/kubectl/rollout_status.go#L110
-	if daemon.Generation <= daemon.Status.ObservedGeneration {
-		if daemon.Spec.UpdateStrategy.Type == appsv1.OnDeleteDaemonSetStrategyType {
-			return &HealthStatus{
-				Health:  HealthHealthy,
-				Ready:   daemon.Status.NumberAvailable != 0,
-				Status:  HealthStatusHealthy,
-				Message: fmt.Sprintf("daemon set %d out of %d new pods have been updated", daemon.Status.UpdatedNumberScheduled, daemon.Status.DesiredNumberScheduled),
-			}, nil
-		}
-		if daemon.Status.UpdatedNumberScheduled < daemon.Status.DesiredNumberScheduled {
-			return &HealthStatus{
-				Health:  HealthHealthy,
-				Ready:   daemon.Status.NumberAvailable != 0,
-				Status:  HealthStatusProgressing,
-				Message: fmt.Sprintf("Waiting for daemon set %q rollout to finish: %d out of %d new pods have been updated...", daemon.Name, daemon.Status.UpdatedNumberScheduled, daemon.Status.DesiredNumberScheduled),
-			}, nil
-		}
-		if daemon.Status.NumberAvailable < daemon.Status.DesiredNumberScheduled {
-			return &HealthStatus{
-				Health:  HealthHealthy,
-				Ready:   daemon.Status.NumberAvailable != 0,
-				Status:  HealthStatusProgressing,
-				Message: fmt.Sprintf("Waiting for daemon set %q rollout to finish: %d of %d updated pods are available...", daemon.Name, daemon.Status.NumberAvailable, daemon.Status.DesiredNumberScheduled),
-			}, nil
-		}
-	} else {
+
+	health := HealthUnknown
+
+	if daemon.Status.NumberAvailable == daemon.Status.DesiredNumberScheduled {
+		health = HealthHealthy
+	} else if daemon.Status.NumberAvailable > 0 {
+		health = HealthWarning
+	} else if daemon.Status.NumberAvailable == 0 {
+		health = HealthUnhealthy
+	}
+
+	if daemon.Generation == daemon.Status.ObservedGeneration && daemon.Status.UpdatedNumberScheduled == daemon.Status.DesiredNumberScheduled {
 		return &HealthStatus{
-			Health:  HealthUnhealthy,
-			Status:  HealthStatusProgressing,
-			Message: "Waiting for rollout to finish: observed daemon set generation less than desired generation",
+			Health: HealthHealthy,
+			Ready:  true,
+			Status: HealthStatusRunning,
 		}, nil
 	}
+
+	if daemon.Spec.UpdateStrategy.Type == appsv1.OnDeleteDaemonSetStrategyType {
+		return &HealthStatus{
+			Health:  health,
+			Ready:   daemon.Status.NumberAvailable == daemon.Status.DesiredNumberScheduled,
+			Status:  HealthStatusRunning,
+			Message: fmt.Sprintf("%d of %d pods updated", daemon.Status.UpdatedNumberScheduled, daemon.Status.DesiredNumberScheduled),
+		}, nil
+	}
+	if daemon.Status.UpdatedNumberScheduled < daemon.Status.DesiredNumberScheduled {
+		return &HealthStatus{
+			Health:  health,
+			Status:  HealthStatusRollingOut,
+			Message: fmt.Sprintf("%d of %d pods updated", daemon.Status.UpdatedNumberScheduled, daemon.Status.DesiredNumberScheduled),
+		}, nil
+	}
+	if daemon.Status.NumberAvailable < daemon.Status.DesiredNumberScheduled {
+		return &HealthStatus{
+			Health:  health,
+			Status:  HealthStatusRollingOut,
+			Message: fmt.Sprintf("%d of %d pods ready", daemon.Status.NumberAvailable, daemon.Status.DesiredNumberScheduled),
+		}, nil
+	}
+
 	return &HealthStatus{
-		Status: HealthStatusHealthy,
+		Status: HealthStatusRunning,
+		Health: health,
 	}, nil
 }

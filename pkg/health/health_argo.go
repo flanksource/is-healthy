@@ -45,34 +45,37 @@ func GetArgoWorkflowHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: wf.Status.Message}, nil
 }
 
-// An agnostic workflow object only considers Status.Phase and Status.Message. It is agnostic to the API version or any
-// other fields.
-type argoApplication struct {
-	Status struct {
-		Health HealthStatus
-	}
-}
+const (
+	SyncStatusCodeSynced = "Synced"
+)
 
 func getArgoApplicationHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
-	var app argoApplication
-	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &app); err != nil {
-		return nil, err
+	hs := &HealthStatus{Health: HealthUnknown}
+	var status map[string]interface{}
+
+	status, ok := obj.Object["status"].(map[string]interface{})
+	if !ok {
+		return hs, nil
 	}
 
-	switch app.Status.Health.Status {
-	case HealthStatusProgressing:
-		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusProgressing, Message: app.Status.Health.Message}, nil
-	case HealthStatusHealthy:
-		return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusHealthy, Message: app.Status.Health.Message}, nil
-	case HealthStatusSuspended:
-		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusSuspended, Message: app.Status.Health.Message}, nil
-	case HealthStatusDegraded:
-		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: app.Status.Health.Message}, nil
-	case HealthStatusMissing:
-		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusMissing, Message: app.Status.Health.Message}, nil
-	case HealthStatusUnknown:
-		return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: app.Status.Health.Message}, nil
+	if sync, ok := status["sync"].(map[string]interface{}); ok {
+		hs.Ready = sync["status"] == SyncStatusCodeSynced
 	}
-
-	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: app.Status.Health.Message}, nil
+	if health, ok := status["health"].(map[string]interface{}); ok {
+		if message, ok := health["message"]; ok {
+			hs.Message = message.(string)
+		}
+		if argoHealth, ok := health["status"]; ok {
+			hs.Status = HealthStatusCode(argoHealth.(string))
+			switch hs.Status {
+			case HealthStatusHealthy:
+				hs.Health = HealthHealthy
+			case HealthStatusDegraded:
+				hs.Health = HealthUnhealthy
+			case HealthStatusUnknown, HealthStatusMissing, HealthStatusProgressing, HealthStatusSuspended:
+				hs.Health = HealthUnknown
+			}
+		}
+	}
+	return hs, nil
 }

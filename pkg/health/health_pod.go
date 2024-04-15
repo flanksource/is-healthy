@@ -25,6 +25,23 @@ func getPodHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
+	isReady := IsPodReady(pod)
+	if pod.ObjectMeta.DeletionTimestamp != nil && !pod.ObjectMeta.DeletionTimestamp.IsZero() {
+		if isReady {
+			return &HealthStatus{
+				Status: HealthStatusDeleting,
+				Ready:  false,
+				Health: HealthHealthy,
+			}, nil
+		} else {
+			return &HealthStatus{
+				Status: HealthStatusDeleting,
+				Ready:  false,
+				Health: HealthUnhealthy,
+			}, nil
+		}
+	}
+
 	// This logic cannot be applied when the pod.Spec.RestartPolicy is: corev1.RestartPolicyOnFailure,
 	// corev1.RestartPolicyNever, otherwise it breaks the resource hook logic.
 	// The issue is, if we mark a pod with ImagePullBackOff as Degraded, and the pod is used as a resource hook,
@@ -41,7 +58,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 			// Article listing common container errors: https://medium.com/kokster/debugging-crashloopbackoffs-with-init-containers-26f79e9fb5bf
 			if waiting != nil && (strings.HasPrefix(waiting.Reason, "Err") || strings.HasSuffix(waiting.Reason, "Error") || strings.HasSuffix(waiting.Reason, "BackOff")) {
 				health = HealthUnhealthy
-				status = HealthStatusDegraded
+				status = HealthStatusCode(waiting.Reason)
 				messages = append(messages, waiting.Message)
 			}
 		}
@@ -73,37 +90,38 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	switch pod.Status.Phase {
 	case corev1.PodPending:
 		return &HealthStatus{
-			Health:  HealthHealthy,
-			Status:  HealthStatusProgressing,
+			Health:  HealthUnknown,
+			Status:  HealthStatusPending,
 			Message: pod.Status.Message,
 		}, nil
 	case corev1.PodSucceeded:
 		return &HealthStatus{
 			Health:  HealthHealthy,
-			Status:  HealthStatusHealthy,
+			Status:  HealthStatusCompleted,
+			Ready:   true,
 			Message: pod.Status.Message,
 		}, nil
 	case corev1.PodFailed:
 		if pod.Status.Message != "" {
 			// Pod has a nice error message. Use that.
-			return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: pod.Status.Message}, nil
+			return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusError, Ready: true, Message: pod.Status.Message}, nil
 		}
 		for _, ctr := range append(pod.Status.InitContainerStatuses, pod.Status.ContainerStatuses...) {
 			if msg := getFailMessage(&ctr); msg != "" {
-				return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: msg}, nil
+				return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusError, Ready: true, Message: msg}, nil
 			}
 		}
 
-		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: ""}, nil
+		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusError, Message: "", Ready: true}, nil
 	case corev1.PodRunning:
 		switch pod.Spec.RestartPolicy {
 		case corev1.RestartPolicyAlways:
 			// if pod is ready, it is automatically healthy
-			if IsPodReady(pod) {
+			if isReady {
 				return &HealthStatus{
 					Health:  HealthHealthy,
 					Ready:   true,
-					Status:  HealthStatusHealthy,
+					Status:  HealthStatusRunning,
 					Message: pod.Status.Message,
 				}, nil
 			}
@@ -112,26 +130,32 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 				if ctrStatus.LastTerminationState.Terminated != nil {
 					return &HealthStatus{
 						Health:  HealthUnhealthy,
-						Status:  HealthStatusDegraded,
-						Message: pod.Status.Message,
+						Ready:   true,
+						Status:  HealthStatusCode(ctrStatus.LastTerminationState.Terminated.Reason),
+						Message: ctrStatus.LastTerminationState.Terminated.Message,
 					}, nil
 				}
 			}
 			// otherwise we are progressing towards a ready state
 			return &HealthStatus{
-				Health:  HealthHealthy,
-				Status:  HealthStatusProgressing,
+				Health:  HealthUnknown,
+				Status:  HealthStatusStarting,
 				Message: pod.Status.Message,
 			}, nil
 		case corev1.RestartPolicyOnFailure, corev1.RestartPolicyNever:
-			// pods set with a restart policy of OnFailure or Never, have a finite life.
-			// These pods are typically resource hooks. Thus, we consider these as Progressing
-			// instead of healthy.
-			return &HealthStatus{
-				Health:  HealthHealthy,
-				Status:  HealthStatusProgressing,
-				Message: pod.Status.Message,
-			}, nil
+
+			if isReady {
+				return &HealthStatus{
+					Health: HealthHealthy,
+					Status: HealthStatusRunning,
+				}, nil
+			} else {
+				return &HealthStatus{
+					Health: HealthUnhealthy,
+					Status: HealthStatusRunning,
+				}, nil
+			}
+
 		}
 	}
 

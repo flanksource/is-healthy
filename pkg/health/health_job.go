@@ -26,56 +26,36 @@ func getJobHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getBatchv1JobHealth(job *batchv1.Job) (*HealthStatus, error) {
-	var (
-		complete    bool
-		failed      bool
-		isSuspended bool
-
-		message string
-		failMsg string
-	)
 
 	for _, condition := range job.Status.Conditions {
 		switch condition.Type {
 		case batchv1.JobFailed:
-			failed = true
-			complete = true
-			failMsg = condition.Message
+			return &HealthStatus{
+				Ready:   true,
+				Health:  HealthUnhealthy,
+				Status:  HealthStatusError,
+				Message: condition.Message,
+			}, nil
 		case batchv1.JobComplete:
-			complete = true
-			message = condition.Message
+			return &HealthStatus{
+				Ready:   true,
+				Status:  HealthStatusCompleted,
+				Health:  HealthHealthy,
+				Message: condition.Message,
+			}, nil
 		case batchv1.JobSuspended:
-			message = condition.Message
 			if condition.Status == corev1.ConditionTrue {
-				isSuspended = true
+				return &HealthStatus{
+					Health:  HealthUnknown,
+					Status:  HealthStatusSuspended,
+					Message: condition.Message,
+				}, nil
 			}
 		}
 	}
 
-	if !complete && !isSuspended {
-		return &HealthStatus{
-			Health:  HealthHealthy,
-			Status:  HealthStatusProgressing,
-			Message: message,
-		}, nil
-	} else if failed {
-		return &HealthStatus{
-			Health:  HealthUnhealthy,
-			Status:  HealthStatusDegraded,
-			Message: failMsg,
-		}, nil
-	} else if isSuspended {
-		return &HealthStatus{
-			Health:  HealthHealthy,
-			Status:  HealthStatusSuspended,
-			Message: failMsg,
-		}, nil
-	} else {
-		return &HealthStatus{
-			Ready:   true,
-			Status:  HealthStatusHealthy,
-			Health:  HealthHealthy,
-			Message: message,
-		}, nil
-	}
+	return &HealthStatus{
+		Health: HealthHealthy,
+		Status: HealthStatusRunning,
+	}, nil
 }

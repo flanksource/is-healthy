@@ -73,11 +73,11 @@ var awsStatusMap = map[string]map[string]HealthStatusCode{
 		"maintenance":                                     HealthStatusMaintenance,
 		"modifying":                                       HealthStatusUpdating,
 		"moving-to-vpc":                                   HealthStatusMaintenance,
-		"rebooting":                                       HealthStatusStopping,
+		"rebooting":                                       HealthStatusRestart,
 		"resetting-master-credentials":                    HealthStatusMaintenance,
 		"renaming":                                        HealthStatusMaintenance,
 		"restore-error":                                   HealthStatusError,
-		"starting":                                        HealthStatusProgressing,
+		"starting":                                        HealthStatusStarting,
 		"stopped":                                         HealthStatusStopped,
 		"stopping":                                        HealthStatusStopping,
 		"storage-config-upgrade":                          HealthStatusUpdating,
@@ -88,7 +88,7 @@ var awsStatusMap = map[string]map[string]HealthStatusCode{
 
 	AWSResourceTypeELB: {
 		"active":          HealthStatusHealthy,
-		"provisioning":    HealthStatusProgressing,
+		"provisioning":    HealthStatusCreating,
 		"active_impaired": HealthStatusWarning,
 		"failed":          HealthStatusError,
 	},

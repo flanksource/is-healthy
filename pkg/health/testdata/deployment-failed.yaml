@@ -16,7 +16,7 @@ metadata:
   uid: bb9af0c7-8a44-11e8-9e23-42010aa80010
 spec:
   progressDeadlineSeconds: 600
-  replicas: 2
+  replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
@@ -59,10 +59,12 @@ status:
       type: Available
     - lastTransitionTime: 2018-07-18T06:29:23Z
       lastUpdateTime: 2018-07-18T06:29:23Z
-      status: "True"
+      message: ReplicaSet "guestbook-ui-75dd4d49d5" has timed out progressing.
+      reason: ProgressDeadlineExceeded
+      status: "False"
       type: Progressing
   observedGeneration: 4
-  readyReplicas: 1
-  replicas: 2
+  readyReplicas: 0
+  replicas: 1
   unavailableReplicas: 1
   updatedReplicas: 1

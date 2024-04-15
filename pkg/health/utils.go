@@ -1,6 +1,7 @@
 package health
 
 import (
+	"fmt"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -18,6 +19,7 @@ const (
 	DaemonSetKind                = "DaemonSet"
 	IngressKind                  = "Ingress"
 	JobKind                      = "Job"
+	CronJobKind                  = "CronJob"
 	PersistentVolumeClaimKind    = "PersistentVolumeClaim"
 	CustomResourceDefinitionKind = "CustomResourceDefinition"
 	PodKind                      = "Pod"
@@ -33,6 +35,29 @@ type HealthStatus struct {
 	Status HealthStatusCode `json:"status,omitempty" protobuf:"bytes,1,opt,name=status"`
 	// Message is a human-readable informational message describing the health status
 	Message string `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+
+	order int `json:"-", yaml:"-"`
+}
+
+func (hs *HealthStatus) AppendMessage(msg string, args ...interface{}) {
+	if msg == "" {
+		return
+	}
+	if hs.Message != "" {
+		hs.Message += ", "
+	}
+	hs.Message += fmt.Sprintf(msg, args...)
+}
+
+func (hs *HealthStatus) PreppendMessage(msg string, args ...interface{}) {
+	if msg == "" {
+		return
+	}
+	if hs.Message != "" {
+		hs.Message = fmt.Sprintf(msg, args...) + ", " + hs.Message
+	} else {
+		hs.Message = fmt.Sprintf(msg, args...)
+	}
 }
 
 // IsPodAvailable returns true if a pod is available; false otherwise.

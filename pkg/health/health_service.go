@@ -27,10 +27,17 @@ func getCorev1ServiceHealth(service *corev1.Service) (*HealthStatus, error) {
 	health := HealthStatus{Health: HealthHealthy, Status: HealthStatusHealthy}
 	if service.Spec.Type == corev1.ServiceTypeLoadBalancer {
 		if len(service.Status.LoadBalancer.Ingress) > 0 {
-			health.Status = HealthStatusHealthy
+			health.Status = HealthStatusRunning
+			health.Health = HealthHealthy
+			health.Ready = true
 		} else {
-			health.Status = HealthStatusProgressing
+			health.Status = HealthStatusCreating
+			health.Health = HealthUnknown
 		}
+	} else {
+		health.Ready = true
+		health.Status = HealthStatusUnknown
+		health.Health = HealthUnknown
 	}
 	return &health, nil
 }

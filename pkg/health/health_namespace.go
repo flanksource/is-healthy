@@ -17,13 +17,13 @@ func getNamespaceHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	if node.Status.Phase == v1.NamespaceActive {
 		return &HealthStatus{
 			Ready:  true,
-			Health: HealthHealthy,
+			Health: HealthUnknown,
 			Status: HealthStatusHealthy,
 		}, nil
 	}
 
 	return &HealthStatus{
-		Health: HealthUnhealthy,
+		Health: HealthUnknown,
 		Status: HealthStatusDeleting,
 	}, nil
 }

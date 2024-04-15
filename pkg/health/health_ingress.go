@@ -20,8 +20,12 @@ func getIngressHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	}
 	if len(ingresses) > 0 {
 		health.Status = HealthStatusHealthy
+		health.Health = HealthHealthy
+		health.Ready = true
+
 	} else {
-		health.Status = HealthStatusProgressing
+		health.Status = HealthStatusPending
+		health.Health = HealthUnknown
 	}
 	return &health, nil
 }

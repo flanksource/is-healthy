@@ -25,33 +25,61 @@ func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 }
 
 func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, error) {
-	if replicaSet.Generation <= replicaSet.Status.ObservedGeneration {
-		failCondition := getAppsv1ReplicaSetCondition(replicaSet.Status, appsv1.ReplicaSetReplicaFailure)
-		if failCondition != nil && failCondition.Status == corev1.ConditionTrue {
-			return &HealthStatus{
-				Health:  HealthUnhealthy,
-				Status:  HealthStatusDegraded,
-				Message: failCondition.Message,
-			}, nil
-		} else if replicaSet.Spec.Replicas != nil && replicaSet.Status.AvailableReplicas < *replicaSet.Spec.Replicas {
-			return &HealthStatus{
-				Ready:   replicaSet.Status.AvailableReplicas != 0,
-				Health:  HealthHealthy,
-				Status:  HealthStatusProgressing,
-				Message: fmt.Sprintf("Waiting for rollout to finish: %d out of %d new replicas are available...", replicaSet.Status.AvailableReplicas, *replicaSet.Spec.Replicas),
-			}, nil
-		}
-	} else {
+	health := HealthUnknown
+	if (replicaSet.Spec.Replicas == nil || *replicaSet.Spec.Replicas == 0) && replicaSet.Status.Replicas == 0 {
 		return &HealthStatus{
-			Ready:   replicaSet.Status.AvailableReplicas != 0,
-			Health:  HealthHealthy,
-			Status:  HealthStatusProgressing,
-			Message: "Waiting for rollout to finish: observed replica set generation less than desired generation",
+			Ready:  true,
+			Status: HealthStatusScaledToZero,
+			Health: health,
+		}, nil
+	}
+
+	if replicaSet.Spec.Replicas != nil && replicaSet.Status.ReadyReplicas >= *replicaSet.Spec.Replicas {
+		health = HealthHealthy
+	} else if replicaSet.Status.ReadyReplicas > 0 {
+		health = HealthWarning
+	} else {
+		health = HealthUnhealthy
+	}
+
+	if replicaSet.Generation == replicaSet.Status.ObservedGeneration && replicaSet.Status.ReadyReplicas == *replicaSet.Spec.Replicas {
+		return &HealthStatus{
+			Health: health,
+			Status: HealthStatusRunning,
+			Ready:  true,
+		}, nil
+	}
+
+	failCondition := getAppsv1ReplicaSetCondition(replicaSet.Status, appsv1.ReplicaSetReplicaFailure)
+	if failCondition != nil && failCondition.Status == corev1.ConditionTrue {
+		return &HealthStatus{
+			Health:  health,
+			Status:  HealthStatusError,
+			Message: failCondition.Message,
+		}, nil
+	}
+
+	if replicaSet.Status.ReadyReplicas < *replicaSet.Spec.Replicas {
+		return &HealthStatus{
+			Health:  health,
+			Status:  HealthStatusScalingUp,
+			Message: fmt.Sprintf("%d of %d pods ready", replicaSet.Status.ReadyReplicas, *replicaSet.Spec.Replicas),
+			Ready:   true,
+		}, nil
+	}
+
+	if replicaSet.Status.ReadyReplicas > *replicaSet.Spec.Replicas {
+		return &HealthStatus{
+			Health:  health,
+			Status:  HealthStatusScalingDown,
+			Message: fmt.Sprintf("%d pods terminating", replicaSet.Status.ReadyReplicas-*replicaSet.Spec.Replicas),
+			Ready:   true,
 		}, nil
 	}
 
 	return &HealthStatus{
-		Status: HealthStatusHealthy,
+		Status: HealthStatusUnknown,
+		Health: health,
 	}, nil
 }
 

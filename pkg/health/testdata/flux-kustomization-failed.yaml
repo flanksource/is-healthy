@@ -1,0 +1,182 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  uid: 1519b807-3d90-455b-b33f-4a7868a3f404
+  name: canaries
+  labels:
+    kustomize.toolkit.fluxcd.io/name: aws-demo-infra
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  namespace: default
+  finalizers:
+    - finalizers.fluxcd.io
+  annotations:
+    config.kubernetes.io/origin: |
+      path: environments/default/namespace.yaml
+  creationTimestamp: 2023-09-05T22:23:14Z
+spec:
+  path: ./fixtures
+  force: false
+  prune: true
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: canaries
+  validation: client
+  targetNamespace: canaries
+status:
+  inventory:
+    entries:
+      - v: v1
+        id: _canary-checker-priority_scheduling.k8s.io_PriorityClass
+      - v: v1
+        id: _test-rbac-ldap_rbac.authorization.k8s.io_ClusterRole
+      - v: v1
+        id: _test-rbac-role_rbac.authorization.k8s.io_ClusterRoleBinding
+      - v: v1
+        id: canaries_apacheds-ldif__ConfigMap
+      - v: v1
+        id: canaries_basic-auth__ConfigMap
+      - v: v1
+        id: canaries_jmeter-fail-test__ConfigMap
+      - v: v1
+        id: canaries_jmeter-pass-test__ConfigMap
+      - v: v1
+        id: canaries_aws-credentials__Secret
+      - v: v1
+        id: canaries_basic-auth__Secret
+      - v: v1
+        id: canaries_elasticsearch__Secret
+      - v: v1
+        id: canaries_opensearch__Secret
+      - v: v1
+        id: canaries_podinfo-header__Secret
+      - v: v1
+        id: canaries_secrets__Secret
+      - v: v1
+        id: canaries_apacheds__Service
+      - v: v1
+        id: canaries_elasticsearch__Service
+      - v: v1
+        id: canaries_mongo__Service
+      - v: v1
+        id: canaries_mssql__Service
+      - v: v1
+        id: canaries_mysql__Service
+      - v: v1
+        id: canaries_opensearch__Service
+      - v: v1
+        id: canaries_podinfo__Service
+      - v: v1
+        id: canaries_postgres__Service
+      - v: v1
+        id: canaries_redis__Service
+      - v: v1
+        id: canaries_apacheds_apps_Deployment
+      - v: v1
+        id: canaries_elasticsearch_apps_Deployment
+      - v: v1
+        id: canaries_mongo_apps_Deployment
+      - v: v1
+        id: canaries_mssql_apps_Deployment
+      - v: v1
+        id: canaries_mysql_apps_Deployment
+      - v: v1
+        id: canaries_opensearch_apps_Deployment
+      - v: v1
+        id: canaries_podinfo_apps_Deployment
+      - v: v1
+        id: canaries_postgres_apps_Deployment
+      - v: v1
+        id: canaries_redis_apps_Deployment
+      - v: v1
+        id: canaries_k8s-check-not-ready__Pod
+      - v: v1
+        id: canaries_k8s-check-ready__Pod
+      - v: v1
+        id: canaries_alertmanager_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_dns-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_dns-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_elasticsearch-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_elasticsearch-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_git-pull-push_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_github-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_github-test-expression-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_http-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_http-fail-timeout_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_http-pass-single_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_junit-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_junit-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_kubernetes-bundle_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_ldap-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_mongo_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_mongo-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_mssql-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_mssql-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_mysql-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_mysql-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_namespace-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_opensearch-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_opensearch-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_pod-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_pod-pass_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_postgres-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_postgres-succeed_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_prometheus_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_redis-fail_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_redis-succeed_canaries.flanksource.com_Canary
+      - v: v1
+        id: canaries_podinfo-ing_networking.k8s.io_Ingress
+  conditions:
+    - type: Reconciling
+      reason: ProgressingWithRetry
+      status: "True"
+      message: Building manifests for revision
+        master/e18f1b71f253f3fe14735899346897759924f119 with a timeout of 4m30s
+    - type: Ready
+      reason: BuildFailed
+      status: "False"
+      message: "kustomize build failed: accumulating resources: accumulation
+        err='accumulating resources from 'k8s': read
+        /tmp/kustomization-903663509/fixtures/k8s: is a directory': recursed
+        accumulation of path '/tmp/kustomization-903663509/fixtures/k8s':
+        accumulating resources: accumulation err='accumulating resources from
+        'kubernetes_resource_ingress_fail.yaml': open
+        /tmp/kustomization-903663509/fixtures/k8s/kubernetes_resource_ingress_f\
+        ail.yaml: no such file or directory': must build at directory: not a
+        valid directory: evalsymlink failure on
+        '/tmp/kustomization-903663509/fixtures/k8s/kubernetes_resource_ingress_\
+        fail.yaml' : lstat
+        /tmp/kustomization-903663509/fixtures/k8s/kubernetes_resource_ingress_f\
+        ail.yaml: no such file or directory"
+  lastAppliedRevision: master/df995110d56b6192fbc6d58d80385c4664ae38ba
+  lastAttemptedRevision: master/e18f1b71f253f3fe14735899346897759924f119

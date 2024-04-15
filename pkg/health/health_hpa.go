@@ -144,6 +144,7 @@ func checkConditions(conditions []hpaCondition, progressingStatus *HealthStatus)
 			return &HealthStatus{
 				Health:  HealthHealthy,
 				Status:  HealthStatusHealthy,
+				Ready:   true,
 				Message: condition.Message,
 			}, nil
 		}
