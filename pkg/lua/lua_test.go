@@ -89,8 +89,9 @@ func TestExecuteNewHealthStatusFunction(t *testing.T) {
 	status, err := vm.ExecuteHealthLua(testObj, newHealthStatusFunction)
 	assert.Nil(t, err)
 	expectedHealthStatus := &health.HealthStatus{
-		Status:  "Healthy",
+		Health:  health.HealthHealthy,
 		Message: "testMessage",
+		Ready:   true,
 	}
 	assert.Equal(t, expectedHealthStatus, status)
 
@@ -102,7 +103,8 @@ func TestExecuteWildcardHealthStatusFunction(t *testing.T) {
 	status, err := vm.ExecuteHealthLua(testObj, newWildcardHealthStatusFunction)
 	assert.Nil(t, err)
 	expectedHealthStatus := &health.HealthStatus{
-		Status:  "Healthy",
+		Health:  health.HealthHealthy,
+		Ready:   true,
 		Message: "testWildcardMessage",
 	}
 	assert.Equal(t, expectedHealthStatus, status)
@@ -126,23 +128,6 @@ func TestFailLuaReturnNonTable(t *testing.T) {
 	vm := VM{}
 	_, err := vm.ExecuteHealthLua(testObj, returnInt)
 	assert.Equal(t, fmt.Errorf(incorrectReturnType, "table", "number"), err)
-}
-
-const invalidHealthStatusStatus = `local healthStatus = {}
-healthStatus.status = "test"
-return healthStatus
-`
-
-func TestInvalidHealthStatusStatus(t *testing.T) {
-	testObj := StrToUnstructured(objJSON)
-	vm := VM{}
-	status, err := vm.ExecuteHealthLua(testObj, invalidHealthStatusStatus)
-	assert.Nil(t, err)
-	expectedStatus := &health.HealthStatus{
-		Status:  health.HealthStatusUnknown,
-		Message: invalidHealthStatus,
-	}
-	assert.Equal(t, expectedStatus, status)
 }
 
 const infiniteLoop = `while true do ; end`
@@ -729,7 +714,8 @@ return hs`
 		status, err := overrides.GetResourceHealth(testObj)
 		assert.Nil(t, err)
 		expectedStatus := &health.HealthStatus{
-			Status:  health.HealthStatusHealthy,
+			Health:  health.HealthHealthy,
+			Ready:   true,
 			Message: "Standard lib was used",
 		}
 		assert.Equal(t, expectedStatus, status)
@@ -751,7 +737,8 @@ return hs`
 		status, err := overrides.GetResourceHealth(testObj)
 		assert.Nil(t, err)
 		expectedStatus := &health.HealthStatus{
-			Status: health.HealthStatusHealthy,
+			Health: health.HealthHealthy,
+			Ready:  true,
 		}
 		assert.Equal(t, expectedStatus, status)
 	})
