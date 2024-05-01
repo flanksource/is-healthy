@@ -11,7 +11,7 @@ import (
 func getCronJobHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	gvk := obj.GroupVersionKind()
 	switch gvk {
-	case batchv1.SchemeGroupVersion.WithKind(JobKind):
+	case batchv1.SchemeGroupVersion.WithKind(CronJobKind):
 		var job batchv1.CronJob
 		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &job)
 		if err != nil {
