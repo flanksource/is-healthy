@@ -41,7 +41,6 @@ func getBatchv1CronJobHealth(job *batchv1.CronJob) (*HealthStatus, error) {
 
 	if len(job.Status.Active) > 0 {
 		return &HealthStatus{
-			Ready:   true,
 			Health:  HealthHealthy,
 			Status:  HealthStatusRunning,
 			Message: "Running since" + job.Status.LastScheduleTime.Format("2006-01-02 15:04:05 -0700"),
