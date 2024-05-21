@@ -2,7 +2,6 @@ package health
 
 import (
 	"strings"
-	"time"
 )
 
 const (
@@ -15,14 +14,7 @@ const (
 	AWSResourceTypeSubnet string = "subnet"
 )
 
-func GetAWSResourceHealth(resourceType, status string, deletionTimeStamp *time.Time) (health HealthStatus) {
-	if deletionTimeStamp != nil {
-		return HealthStatus{
-			Status: HealthStatusDeleting,
-			Health: HealthUnknown,
-		}
-	}
-
+func GetAWSResourceHealth(resourceType, status string) (health HealthStatus) {
 	if resourceStatuses, found := awsResourceHealthmap[resourceType]; found {
 		if v, found := resourceStatuses[strings.ToLower(status)]; found {
 			return v
@@ -41,8 +33,8 @@ var awsResourceHealthmap = map[string]map[string]HealthStatus{
 		"pending":       HealthStatus{Status: HealthStatusPending, Health: HealthUnknown},
 		"running":       HealthStatus{Status: HealthStatusHealthy, Health: HealthHealthy, Ready: true},
 		"shutting-down": HealthStatus{Status: HealthStatusDeleting, Health: HealthUnhealthy},
-		"stopped":       HealthStatus{Status: HealthStatusStopped, Health: HealthUnhealthy},
-		"stopping":      HealthStatus{Status: HealthStatusStopping, Health: HealthUnhealthy},
+		"stopped":       HealthStatus{Status: HealthStatusStopped, Health: HealthUnknown},
+		"stopping":      HealthStatus{Status: HealthStatusStopping, Health: HealthUnknown},
 		"terminated":    HealthStatus{Status: HealthStatusDeleted, Health: HealthUnhealthy},
 	},
 

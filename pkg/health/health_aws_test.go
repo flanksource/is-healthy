@@ -31,7 +31,7 @@ func TestMapAWSStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetAWSResourceHealth(tt.args.resourceType, tt.args.status, nil); got.Status != tt.want {
+			if got := GetAWSResourceHealth(tt.args.resourceType, tt.args.status); got.Status != tt.want {
 				t.Errorf("MapAWSStatus() = %v, want %v", got, tt.want)
 			}
 		})
