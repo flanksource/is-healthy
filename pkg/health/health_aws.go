@@ -32,10 +32,10 @@ var awsResourceHealthmap = map[string]map[string]HealthStatus{
 	AWSResourceTypeEC2: {
 		"pending":       HealthStatus{Status: HealthStatusPending, Health: HealthUnknown},
 		"running":       HealthStatus{Status: HealthStatusHealthy, Health: HealthHealthy, Ready: true},
-		"shutting-down": HealthStatus{Status: HealthStatusDeleting, Health: HealthUnhealthy},
+		"shutting-down": HealthStatus{Status: HealthStatusDeleting, Health: HealthUnknown},
 		"stopped":       HealthStatus{Status: HealthStatusStopped, Health: HealthUnknown},
 		"stopping":      HealthStatus{Status: HealthStatusStopping, Health: HealthUnknown},
-		"terminated":    HealthStatus{Status: HealthStatusDeleted, Health: HealthUnhealthy},
+		"terminated":    HealthStatus{Status: HealthStatusDeleted, Health: HealthUnknown},
 	},
 
 	AWSResourceTypeEKS: {
