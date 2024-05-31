@@ -38,6 +38,7 @@ const (
 	HealthStatusCreating         HealthStatusCode = "Creating"
 	HealthStatusDeleted          HealthStatusCode = "Deleted"
 	HealthStatusDeleting         HealthStatusCode = "Deleting"
+	HealthStatusTerminating      HealthStatusCode = "Terminating"
 	HealthStatusError            HealthStatusCode = "Error"
 	HealthStatusRolloutFailed    HealthStatusCode = "Rollout Failed"
 	HealthStatusInaccesible      HealthStatusCode = "Inaccesible"
@@ -121,7 +122,7 @@ func GetResourceHealth(obj *unstructured.Unstructured, healthOverride HealthOver
 
 	if obj.GetDeletionTimestamp() != nil {
 		return &HealthStatus{
-			Status: HealthStatusDeleting,
+			Status: HealthStatusTerminating,
 		}, nil
 	}
 

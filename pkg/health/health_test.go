@@ -37,7 +37,7 @@ func getHealthStatus(yamlPath string, t *testing.T) *health.HealthStatus {
 
 func TestNamespace(t *testing.T) {
 	assertAppHealth(t, "./testdata/namespace.yaml", health.HealthStatusHealthy, health.HealthUnknown, true)
-	assertAppHealth(t, "./testdata/namespace-terminating.yaml", health.HealthStatusDeleting, health.HealthUnknown, false)
+	assertAppHealth(t, "./testdata/namespace-terminating.yaml", health.HealthStatusTerminating, health.HealthUnknown, false)
 }
 
 func TestCertificate(t *testing.T) {
@@ -130,7 +130,7 @@ func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-running-restart-onfailure.yaml", health.HealthStatusRunning, health.HealthUnhealthy, false)
 	assertAppHealth(t, "./testdata/pod-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
 	assertAppHealth(t, "./testdata/pod-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/pod-deletion.yaml", health.HealthStatusDeleting, health.HealthUnhealthy, false)
+	assertAppHealth(t, "./testdata/pod-deletion.yaml", health.HealthStatusTerminating, health.HealthUnhealthy, false)
 }
 
 // func TestAPIService(t *testing.T) {

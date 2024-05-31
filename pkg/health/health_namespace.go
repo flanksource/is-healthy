@@ -24,6 +24,6 @@ func getNamespaceHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 
 	return &HealthStatus{
 		Health: HealthUnknown,
-		Status: HealthStatusDeleting,
+		Status: HealthStatusTerminating,
 	}, nil
 }

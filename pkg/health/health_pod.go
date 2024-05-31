@@ -29,13 +29,13 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	if pod.ObjectMeta.DeletionTimestamp != nil && !pod.ObjectMeta.DeletionTimestamp.IsZero() {
 		if isReady {
 			return &HealthStatus{
-				Status: HealthStatusDeleting,
+				Status: HealthStatusTerminating,
 				Ready:  false,
 				Health: HealthHealthy,
 			}, nil
 		} else {
 			return &HealthStatus{
-				Status: HealthStatusDeleting,
+				Status: HealthStatusTerminating,
 				Ready:  false,
 				Health: HealthUnhealthy,
 			}, nil
