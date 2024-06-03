@@ -15,6 +15,16 @@ func getNodeHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 		return nil, fmt.Errorf("failed to convert unstructured Node to typed: %v", err)
 	}
 
+	for _, taint := range node.Spec.Taints {
+		if taint.Key == "node.kubernetes.io/unschedulable" && taint.Effect == "NoSchedule" {
+			return &HealthStatus{
+				Ready:  false,
+				Health: HealthWarning,
+				Status: HealthStatusWarning,
+			}, nil
+		}
+	}
+
 	for _, cond := range node.Status.Conditions {
 		if cond.Type == v1.NodeReady && cond.Status == v1.ConditionTrue {
 			return &HealthStatus{
