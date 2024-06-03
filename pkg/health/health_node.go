@@ -20,7 +20,7 @@ func getNodeHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 			return &HealthStatus{
 				Ready:  false,
 				Health: HealthWarning,
-				Status: HealthStatusWarning,
+				Status: "Unschedulable",
 			}, nil
 		}
 	}
