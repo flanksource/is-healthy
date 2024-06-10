@@ -260,5 +260,5 @@ func GetSeverity(event string) string {
 		return SeverityMedium
 	}
 
-	return SeverityUnknown
+	return SeverityInfo
 }
