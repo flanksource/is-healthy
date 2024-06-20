@@ -42,6 +42,20 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 		}
 	}
 
+	getCommonContainerError := func(containerStatus *corev1.ContainerStatus) *HealthStatus {
+		waiting := containerStatus.State.Waiting
+		// Article listing common container errors: https://medium.com/kokster/debugging-crashloopbackoffs-with-init-containers-26f79e9fb5bf
+		if waiting != nil && (strings.HasPrefix(waiting.Reason, "Err") || strings.HasSuffix(waiting.Reason, "Error") || strings.HasSuffix(waiting.Reason, "BackOff")) {
+			return &HealthStatus{
+				Status:  HealthStatusCode(waiting.Reason),
+				Health:  HealthUnhealthy,
+				Message: waiting.Message,
+			}
+		}
+
+		return nil
+	}
+
 	// This logic cannot be applied when the pod.Spec.RestartPolicy is: corev1.RestartPolicyOnFailure,
 	// corev1.RestartPolicyNever, otherwise it breaks the resource hook logic.
 	// The issue is, if we mark a pod with ImagePullBackOff as Degraded, and the pod is used as a resource hook,
@@ -54,12 +68,10 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 		var messages []string
 
 		for _, containerStatus := range pod.Status.ContainerStatuses {
-			waiting := containerStatus.State.Waiting
-			// Article listing common container errors: https://medium.com/kokster/debugging-crashloopbackoffs-with-init-containers-26f79e9fb5bf
-			if waiting != nil && (strings.HasPrefix(waiting.Reason, "Err") || strings.HasSuffix(waiting.Reason, "Error") || strings.HasSuffix(waiting.Reason, "BackOff")) {
-				health = HealthUnhealthy
-				status = HealthStatusCode(waiting.Reason)
-				messages = append(messages, waiting.Message)
+			if msg := getCommonContainerError(&containerStatus); msg != nil {
+				health = msg.Health
+				status = msg.Status
+				messages = append(messages, msg.Message)
 			}
 		}
 
@@ -89,11 +101,18 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 
 	switch pod.Status.Phase {
 	case corev1.PodPending:
+		for _, ctrStatus := range pod.Status.InitContainerStatuses {
+			if msg := getCommonContainerError(&ctrStatus); msg != nil {
+				return msg, nil
+			}
+		}
+
 		return &HealthStatus{
 			Health:  HealthUnknown,
 			Status:  HealthStatusPending,
 			Message: pod.Status.Message,
 		}, nil
+
 	case corev1.PodSucceeded:
 		return &HealthStatus{
 			Health:  HealthHealthy,
@@ -101,6 +120,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 			Ready:   true,
 			Message: pod.Status.Message,
 		}, nil
+
 	case corev1.PodFailed:
 		if pod.Status.Message != "" {
 			// Pod has a nice error message. Use that.
@@ -113,6 +133,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 		}
 
 		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusError, Message: "", Ready: true}, nil
+
 	case corev1.PodRunning:
 		switch pod.Spec.RestartPolicy {
 		case corev1.RestartPolicyAlways:
@@ -142,8 +163,8 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 				Status:  HealthStatusStarting,
 				Message: pod.Status.Message,
 			}, nil
-		case corev1.RestartPolicyOnFailure, corev1.RestartPolicyNever:
 
+		case corev1.RestartPolicyOnFailure, corev1.RestartPolicyNever:
 			if isReady {
 				return &HealthStatus{
 					Health: HealthHealthy,
@@ -155,7 +176,6 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 					Status: HealthStatusRunning,
 				}, nil
 			}
-
 		}
 	}
 

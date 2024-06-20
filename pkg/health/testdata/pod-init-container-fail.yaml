@@ -1,0 +1,171 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  uid: d21e1521-5a3f-4120-a446-bd7426199a20
+  name: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-0
+  labels:
+    app: postgresql
+    controller-revision-hash: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-988f9fc65
+    statefulset.kubernetes.io/pod-name: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-0
+  namespace: httpbin
+  generateName: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-
+  ownerReferences:
+    - uid: da460101-eebb-4d4f-b8f4-acb8908d7083
+      kind: StatefulSet
+      name: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc
+      apiVersion: apps/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-06-18T14:48:55Z
+spec:
+  volumes:
+    - name: postgresql
+      persistentVolumeClaim:
+        claimName: postgresql-postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-0
+    - name: dshm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 256Mi
+    - name: logs
+      emptyDir: {}
+    - name: kube-api-access-6qtdz
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3607
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+          - downwardAPI:
+              items:
+                - path: namespace
+                  fieldRef:
+                    fieldPath: metadata.namespace
+                    apiVersion: v1
+        defaultMode: 420
+  hostname: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-0
+  nodeName: ip-10-0-6-40.eu-west-1.compute.internal
+  priority: 0
+  dnsPolicy: ClusterFirst
+  subdomain: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc
+  containers:
+    - env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data
+        - name: POSTGRES_DB
+          value: mission_control
+      name: postgresql
+      image: postgres:14
+      resources:
+        requests:
+          memory: 4Gi
+        limits:
+          memory: 5Gi
+          cpu: 2
+      volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
+        - name: postgresql
+          subPath: postgres
+          mountPath: /var/lib/postgresql/data
+        - name: logs
+          mountPath: /var/log/postgresql
+        - name: kube-api-access-6qtdz
+          readOnly: true
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      imagePullPolicy: IfNotPresent
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+  tolerations:
+    - key: node.kubernetes.io/not-ready
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+    - key: node.kubernetes.io/unreachable
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  initContainers:
+    - name: postgres-perms
+      image: busybox
+      command:
+        - sh
+        - -c
+        - mkdir -p /postgres \u0026\u0026 chmod -R 0750 /postgres \u0026\u0026
+          chown 999:999 -R /postgres \u0026\u0026  chmod -R 777 /dev/shm
+      resources: {}
+      volumeMounts:
+        - name: postgresql
+          mountPath: /postgres
+        - name: dshm
+          mountPath: /dev/shm
+        - name: kube-api-access-6qtdz
+          readOnly: true
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      imagePullPolicy: Always
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+  serviceAccount: default
+  securityContext: {}
+  preemptionPolicy: PreemptLowerPriority
+  enableServiceLinks: true
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+status:
+  phase: Pending
+  podIP: 10.0.6.127
+  hostIP: 10.0.6.40
+  podIPs:
+    - ip: 10.0.6.127
+  qosClass: Burstable
+  startTime: 2024-06-18T14:48:59Z
+  conditions:
+    - type: Initialized
+      reason: ContainersNotInitialized
+      status: "False"
+      message: "containers with incomplete status: [postgres-perms]"
+    - type: Ready
+      reason: ContainersNotReady
+      status: "False"
+      message: "containers with unready status: [postgresql]"
+    - type: ContainersReady
+      reason: ContainersNotReady
+      status: "False"
+      message: "containers with unready status: [postgresql]"
+    - type: PodScheduled
+      status: "True"
+  containerStatuses:
+    - name: postgresql
+      image: postgres:14
+      ready: false
+      state:
+        waiting:
+          reason: PodInitializing
+      imageID: ""
+      started: false
+      lastState: {}
+      restartCount: 0
+  initContainerStatuses:
+    - name: postgres-perms
+      image: docker.io/library/busybox:latest
+      ready: false
+      state:
+        waiting:
+          reason: CrashLoopBackOff
+          message: back-off 5m0s restarting failed container=postgres-perms
+            pod=postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-0_httpbin(d21e1521-5a3f-4120-a446-bd7426199a20)
+      imageID: docker.io/library/busybox@sha256:9ae97d36d26566ff84e8893c64a6dc4fe8ca6d1144bf5b87b2b85a32def253c7
+      lastState:
+        terminated:
+          reason: Error
+          exitCode: 1
+          startedAt: 2024-06-20T06:27:47Z
+          finishedAt: 2024-06-20T06:27:48Z
+          containerID: containerd://082e4785dec00cf25f3001af654abdeb4197a9166aee8de5f3b6a2a9e6a9db94
+      containerID: containerd://082e4785dec00cf25f3001af654abdeb4197a9166aee8de5f3b6a2a9e6a9db94
+      restartCount: 470

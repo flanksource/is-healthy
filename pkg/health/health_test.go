@@ -131,6 +131,7 @@ func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
 	assertAppHealth(t, "./testdata/pod-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
 	assertAppHealth(t, "./testdata/pod-deletion.yaml", health.HealthStatusTerminating, health.HealthUnhealthy, false)
+	assertAppHealth(t, "./testdata/pod-init-container-fail.yaml", health.HealthStatusCrashLoopBackoff, health.HealthUnhealthy, false)
 }
 
 // func TestAPIService(t *testing.T) {
