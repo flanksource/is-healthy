@@ -87,6 +87,8 @@ Kustomization:
       ready: true
       message: true
       reasons:
+        ReconciliationSucceeded:
+          health: healthy
         Progressing:
           status: Progressing
           health: unknown
@@ -122,7 +124,6 @@ HelmRelease: &flux
       onUnknown:
         status: Reconciling
         nonReady: true
-
     Reconciling:
       status: Reconciling
       reasons:

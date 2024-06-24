@@ -107,6 +107,16 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 			}
 		}
 
+		for _, ctrStatus := range pod.Status.Conditions {
+			if ctrStatus.Reason == "Unschedulable" {
+				return &HealthStatus{
+					Health:  HealthUnhealthy,
+					Status:  HealthStatusUnschedulable,
+					Message: ctrStatus.Message,
+				}, nil
+			}
+		}
+
 		return &HealthStatus{
 			Health:  HealthUnknown,
 			Status:  HealthStatusPending,

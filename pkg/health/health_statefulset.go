@@ -24,6 +24,17 @@ func getStatefulSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 }
 
 func getAppsv1StatefulSetHealth(sts *appsv1.StatefulSet) (*HealthStatus, error) {
+	replicas := int32(0)
+	if sts.Spec.Replicas != nil {
+		replicas = *sts.Spec.Replicas
+	}
+
+	if replicas == 0 && sts.Status.Replicas == 0 {
+		return &HealthStatus{
+			Status: HealthStatusScaledToZero,
+			Health: HealthUnknown,
+		}, nil
+	}
 
 	health := HealthHealthy
 	if sts.Status.ReadyReplicas == 0 {
