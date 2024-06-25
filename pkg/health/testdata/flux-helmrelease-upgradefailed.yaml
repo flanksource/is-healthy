@@ -1,0 +1,84 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  annotations:
+    meta.helm.sh/release-name: netflix
+    meta.helm.sh/release-namespace: netflix
+  creationTimestamp: "2023-09-11T12:35:35Z"
+  finalizers:
+  - finalizers.fluxcd.io
+  generation: 2
+  labels:
+    app.kubernetes.io/instance: netflix
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mission-control-tenant
+    app.kubernetes.io/version: 1.0.26
+    helm.sh/chart: mission-control-tenant-1.0.26
+    helm.toolkit.fluxcd.io/name: netflix
+    helm.toolkit.fluxcd.io/namespace: netflix
+  name: netflix-mission-control-tenant
+  namespace: netflix
+  resourceVersion: "156985353"
+  uid: 7568b4fe-e5b3-442d-abdb-1f1f7bdb8e0c
+spec:
+  chart:
+    spec:
+      chart: mission-control
+      interval: 1m
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: netflix-mission-control-tenant
+      version: '>=0.0.0'
+  install:
+    crds: CreateReplace
+    createNamespace: true
+  interval: 5m
+  kubeConfig:
+    secretRef:
+      key: config
+      name: vc-netflix
+  storageNamespace: default
+  targetNamespace: default
+  upgrade:
+    crds: CreateReplace
+  values:
+    authProvider: clerk
+    clerkJWKSURL: https://secure-eagle-96.clerk.accounts.dev/.well-known/jwks.json
+    clerkOrgID: org_2VFcRC1Y4JSIUSoDfGUt8X2GZxd
+    db:
+      create: false
+    flanksource-ui:
+      enabled: false
+    kratos:
+      enabled: false
+status:
+  conditions:
+    - lastTransitionTime: "2023-09-11T14:12:06Z"
+      type: Reconciling
+      reason: Progressing
+      status: "True"
+      message: Running 'upgrade' action with timeout of 5m0s
+    - lastTransitionTime: "2023-09-11T14:12:06Z"
+      type: Ready
+      reason: UpgradeFailed
+      status: "False"
+      message: "Helm upgrade failed for release
+        mission-control-agent/prod-kubernetes-bundle with chart
+        mission-control-kubernetes@0.1.29: YAML parse error on
+        mission-control-kubernetes/templates/topology.yaml: error converting
+        YAML to JSON: yaml: line 171: did not find expected '-' indicator"
+    - lastTransitionTime: "2023-09-11T14:12:06Z"
+      type: Released
+      reason: UpgradeFailed
+      status: "False"
+      message: "Helm upgrade failed for release
+        mission-control-agent/prod-kubernetes-bundle with chart
+        mission-control-kubernetes@0.1.29: YAML parse error on
+        mission-control-kubernetes/templates/topology.yaml: error converting
+        YAML to JSON: yaml: line 171: did not find expected '-' indicator"
+  storageNamespace: mission-control-agent
+  lastAttemptedRevision: 0.1.29
+  lastAttemptedGeneration: 1
+  lastAttemptedConfigDigest: sha256:e6dfc2b4a98058b60adc4fb33ed42d5e80f88471a4f9eb3e272709bf69417a32
+  lastAttemptedReleaseAction: upgrade

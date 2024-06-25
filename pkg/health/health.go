@@ -49,6 +49,7 @@ const (
 	HealthStatusRestart          HealthStatusCode = "Restarting"
 	HealthStatusStarting         HealthStatusCode = "Starting"
 	HealthStatusUnschedulable    HealthStatusCode = "Unschedulable"
+	HealthStatusUpgradeFailed    HealthStatusCode = "UpgradeFailed"
 
 	HealthStatusScalingUp    HealthStatusCode = "Scaling Up"
 	HealthStatusScaledToZero HealthStatusCode = "Scaled to Zero"
