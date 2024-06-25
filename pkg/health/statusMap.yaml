@@ -125,6 +125,7 @@ HelmRelease: &flux
         UpgradeFailed:
           health: unhealthy
           order: 1
+          ready: true
       onUnknown:
         status: Reconciling
         nonReady: true
