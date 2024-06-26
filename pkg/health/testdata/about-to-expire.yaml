@@ -1,0 +1,33 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  creationTimestamp: "2024-06-01T13:25:43Z"
+  generation: 1
+  labels:
+    kustomize.toolkit.fluxcd.io/name: nginx
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  name: homelab-tls-cert
+  namespace: nginx-ingress
+  resourceVersion: "46355959"
+  uid: 71c13a0d-208e-453a-9e93-8d981b5ca3f9
+spec:
+  commonName: home.flanksource.com
+  dnsNames:
+  - home.flanksource.com
+  - '*.home.flanksource.com'
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  secretName: homelab-tls-cert
+status:
+  conditions:
+  - lastTransitionTime: "2024-06-01T13:25:50Z"
+    message: Certificate is up to date and has not expired
+    observedGeneration: 1
+    reason: Ready
+    status: "True"
+    type: Ready
+  notAfter: "2024-06-26T12:25:46Z"
+  notBefore: "2024-06-01T12:25:47Z"
+  renewalTime: "2024-08-26T14:28:46Z"
+  revision: 1

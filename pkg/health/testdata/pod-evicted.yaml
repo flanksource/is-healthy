@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: evicted-pod
+  namespace: default
+  annotations:
+    kubernetes.io/eviction: 'true'
+spec:
+  containers:
+    - name: busybox
+      image: busybox
+      command: ['sh', '-c', 'echo Hello Kubernetes! && sleep 3600']
+  nodeName: some-node
+status:
+  phase: Failed
+  podIP: 10.101.16.203
+  hostIP: 10.101.0.7
+  podIPs:
+    - ip: 10.101.16.203
+  reason: Evicted
+  message: 'The node was low on resource: memory. Threshold quantity: 750Mi,
+    available: 179968Ki. '
+  qosClass: Burstable
+  startTime: 2024-05-22T09:52:34Z
+  conditions:
+    - type: Ready
+      status: 'False'
+      lastTransitionTime: 2024-05-22T09:52:34Z
+      reason: PodEvicted
+      message: 'The pod was evicted due to low memory on the node.'

@@ -33,6 +33,7 @@ const (
 	// Indicates that resource is missing in the cluster.
 	HealthStatusMissing HealthStatusCode = "Missing"
 
+	HealthStatusEvicted          HealthStatusCode = "Evicted"
 	HealthStatusCompleted        HealthStatusCode = "Completed"
 	HealthStatusCrashLoopBackoff HealthStatusCode = "CrashLoopBackOff"
 	HealthStatusCreating         HealthStatusCode = "Creating"
@@ -170,7 +171,7 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 	case "kustomize.toolkit.fluxcd.io", "helm.toolkit.fluxcd.io", "source.toolkit.fluxcd.io":
 		return GetDefaultHealth
 	case "cert-manager.io":
-		return GetDefaultHealth
+		return GetCertificateHealth
 	case "networking.k8s.io":
 		switch gvk.Kind {
 		case IngressKind:

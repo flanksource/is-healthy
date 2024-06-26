@@ -42,6 +42,15 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 		}
 	}
 
+	if pod.Status.Reason == "Evicted" {
+		return &HealthStatus{
+			Health:  HealthWarning,
+			Status:  HealthStatusEvicted,
+			Ready:   true,
+			Message: pod.Status.Message,
+		}, nil
+	}
+
 	getCommonContainerError := func(containerStatus *corev1.ContainerStatus) *HealthStatus {
 		waiting := containerStatus.State.Waiting
 		// Article listing common container errors: https://medium.com/kokster/debugging-crashloopbackoffs-with-init-containers-26f79e9fb5bf

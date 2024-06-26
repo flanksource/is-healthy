@@ -41,8 +41,9 @@ func TestNamespace(t *testing.T) {
 }
 
 func TestCertificate(t *testing.T) {
-	b := "../resource_customizations/cert-manager.io/Certificate/testdata/"
+	assertAppHealth(t, "./testdata/about-to-expire.yaml", "Warning", health.HealthWarning, true)
 	assertAppHealth(t, "./testdata/certificate-healthy.yaml", "Issued", health.HealthHealthy, true)
+	b := "../resource_customizations/cert-manager.io/Certificate/testdata/"
 	assertAppHealth(t, b+"degraded_configError.yaml", "ConfigError", health.HealthUnhealthy, true)
 	assertAppHealth(t, b+"progressing_issuing.yaml", "Issuing", health.HealthUnknown, false)
 }
