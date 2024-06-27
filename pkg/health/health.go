@@ -1,6 +1,8 @@
 package health
 
 import (
+	"strings"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -144,6 +146,11 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 	if gvk.Kind == "Node" {
 		return getNodeHealth
 	}
+
+	if strings.HasSuffix(gvk.Group, ".crossplane.io") || strings.HasSuffix(gvk.Group, ".upbound.io") {
+		return GetDefaultHealth
+	}
+
 	switch gvk.Group {
 	case "apps":
 		switch gvk.Kind {

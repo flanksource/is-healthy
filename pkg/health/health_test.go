@@ -35,6 +35,11 @@ func getHealthStatus(yamlPath string, t *testing.T) *health.HealthStatus {
 	return health
 }
 
+func TestCrossplane(t *testing.T) {
+	assertAppHealth(t, "./testdata/crossplane.yaml", "ApplyFailure", health.HealthWarning, true)
+	assertAppHealth(t, "./testdata/crossplane-healthy.yaml", "Success", health.HealthHealthy, true)
+}
+
 func TestNamespace(t *testing.T) {
 	assertAppHealth(t, "./testdata/namespace.yaml", health.HealthStatusHealthy, health.HealthUnknown, true)
 	assertAppHealth(t, "./testdata/namespace-terminating.yaml", health.HealthStatusTerminating, health.HealthUnknown, false)

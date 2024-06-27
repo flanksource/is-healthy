@@ -51,17 +51,3 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 
 	return status, nil
 }
-
-// Certificate:
-//   conditions:
-//     Ready:
-//       ready: true
-//       health: healthy
-//       status: Issued
-//       onFalse:
-//         status: Issuing
-//         health: unknown
-//       reasons:
-//         ConfigError:
-//           ready: true
-//           health: unhealthy

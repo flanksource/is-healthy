@@ -2,6 +2,7 @@ package health
 
 import (
 	_ "embed"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -82,7 +83,7 @@ func GetGenericStatus(obj *unstructured.Unstructured) GenericStatus {
 
 type OnCondition struct {
 	// When 2 conditions are true, which one takes precedence from a status/message perspective
-	Order int `yaml:"order:omitempty" json:"order,omitempty"`
+	Order int `yaml:"order,omitempty" json:"order,omitempty"`
 	// If the condition matches, mark ready
 	Ready bool `json:"ready" yaml:"ready"`
 
@@ -181,9 +182,17 @@ type StatusMap struct {
 const NoCondition = "none"
 
 func GetDefaultHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
+	kind := obj.GetKind()
+	group := strings.Split(obj.GetAPIVersion(), "/")[0]
+	if strings.HasSuffix(group, "crossplane.io") || strings.HasSuffix(group, "upbound.io") {
+		// For crossplane resources, we use a single status mapping under the dummy Kind "crossplane.io"
+		// that is supposed to cater for all the crossplane kinds.
+		kind = "crossplane.io"
+	}
+
 	if statusMap, ok := statusByKind[obj.GetAPIVersion()+"/"+obj.GetKind()]; ok {
 		return GetHealthFromStatus(GetGenericStatus(obj), statusMap)
-	} else if statusMap, ok := statusByKind[obj.GetKind()]; ok {
+	} else if statusMap, ok := statusByKind[kind]; ok {
 		return GetHealthFromStatus(GetGenericStatus(obj), statusMap)
 	}
 

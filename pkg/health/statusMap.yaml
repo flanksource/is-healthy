@@ -21,7 +21,6 @@ Certificate:
         ConfigError:
           ready: true
           health: unhealthy
-
 CertificateRequest:
   conditions:
     InvalidRequest:
@@ -40,21 +39,20 @@ CertificateRequest:
           status: Issuing
         Failed:
           ready: true
-
   status:
     acme:
       order:
         url: https://acme-v02.api.letsencrypt.org/acme/order/45250083/316944902
     conditions:
-      - lastTransitionTime: "2019-02-15T18:21:10Z"
+      - lastTransitionTime: '2019-02-15T18:21:10Z'
         message: Order validated
         reason: OrderValidated
-        status: "False"
+        status: 'False'
         type: ValidateFailed
       - lastTransitionTime: null
         message: Certificate issued successfully
         reason: CertIssued
-        status: "True"
+        status: 'True'
         type: Ready
 
 Deployment:
@@ -180,3 +178,43 @@ source.toolkit.fluxcd.io/v1beta1/Bucket: *flux
 image.toolkit.fluxcd.io/v1beta2/ImagePolicy: *flux
 image.toolkit.fluxcd.io/v1beta2/ImageRepository: *flux
 image.toolkit.fluxcd.io/v1beta2/ImageUpdateAutomation: *flux
+
+# Not an actual kind.
+crossplane.io:
+  conditions:
+    Ready:
+      reasons:
+        Available:
+          ready: true
+          health: healthy
+        Unavailable:
+          health: unhealthy
+          ready: true
+        Creating:
+          health: unknown
+          ready: false
+        Deleting:
+          health: unknown
+          ready: false
+    AsyncOperation:
+      order: -1
+      reasons:
+        Finished:
+          order: -1
+          ready: true
+          message: false
+        Ongoing:
+          order: -1
+          ready: false
+    LastAsyncOperation:
+      onFalse:
+        ready: false
+        health: warning
+    Synced:
+      reasons:
+        ReconcileSuccess:
+          ready: true
+        ReconcileError:
+          health: unhealthy
+        ReconcilePaused:
+          ready: false
