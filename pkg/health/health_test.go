@@ -7,29 +7,47 @@ package health_test
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/flanksource/is-healthy/pkg/health"
 	"github.com/flanksource/is-healthy/pkg/lua"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
 )
 
 func assertAppHealth(t *testing.T, yamlPath string, expectedStatus health.HealthStatusCode, expectedHealth health.Health, expectedReady bool) {
-	health := getHealthStatus(yamlPath, t)
+	health := getHealthStatus(yamlPath, t, nil)
 	assert.NotNil(t, health)
 	assert.Equal(t, expectedHealth, health.Health)
 	assert.Equal(t, expectedReady, health.Ready)
 	assert.Equal(t, expectedStatus, health.Status)
 }
 
-func getHealthStatus(yamlPath string, t *testing.T) *health.HealthStatus {
+func assertAppHealthWithOverwrite(t *testing.T, yamlPath string, overwrites map[string]any, expectedStatus health.HealthStatusCode, expectedHealth health.Health, expectedReady bool) {
+	health := getHealthStatus(yamlPath, t, overwrites)
+	assert.NotNil(t, health)
+	assert.Equal(t, expectedHealth, health.Health)
+	assert.Equal(t, expectedReady, health.Ready)
+	assert.Equal(t, expectedStatus, health.Status)
+}
+
+func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]any) *health.HealthStatus {
 	yamlBytes, err := os.ReadFile(yamlPath)
 	require.NoError(t, err)
 	var obj unstructured.Unstructured
 	err = yaml.Unmarshal(yamlBytes, &obj)
 	require.NoError(t, err)
+
+	for k, v := range overwrites {
+		switch k {
+		case "deletionTimestamp":
+			obj.SetDeletionTimestamp(v.(*v1.Time))
+		}
+	}
+
 	health, err := health.GetResourceHealth(&obj, lua.ResourceHealthOverrides{})
 	require.NoError(t, err)
 	return health
@@ -137,8 +155,11 @@ func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-running-restart-onfailure.yaml", health.HealthStatusRunning, health.HealthUnhealthy, false)
 	assertAppHealth(t, "./testdata/pod-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
 	assertAppHealth(t, "./testdata/pod-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/pod-deletion.yaml", health.HealthStatusTerminating, health.HealthUnhealthy, false)
 	assertAppHealth(t, "./testdata/pod-init-container-fail.yaml", health.HealthStatusCrashLoopBackoff, health.HealthUnhealthy, false)
+
+	assertAppHealthWithOverwrite(t, "./testdata/pod-deletion.yaml", map[string]any{
+		"deletionTimestamp": &v1.Time{Time: time.Now().Add(-time.Minute)},
+	}, health.HealthStatusTerminating, health.HealthUnhealthy, false)
 }
 
 // func TestAPIService(t *testing.T) {
@@ -207,13 +228,13 @@ func TestFluxResources(t *testing.T) {
 	assertAppHealth(t, "./testdata/flux-kustomization-healthy.yaml", "Succeeded", health.HealthHealthy, true)
 	assertAppHealth(t, "./testdata/flux-kustomization-unhealthy.yaml", "Progressing", health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/flux-kustomization-failed.yaml", "BuildFailed", health.HealthUnhealthy, false)
-	status := getHealthStatus("./testdata/flux-kustomization-failed.yaml", t)
+	status := getHealthStatus("./testdata/flux-kustomization-failed.yaml", t, nil)
 	assert.Contains(t, status.Message, "err='accumulating resources from 'kubernetes_resource_ingress_fail.yaml'")
 
 	assertAppHealth(t, "./testdata/flux-helmrelease-healthy.yaml", "ReconciliationSucceeded", health.HealthHealthy, true)
 	assertAppHealth(t, "./testdata/flux-helmrelease-unhealthy.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
 	assertAppHealth(t, "./testdata/flux-helmrelease-upgradefailed.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
-	helmreleaseStatus := getHealthStatus("./testdata/flux-helmrelease-upgradefailed.yaml", t)
+	helmreleaseStatus := getHealthStatus("./testdata/flux-helmrelease-upgradefailed.yaml", t, nil)
 	assert.Contains(t, helmreleaseStatus.Message, "Helm upgrade failed for release mission-control-agent/prod-kubernetes-bundle with chart mission-control-kubernetes@0.1.29: YAML parse error on mission-control-kubernetes/templates/topology.yaml: error converting YAML to JSON: yaml: line 171: did not find expected '-' indicator")
 	assert.Equal(t, helmreleaseStatus.Status, health.HealthStatusUpgradeFailed)
 
