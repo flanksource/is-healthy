@@ -28,19 +28,20 @@ func getPodHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	isReady := IsPodReady(pod)
 	if pod.ObjectMeta.DeletionTimestamp != nil && !pod.ObjectMeta.DeletionTimestamp.IsZero() {
-		status := HealthHealthy
-		if !isReady {
-			status = HealthUnhealthy
-		}
+		status := HealthUnknown
+		message := ""
 
-		if time.Since(pod.ObjectMeta.DeletionTimestamp.Time) >= time.Minute*15 {
+		terminatingFor := time.Since(pod.ObjectMeta.DeletionTimestamp.Time)
+		if terminatingFor >= time.Minute*15 {
 			status = HealthWarning
+			message = fmt.Sprintf("stuck in 'Terminating' for %s", terminatingFor)
 		}
 
 		return &HealthStatus{
-			Status: HealthStatusTerminating,
-			Ready:  false,
-			Health: status,
+			Status:  HealthStatusTerminating,
+			Ready:   false,
+			Health:  status,
+			Message: message,
 		}, nil
 	}
 

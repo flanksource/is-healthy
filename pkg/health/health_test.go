@@ -145,6 +145,9 @@ func TestHPA(t *testing.T) {
 
 func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-terminating.yaml", health.HealthStatusTerminating, health.HealthWarning, false)
+	status := getHealthStatus("./testdata/pod-terminating.yaml", t, nil)
+	assert.Contains(t, status.Message, "stuck in 'Terminating' for")
+
 	assertAppHealth(t, "./testdata/pod-pending.yaml", health.HealthStatusPending, health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/pod-running-not-ready.yaml", health.HealthStatusStarting, health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/pod-crashloop.yaml", health.HealthStatusCrashLoopBackoff, health.HealthUnhealthy, false)
@@ -159,7 +162,7 @@ func TestPod(t *testing.T) {
 
 	assertAppHealthWithOverwrite(t, "./testdata/pod-deletion.yaml", map[string]any{
 		"deletionTimestamp": &v1.Time{Time: time.Now().Add(-time.Minute)},
-	}, health.HealthStatusTerminating, health.HealthUnhealthy, false)
+	}, health.HealthStatusTerminating, health.HealthUnknown, false)
 }
 
 // func TestAPIService(t *testing.T) {
