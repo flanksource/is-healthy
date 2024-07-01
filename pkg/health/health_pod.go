@@ -3,6 +3,7 @@ package health
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -27,19 +28,20 @@ func getPodHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	isReady := IsPodReady(pod)
 	if pod.ObjectMeta.DeletionTimestamp != nil && !pod.ObjectMeta.DeletionTimestamp.IsZero() {
-		if isReady {
-			return &HealthStatus{
-				Status: HealthStatusTerminating,
-				Ready:  false,
-				Health: HealthHealthy,
-			}, nil
-		} else {
-			return &HealthStatus{
-				Status: HealthStatusTerminating,
-				Ready:  false,
-				Health: HealthUnhealthy,
-			}, nil
+		status := HealthHealthy
+		if !isReady {
+			status = HealthUnhealthy
 		}
+
+		if time.Since(pod.ObjectMeta.DeletionTimestamp.Time) >= time.Minute*15 {
+			status = HealthWarning
+		}
+
+		return &HealthStatus{
+			Status: HealthStatusTerminating,
+			Ready:  false,
+			Health: status,
+		}, nil
 	}
 
 	if pod.Status.Reason == "Evicted" {
