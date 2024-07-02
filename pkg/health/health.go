@@ -35,6 +35,11 @@ const (
 	// Indicates that resource is missing in the cluster.
 	HealthStatusMissing HealthStatusCode = "Missing"
 
+	HealthStatusImporting   HealthStatusCode = "Importing"
+	HealthStatusRollingBack HealthStatusCode = "RollingBack"
+	HealthStatusRolledBack  HealthStatusCode = "RolledBack"
+	HealthStatusReviewing   HealthStatusCode = "Reviewing"
+
 	HealthStatusEvicted          HealthStatusCode = "Evicted"
 	HealthStatusCompleted        HealthStatusCode = "Completed"
 	HealthStatusCrashLoopBackoff HealthStatusCode = "CrashLoopBackOff"

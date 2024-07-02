@@ -5,13 +5,14 @@ import (
 )
 
 const (
-	AWSResourceTypeEBS    string = "ebs"
-	AWSResourceTypeEC2    string = "ec2"
-	AWSResourceTypeEKS    string = "eks"
-	AWSResourceTypeELB    string = "elb"
-	AWSResourceTypeRDS    string = "rds"
-	AWSResourceTypeVPC    string = "vpc"
-	AWSResourceTypeSubnet string = "subnet"
+	AWSResourceTypeEBS                 string = "ebs"
+	AWSResourceTypeEC2                 string = "ec2"
+	AWSResourceTypeEKS                 string = "eks"
+	AWSResourceTypeELB                 string = "elb"
+	AWSResourceTypeRDS                 string = "rds"
+	AWSResourceTypeVPC                 string = "vpc"
+	AWSResourceTypeSubnet              string = "subnet"
+	AWSResourceTypeCloudformationStack string = "cloudformationstack"
 )
 
 func GetAWSResourceHealth(resourceType, status string) (health HealthStatus) {
@@ -29,6 +30,32 @@ func GetAWSResourceHealth(resourceType, status string) (health HealthStatus) {
 }
 
 var awsResourceHealthmap = map[string]map[string]HealthStatus{
+	AWSResourceTypeCloudformationStack: {
+		"create_complete":                              HealthStatus{Status: HealthStatusHealthy, Health: HealthHealthy, Ready: true},
+		"create_failed":                                HealthStatus{Status: HealthStatusError, Health: HealthUnhealthy, Ready: true},
+		"create_in_progress":                           HealthStatus{Status: HealthStatusCreating, Health: HealthUnknown},
+		"delete_complete":                              HealthStatus{Status: HealthStatusDeleted, Health: HealthUnknown, Ready: true},
+		"delete_failed":                                HealthStatus{Status: HealthStatusError, Health: HealthUnhealthy, Ready: true},
+		"delete_in_progress":                           HealthStatus{Status: HealthStatusDeleting, Health: HealthUnknown},
+		"import_complete":                              HealthStatus{Status: HealthStatusHealthy, Health: HealthHealthy, Ready: true},
+		"import_in_progress":                           HealthStatus{Status: HealthStatusImporting, Health: HealthUnknown},
+		"import_rollback_complete":                     HealthStatus{Status: HealthStatusRolledBack, Health: HealthHealthy, Ready: true},
+		"import_rollback_failed":                       HealthStatus{Status: HealthStatusError, Health: HealthUnhealthy, Ready: true},
+		"import_rollback_in_progress":                  HealthStatus{Status: HealthStatusRollingBack, Health: HealthUnknown},
+		"review_in_progress":                           HealthStatus{Status: HealthStatusReviewing, Health: HealthUnknown},
+		"rollback_complete":                            HealthStatus{Status: HealthStatusRolledBack, Health: HealthHealthy, Ready: true},
+		"rollback_failed":                              HealthStatus{Status: HealthStatusError, Health: HealthUnhealthy, Ready: true},
+		"rollback_in_progress":                         HealthStatus{Status: HealthStatusRollingBack, Health: HealthUnknown},
+		"update_complete_cleanup_in_progress":          HealthStatus{Status: HealthStatusUpdating, Health: HealthUnknown},
+		"update_complete":                              HealthStatus{Status: HealthStatusHealthy, Health: HealthHealthy, Ready: true},
+		"update_failed":                                HealthStatus{Status: HealthStatusError, Health: HealthUnhealthy, Ready: true},
+		"update_in_progress":                           HealthStatus{Status: HealthStatusUpdating, Health: HealthUnknown},
+		"update_rollback_complete_cleanup_in_progress": HealthStatus{Status: HealthStatusRollingBack, Health: HealthUnknown},
+		"update_rollback_complete":                     HealthStatus{Status: HealthStatusRolledBack, Health: HealthHealthy, Ready: true},
+		"update_rollback_failed":                       HealthStatus{Status: HealthStatusError, Health: HealthUnhealthy, Ready: true},
+		"update_rollback_in_progress":                  HealthStatus{Status: HealthStatusRollingBack, Health: HealthUnknown},
+	},
+
 	AWSResourceTypeEC2: {
 		"pending":       HealthStatus{Status: HealthStatusPending, Health: HealthUnknown},
 		"running":       HealthStatus{Status: HealthStatusHealthy, Health: HealthHealthy, Ready: true},
