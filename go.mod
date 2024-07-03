@@ -11,7 +11,7 @@ require (
 	k8s.io/api v0.24.2
 	k8s.io/apimachinery v0.24.2
 	layeh.com/gopher-json v0.0.0-20201124131017-552bb3c4c3bf
-	sigs.k8s.io/yaml v1.3.0
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
