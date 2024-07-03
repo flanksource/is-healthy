@@ -2,6 +2,8 @@ package health
 
 import (
 	"strings"
+
+	"github.com/samber/lo"
 )
 
 const (
@@ -61,16 +63,16 @@ var awsResourceHealthmap = map[string]map[string]HealthStatus{
 		"pending":       HealthStatus{Health: HealthUnknown},
 		"running":       HealthStatus{Health: HealthHealthy, Ready: true},
 		"shutting-down": HealthStatus{Health: HealthUnknown},
-		"stopped":       HealthStatus{Health: HealthUnknown},
+		"stopped":       HealthStatus{Health: HealthUnknown, Ready: true},
 		"stopping":      HealthStatus{Health: HealthUnknown},
-		"terminated":    HealthStatus{Health: HealthUnknown},
+		"terminated":    HealthStatus{Health: HealthUnknown, Ready: true},
 	},
 
 	AWSResourceTypeEKS: {
 		"creating": HealthStatus{Health: HealthUnknown},
 		"active":   HealthStatus{Health: HealthHealthy, Ready: true},
 		"deleting": HealthStatus{Health: HealthUnknown},
-		"failed":   HealthStatus{Health: HealthUnhealthy},
+		"failed":   HealthStatus{Health: HealthUnhealthy, Ready: true},
 		"updating": HealthStatus{Health: HealthUnknown},
 		"pending":  HealthStatus{Health: HealthUnknown},
 	},
@@ -80,8 +82,8 @@ var awsResourceHealthmap = map[string]map[string]HealthStatus{
 		"available": HealthStatus{Health: HealthHealthy, Ready: true},
 		"in-use":    HealthStatus{Health: HealthHealthy, Ready: true},
 		"deleting":  HealthStatus{Health: HealthUnknown},
-		"deleted":   HealthStatus{Health: HealthUnknown},
-		"error":     HealthStatus{Health: HealthUnhealthy},
+		"deleted":   HealthStatus{Health: HealthUnknown, Ready: true},
+		"error":     HealthStatus{Health: HealthUnhealthy, Ready: true},
 	},
 
 	// https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/accessing-monitoring.html
@@ -94,29 +96,29 @@ var awsResourceHealthmap = map[string]map[string]HealthStatus{
 		"configuring-log-exports":             HealthStatus{Health: HealthHealthy},
 		"converting-to-vpc":                   HealthStatus{Health: HealthHealthy, Ready: true},
 		"creating":                            HealthStatus{Health: HealthUnknown},
-		"delete-precheck":                     HealthStatus{Health: HealthHealthy, Ready: true},
+		"delete-precheck":                     HealthStatus{Health: HealthHealthy},
 		"deleting":                            HealthStatus{Health: HealthUnknown},
-		"failed":                              HealthStatus{Health: HealthUnhealthy},
-		"inaccessible-encryption-credentials": HealthStatus{Health: HealthUnhealthy},
-		"inaccessible-encryption-credentials-recoverable": HealthStatus{Health: HealthWarning},
-		"incompatible-network":                            HealthStatus{Health: HealthUnhealthy},
-		"incompatible-option-group":                       HealthStatus{Health: HealthUnhealthy},
-		"incompatible-parameters":                         HealthStatus{Health: HealthUnhealthy},
-		"incompatible-restore":                            HealthStatus{Health: HealthUnhealthy},
-		"insufficient-capacity":                           HealthStatus{Health: HealthUnhealthy},
+		"failed":                              HealthStatus{Health: HealthUnhealthy, Ready: true},
+		"inaccessible-encryption-credentials": HealthStatus{Health: HealthUnhealthy, Ready: true},
+		"inaccessible-encryption-credentials-recoverable": HealthStatus{Health: HealthWarning, Ready: true},
+		"incompatible-network":                            HealthStatus{Health: HealthUnhealthy, Ready: true},
+		"incompatible-option-group":                       HealthStatus{Health: HealthUnhealthy, Ready: true},
+		"incompatible-parameters":                         HealthStatus{Health: HealthUnhealthy, Ready: true},
+		"incompatible-restore":                            HealthStatus{Health: HealthUnhealthy, Ready: true},
+		"insufficient-capacity":                           HealthStatus{Health: HealthUnhealthy, Ready: true},
 		"maintenance":                                     HealthStatus{Health: HealthHealthy},
 		"modifying":                                       HealthStatus{Health: HealthHealthy, Ready: true},
 		"moving-to-vpc":                                   HealthStatus{Health: HealthHealthy},
 		"rebooting":                                       HealthStatus{Health: HealthHealthy},
-		"resetting-master-credentials":                    HealthStatus{Health: HealthHealthy, Ready: true},
-		"renaming":                                        HealthStatus{Health: HealthHealthy, Ready: true},
-		"restore-error":                                   HealthStatus{Health: HealthUnhealthy},
+		"resetting-master-credentials":                    HealthStatus{Health: HealthHealthy},
+		"renaming":                                        HealthStatus{Health: HealthHealthy},
+		"restore-error":                                   HealthStatus{Health: HealthUnhealthy, Ready: true},
 		"starting":                                        HealthStatus{Health: HealthUnknown},
-		"stopped":                                         HealthStatus{Health: HealthHealthy},
+		"stopped":                                         HealthStatus{Health: HealthHealthy, Ready: true},
 		"stopping":                                        HealthStatus{Health: HealthUnknown},
-		"storage-config-upgrade":                          HealthStatus{Health: HealthHealthy, Ready: true},
+		"storage-config-upgrade":                          HealthStatus{Health: HealthHealthy},
 		"storage-full":                                    HealthStatus{Health: HealthUnhealthy},
-		"storage-optimization":                            HealthStatus{Health: HealthHealthy, Ready: true},
+		"storage-optimization":                            HealthStatus{Health: HealthHealthy},
 		"upgrading":                                       HealthStatus{Health: HealthHealthy},
 	},
 
@@ -124,7 +126,7 @@ var awsResourceHealthmap = map[string]map[string]HealthStatus{
 		"active":          HealthStatus{Health: HealthHealthy, Ready: true},
 		"provisioning":    HealthStatus{Health: HealthUnknown},
 		"active_impaired": HealthStatus{Health: HealthWarning, Ready: true},
-		"failed":          HealthStatus{Health: HealthUnhealthy},
+		"failed":          HealthStatus{Health: HealthUnhealthy, Ready: true},
 	},
 
 	AWSResourceTypeVPC: {

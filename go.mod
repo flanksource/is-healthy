@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/gobwas/glob v0.2.3
+	github.com/samber/lo v1.44.0
 	github.com/stretchr/testify v1.8.4
 	github.com/yuin/gopher-lua v1.1.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -23,7 +24,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/net v0.23.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
