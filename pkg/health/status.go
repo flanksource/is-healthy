@@ -68,11 +68,12 @@ func (s GenericStatus) FindCondition(name string) *metav1.Condition {
 }
 
 func GetGenericStatus(obj *unstructured.Unstructured) GenericStatus {
-	s := GenericStatus{
-		Fields: obj.Object["status"].(map[string]interface{}),
+	s := GenericStatus{}
+	if objStatus, ok := obj.Object["status"].(map[string]any); ok {
+		s.Fields = objStatus
 	}
-	holder := status{}
 
+	holder := status{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &holder)
 	if err != nil {
 		return s
