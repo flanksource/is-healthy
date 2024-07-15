@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/gobwas/glob v0.2.3
-	github.com/samber/lo v1.44.0
+	github.com/samber/lo v1.45.0
 	github.com/stretchr/testify v1.8.4
 	github.com/yuin/gopher-lua v1.1.0
 	gopkg.in/yaml.v2 v2.4.0
