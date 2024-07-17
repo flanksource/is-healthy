@@ -6,6 +6,7 @@ package health_test
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/flanksource/is-healthy/pkg/lua"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
 )
@@ -26,7 +26,7 @@ func assertAppHealth(t *testing.T, yamlPath string, expectedStatus health.Health
 	assert.Equal(t, expectedStatus, health.Status)
 }
 
-func assertAppHealthWithOverwrite(t *testing.T, yamlPath string, overwrites map[string]any, expectedStatus health.HealthStatusCode, expectedHealth health.Health, expectedReady bool) {
+func assertAppHealthWithOverwrite(t *testing.T, yamlPath string, overwrites map[string]string, expectedStatus health.HealthStatusCode, expectedHealth health.Health, expectedReady bool) {
 	health := getHealthStatus(yamlPath, t, overwrites)
 	assert.NotNil(t, health)
 	assert.Equal(t, expectedHealth, health.Health)
@@ -34,19 +34,18 @@ func assertAppHealthWithOverwrite(t *testing.T, yamlPath string, overwrites map[
 	assert.Equal(t, expectedStatus, health.Status)
 }
 
-func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]any) *health.HealthStatus {
+func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string) *health.HealthStatus {
 	yamlBytes, err := os.ReadFile(yamlPath)
 	require.NoError(t, err)
+
+	// Basic, search & replace overwrite
+	for k, v := range overwrites {
+		yamlBytes = []byte(strings.ReplaceAll(string(yamlBytes), k, v))
+	}
+
 	var obj unstructured.Unstructured
 	err = yaml.Unmarshal(yamlBytes, &obj)
 	require.NoError(t, err)
-
-	for k, v := range overwrites {
-		switch k {
-		case "deletionTimestamp":
-			obj.SetDeletionTimestamp(v.(*v1.Time))
-		}
-	}
 
 	health, err := health.GetResourceHealth(&obj, lua.ResourceHealthOverrides{})
 	require.NoError(t, err)
@@ -144,6 +143,14 @@ func TestHPA(t *testing.T) {
 }
 
 func TestPod(t *testing.T) {
+	assertAppHealthWithOverwrite(t, "./testdata/pod-high-restart-count.yaml", map[string]string{
+		"2024-07-17T14:29:51Z": time.Now().Add(-time.Minute).Format("2006-01-02T15:04:05Z"),
+	}, "OOMKilled", health.HealthUnhealthy, false)
+
+	assertAppHealthWithOverwrite(t, "./testdata/pod-high-restart-count.yaml", map[string]string{
+		"2024-07-17T14:29:51Z": "2024-06-17T14:29:51Z",
+	}, "OOMKilled", health.HealthWarning, false)
+
 	assertAppHealth(t, "./testdata/pod-terminating.yaml", health.HealthStatusTerminating, health.HealthWarning, false)
 	status := getHealthStatus("./testdata/pod-terminating.yaml", t, nil)
 	assert.Contains(t, status.Message, "stuck in 'Terminating' for")
@@ -160,8 +167,8 @@ func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
 	assertAppHealth(t, "./testdata/pod-init-container-fail.yaml", health.HealthStatusCrashLoopBackoff, health.HealthUnhealthy, false)
 
-	assertAppHealthWithOverwrite(t, "./testdata/pod-deletion.yaml", map[string]any{
-		"deletionTimestamp": &v1.Time{Time: time.Now().Add(-time.Minute)},
+	assertAppHealthWithOverwrite(t, "./testdata/pod-deletion.yaml", map[string]string{
+		"2018-12-03T10:16:04Z": time.Now().Add(-time.Minute).Format("2006-01-02T15:04:05Z"),
 	}, health.HealthStatusTerminating, health.HealthUnknown, false)
 }
 

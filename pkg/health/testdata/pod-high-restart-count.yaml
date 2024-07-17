@@ -1,0 +1,170 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  uid: ba54f218-3435-464c-9f37-75ac7d76104a
+  name: config-db-5867b6596f-gs79g
+  labels:
+    control-plane: config-db
+    pod-template-hash: 5867b6596f
+    app.kubernetes.io/name: config-db
+    app.kubernetes.io/instance: mission-control
+  namespace: mission-control
+  generateName: config-db-5867b6596f-
+  ownerReferences:
+    - uid: 00427427-8dee-4003-bd4e-496b0cc275d1
+      kind: ReplicaSet
+      name: config-db-5867b6596f
+      apiVersion: apps/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-07-16T13:31:23Z
+spec:
+  volumes:
+    - name: aws-iam-token
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              audience: sts.amazonaws.com
+              expirationSeconds: 86400
+        defaultMode: 420
+    - name: kube-api-access-7jmn6
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3607
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+          - downwardAPI:
+              items:
+                - path: namespace
+                  fieldRef:
+                    fieldPath: metadata.namespace
+                    apiVersion: v1
+        defaultMode: 420
+  nodeName: ip-10-0-6-40.eu-west-1.compute.internal
+  priority: 0
+  dnsPolicy: ClusterFirst
+  containers:
+    - env:
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              key: DB_URL
+              name: incident-commander-postgres
+        - name: NAMESPACE
+          value: mission-control
+        - name: AWS_STS_REGIONAL_ENDPOINTS
+          value: regional
+        - name: AWS_DEFAULT_REGION
+          value: eu-west-1
+        - name: AWS_REGION
+          value: eu-west-1
+        - name: AWS_ROLE_ARN
+          value: arn:aws:iam::765618022540:role/eksctl-config-db-sa
+        - name: AWS_WEB_IDENTITY_TOKEN_FILE
+          value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
+      args:
+        - operator
+        - --disable-postgrest=true
+        - --change-retention-days=60
+        - --analysis-retention-days=60
+        - --json-logs
+        - --otel-collector-url=grafana-alloy.monitoring:4317
+        - --otel-service-name=config-db
+      name: config-db
+      image: public.ecr.aws/k4y9r6y5/config-db:v0.0.400
+      command:
+        - /app/config-db
+      resources:
+        limits:
+          cpu: 500m
+          memory: 4Gi
+        requests:
+          cpu: 200m
+          memory: 1Gi
+      volumeMounts:
+        - name: kube-api-access-7jmn6
+          readOnly: true
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        - name: aws-iam-token
+          readOnly: true
+          mountPath: /var/run/secrets/eks.amazonaws.com/serviceaccount
+      livenessProbe:
+        httpGet:
+          path: /live
+          port: 8080
+          scheme: HTTP
+        periodSeconds: 10
+        timeoutSeconds: 1
+        failureThreshold: 3
+        successThreshold: 1
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8080
+          scheme: HTTP
+        periodSeconds: 10
+        timeoutSeconds: 1
+        failureThreshold: 3
+        successThreshold: 1
+      imagePullPolicy: IfNotPresent
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+  tolerations:
+    - key: node.kubernetes.io/not-ready
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+    - key: node.kubernetes.io/unreachable
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  serviceAccount: config-db-sa
+  securityContext:
+    fsGroup: 1000
+  preemptionPolicy: PreemptLowerPriority
+  enableServiceLinks: true
+  serviceAccountName: config-db-sa
+  terminationGracePeriodSeconds: 30
+status:
+  phase: Running
+  podIP: 10.0.6.38
+  hostIP: 10.0.6.40
+  podIPs:
+    - ip: 10.0.6.38
+  qosClass: Burstable
+  startTime: 2024-07-16T13:31:23Z
+  conditions:
+    - type: Initialized
+      status: "True"
+    - type: Ready
+      status: "True"
+    - type: ContainersReady
+      status: "True"
+    - type: PodScheduled
+      status: "True"
+  containerStatuses:
+    - name: config-db
+      image: public.ecr.aws/k4y9r6y5/config-db:v0.0.400
+      ready: true
+      state:
+        running:
+          startedAt: 2024-07-17T14:29:52Z
+      imageID: public.ecr.aws/k4y9r6y5/config-db@sha256:b8803113097931662bda448b53c6ca256957957d74d5e8fd1fc442cec197b025
+      started: true
+      lastState:
+        terminated:
+          reason: OOMKilled
+          exitCode: 137
+          startedAt: 2024-07-17T14:13:28Z
+          finishedAt: 2024-07-17T14:29:51Z
+          containerID: containerd://ee5467962528e4a836dfb48cf9f23d7d547eb7e17cb0e96b9ebf698b05d04420
+      containerID: containerd://68dab40e5ad9d6a66477dd2d388e2d7bf37607743b48c0aa454a623d4fa7f7a7
+      restartCount: 101
