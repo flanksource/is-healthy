@@ -143,13 +143,20 @@ func TestHPA(t *testing.T) {
 }
 
 func TestPod(t *testing.T) {
+	// Less than 30 minutes
 	assertAppHealthWithOverwrite(t, "./testdata/pod-high-restart-count.yaml", map[string]string{
-		"2024-07-17T14:29:51Z": time.Now().Add(-time.Minute).Format("2006-01-02T15:04:05Z"),
+		"2024-07-17T14:29:51Z": time.Now().UTC().Add(-time.Minute).Format("2006-01-02T15:04:05Z"),
 	}, "OOMKilled", health.HealthUnhealthy, false)
 
+	// Less than 8 hours
+	assertAppHealthWithOverwrite(t, "./testdata/pod-high-restart-count.yaml", map[string]string{
+		"2024-07-17T14:29:51Z": time.Now().UTC().Add(-time.Hour).Format("2006-01-02T15:04:05Z"),
+	}, "OOMKilled", health.HealthWarning, false)
+
+	// More than 8 hours
 	assertAppHealthWithOverwrite(t, "./testdata/pod-high-restart-count.yaml", map[string]string{
 		"2024-07-17T14:29:51Z": "2024-06-17T14:29:51Z",
-	}, "OOMKilled", health.HealthWarning, false)
+	}, health.HealthStatusRunning, health.HealthHealthy, true)
 
 	assertAppHealth(t, "./testdata/pod-old-restarts.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
 
