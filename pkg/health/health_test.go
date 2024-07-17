@@ -151,6 +151,8 @@ func TestPod(t *testing.T) {
 		"2024-07-17T14:29:51Z": "2024-06-17T14:29:51Z",
 	}, "OOMKilled", health.HealthWarning, false)
 
+	assertAppHealth(t, "./testdata/pod-old-restarts.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
+
 	assertAppHealth(t, "./testdata/pod-terminating.yaml", health.HealthStatusTerminating, health.HealthWarning, false)
 	status := getHealthStatus("./testdata/pod-terminating.yaml", t, nil)
 	assert.Contains(t, status.Message, "stuck in 'Terminating' for")
