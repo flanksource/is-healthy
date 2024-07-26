@@ -174,17 +174,39 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	case corev1.PodRunning:
 		switch pod.Spec.RestartPolicy {
 		case corev1.RestartPolicyAlways:
-			// if pod is ready, it is automatically healthy
 			if isReady {
+				health := HealthHealthy
+				message := pod.Status.Message
+
+				// A ready pod can be in a warning state if it has been in a restart loop.
+				// i.e. the container completes successfully, but the pod keeps restarting.
+				for _, s := range pod.Status.ContainerStatuses {
+					if s.LastTerminationState.Terminated != nil {
+						lastTerminatedTime := s.LastTerminationState.Terminated.FinishedAt.Time
+						if !lastTerminatedTime.IsZero() && pod.Status.StartTime.Sub(lastTerminatedTime) < time.Minute {
+							health = HealthWarning
+							message = fmt.Sprintf("pod is in a restart loop. Container %s has restarted %d time(s)", s.Name, pod.Status.ContainerStatuses[0].RestartCount)
+						}
+
+						break
+					}
+				}
+
 				return &HealthStatus{
-					Health:  HealthHealthy,
+					Health:  health,
 					Ready:   true,
 					Status:  HealthStatusRunning,
-					Message: pod.Status.Message,
+					Message: message,
 				}, nil
 			}
+
 			// if it's not ready, check to see if any container terminated, if so, it's degraded
+			allContainersReady := true
 			for _, ctrStatus := range pod.Status.ContainerStatuses {
+				if !ctrStatus.Ready {
+					allContainersReady = false
+				}
+
 				if ctrStatus.LastTerminationState.Terminated != nil {
 					return &HealthStatus{
 						Health:  HealthUnhealthy,
@@ -194,6 +216,16 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 					}, nil
 				}
 			}
+
+			// Pod isn't ready but all containers are
+			if allContainersReady {
+				return &HealthStatus{
+					Health:  HealthWarning,
+					Status:  HealthStatusRunning,
+					Message: pod.Status.Message,
+				}, nil
+			}
+
 			// otherwise we are progressing towards a ready state
 			return &HealthStatus{
 				Health:  HealthUnknown,

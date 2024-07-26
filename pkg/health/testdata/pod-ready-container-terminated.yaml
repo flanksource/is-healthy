@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  uid: d21e1521-5a3f-4120-a446-bd7426199a20
+  name: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-0
+  labels:
+    app: postgresql
+    controller-revision-hash: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-988f9fc65
+    statefulset.kubernetes.io/pod-name: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-0
+  namespace: httpbin
+  generateName: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-
+  ownerReferences:
+    - uid: da460101-eebb-4d4f-b8f4-acb8908d7083
+      kind: StatefulSet
+      name: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc
+      apiVersion: apps/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-06-18T14:48:55Z
+spec:
+  restartPolicy: Always
+  readiness:
+    initialDelaySeconds: 10
+  containers:
+    - name: busybox
+      image: busybox
+      command: ['sh', '-c', 'echo Hello Kubernetes! && sleep 3600']
+      restartPolicy: Always
+      resources:
+        requests:
+          memory: '64Mi'
+          cpu: '250m'
+        limits:
+          memory: '128Mi'
+          cpu: '500m'
+
+  nodeName: some-node
+status:
+  phase: Running
+  podIP: 168.1.91.19
+  hostIP: 168.1.75.190
+  podIPs:
+    - ip: 168.1.91.19
+  qosClass: BestEffort
+  startTime: 2024-07-18T12:03:16Z
+  conditions:
+    - type: Initialized
+      status: 'True'
+    - type: Ready
+      status: 'True'
+    - type: ContainersReady
+      status: 'True'
+    - type: PodScheduled
+      status: 'True'
+  containerStatuses:
+    - name: gitlab-runner
+      image: registry.gitlab.com/gitlab-org/gitlab-runner:alpine-v16.9.1
+      ready: true
+      state:
+        running:
+          startedAt: 2024-07-18T12:03:06Z
+      imageID: registry.gitlab.com/gitlab-org/gitlab-runner@sha256:930288bf8b56a1dfcdee733a98b6b30e35b9b4c48bd07250d5eb4db822e3ec13
+      started: true
+      lastState:
+        terminated:
+          reason: Completed
+          exitCode: 0
+          startedAt: 2024-07-18T11:56:37Z
+          finishedAt: 2024-07-18T12:03:06Z
+          containerID: containerd://8d09ffbf6619b1de506c812a0ad0a8e4f133d8c2b6ec07758bc768261bf34931
+      containerID: containerd://418ea5c9ff6a4877399782c769d673aa83baeaa95d28d5b1cf9d4ff4354dd4d1
+      restartCount: 9
