@@ -183,9 +183,9 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 				for _, s := range pod.Status.ContainerStatuses {
 					if s.LastTerminationState.Terminated != nil {
 						lastTerminatedTime := s.LastTerminationState.Terminated.FinishedAt.Time
-						if !lastTerminatedTime.IsZero() && pod.Status.StartTime.Sub(lastTerminatedTime) < time.Minute {
+						if !lastTerminatedTime.IsZero() && pod.Status.StartTime.Sub(lastTerminatedTime) < time.Hour {
 							health = HealthWarning
-							message = fmt.Sprintf("pod is in a restart loop. Container %s has restarted %d time(s)", s.Name, pod.Status.ContainerStatuses[0].RestartCount)
+							message = fmt.Sprintf("%s has restarted %d time(s)", s.Name, pod.Status.ContainerStatuses[0].RestartCount)
 						}
 
 						break
