@@ -26,6 +26,15 @@ func assertAppHealth(t *testing.T, yamlPath string, expectedStatus health.Health
 	assert.Equal(t, expectedStatus, health.Status)
 }
 
+func assertAppHealthWithOverwriteMsg(t *testing.T, yamlPath string, overwrites map[string]string, expectedStatus health.HealthStatusCode, expectedHealth health.Health, expectedReady bool, expectedMsg string) {
+	health := getHealthStatus(yamlPath, t, overwrites)
+	assert.NotNil(t, health)
+	assert.Equal(t, expectedHealth, health.Health)
+	assert.Equal(t, expectedReady, health.Ready)
+	assert.Equal(t, expectedStatus, health.Status)
+	assert.Equal(t, expectedMsg, health.Message)
+}
+
 func assertAppHealthWithOverwrite(t *testing.T, yamlPath string, overwrites map[string]string, expectedStatus health.HealthStatusCode, expectedHealth health.Health, expectedReady bool) {
 	health := getHealthStatus(yamlPath, t, overwrites)
 	assert.NotNil(t, health)
@@ -143,6 +152,10 @@ func TestHPA(t *testing.T) {
 }
 
 func TestPod(t *testing.T) {
+	assertAppHealthWithOverwriteMsg(t, "./testdata/pod-not-ready-container-not-ready.yaml", map[string]string{
+		"2024-07-29T06:32:56Z": time.Now().Add(time.Minute * 10).Format(time.RFC3339),
+	}, health.HealthStatusStarting, health.HealthUnknown, false, "Container nginx is waiting for readiness probe")
+
 	// Pod not ready
 	assertAppHealth(t, "./testdata/pod-not-ready-but-container-ready.yaml", health.HealthStatusRunning, health.HealthWarning, false)
 
@@ -150,7 +163,7 @@ func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-ready-container-terminated.yaml", health.HealthStatusRunning, health.HealthWarning, true)
 	assertAppHealthWithOverwrite(t, "./testdata/pod-ready-container-terminated.yaml", map[string]string{
 		"2024-07-18T12:03:16Z": "2024-07-18T12:05:16Z",
-	}, health.HealthStatusRunning, health.HealthHealthy, true)
+	}, health.HealthStatusRunning, health.HealthWarning, true)
 
 	// Less than 30 minutes
 	assertAppHealthWithOverwrite(t, "./testdata/pod-high-restart-count.yaml", map[string]string{

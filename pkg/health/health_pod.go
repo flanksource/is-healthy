@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -201,10 +202,16 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 			}
 
 			// if it's not ready, check to see if any container terminated, if so, it's degraded
-			allContainersReady := true
+			var nonReadyContainers []ContainerRecord
 			for _, ctrStatus := range pod.Status.ContainerStatuses {
 				if !ctrStatus.Ready {
-					allContainersReady = false
+					spec := lo.Filter(pod.Spec.Containers, func(i corev1.Container, _ int) bool {
+						return i.Name == ctrStatus.Name
+					})
+					nonReadyContainers = append(nonReadyContainers, ContainerRecord{
+						Status: ctrStatus,
+						Spec:   spec[0],
+					})
 				}
 
 				if ctrStatus.LastTerminationState.Terminated != nil {
@@ -218,7 +225,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 			}
 
 			// Pod isn't ready but all containers are
-			if allContainersReady {
+			if len(nonReadyContainers) == 0 {
 				return &HealthStatus{
 					Health:  HealthWarning,
 					Status:  HealthStatusRunning,
@@ -226,11 +233,22 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 				}, nil
 			}
 
+			var containersWaitingForReadinessProbe []string
+			for _, c := range nonReadyContainers {
+				if c.Spec.ReadinessProbe == nil || c.Spec.ReadinessProbe.InitialDelaySeconds == 0 {
+					continue
+				}
+
+				if time.Since(c.Status.State.Running.StartedAt.Time) <= time.Duration(c.Spec.ReadinessProbe.InitialDelaySeconds)*time.Second {
+					containersWaitingForReadinessProbe = append(containersWaitingForReadinessProbe, c.Spec.Name)
+				}
+			}
+
 			// otherwise we are progressing towards a ready state
 			return &HealthStatus{
 				Health:  HealthUnknown,
 				Status:  HealthStatusStarting,
-				Message: pod.Status.Message,
+				Message: fmt.Sprintf("Container %s is waiting for readiness probe", strings.Join(containersWaitingForReadinessProbe, ",")),
 			}, nil
 
 		case corev1.RestartPolicyOnFailure, corev1.RestartPolicyNever:
@@ -253,4 +271,9 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 		Status:  HealthStatusUnknown,
 		Message: pod.Status.Message,
 	}, nil
+}
+
+type ContainerRecord struct {
+	Spec   corev1.Container
+	Status corev1.ContainerStatus
 }
