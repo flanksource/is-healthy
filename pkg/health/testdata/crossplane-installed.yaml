@@ -1,0 +1,28 @@
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  uid: a84bcf77-4abc-4798-8e99-76c75964424f
+  name: provider-azure-authorization
+  labels:
+    kustomize.toolkit.fluxcd.io/name: common
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  creationTimestamp: 2023-11-12T15:50:07Z
+spec:
+  package: xpkg.upbound.io/upbound/provider-azure-authorization:v0.38.2
+  packagePullPolicy: IfNotPresent
+  controllerConfigRef:
+    name: provider-azure-family-config
+  revisionHistoryLimit: 1
+  revisionActivationPolicy: Automatic
+  skipDependencyResolution: false
+  ignoreCrossplaneConstraints: false
+status:
+  conditions:
+    - type: Healthy
+      reason: HealthyPackageRevision
+      status: "True"
+    - type: Installed
+      reason: ActivePackageRevision
+      status: "True"
+  currentRevision: provider-azure-authorization-29b8a8ac7b22
+  currentIdentifier: xpkg.upbound.io/upbound/provider-azure-authorization:v0.38.2

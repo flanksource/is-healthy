@@ -18,6 +18,15 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+func assertAppHealthMsg(t *testing.T, yamlPath string, expectedStatus health.HealthStatusCode, expectedHealth health.Health, expectedReady bool, expectedMsg string) {
+	health := getHealthStatus(yamlPath, t, nil)
+	assert.NotNil(t, health)
+	assert.Equal(t, expectedHealth, health.Health)
+	assert.Equal(t, expectedReady, health.Ready)
+	assert.Equal(t, expectedStatus, health.Status)
+	assert.Equal(t, expectedMsg, health.Message)
+}
+
 func assertAppHealth(t *testing.T, yamlPath string, expectedStatus health.HealthStatusCode, expectedHealth health.Health, expectedReady bool) {
 	health := getHealthStatus(yamlPath, t, nil)
 	assert.NotNil(t, health)
@@ -62,8 +71,11 @@ func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string
 }
 
 func TestCrossplane(t *testing.T) {
-	assertAppHealth(t, "./testdata/crossplane.yaml", "ApplyFailure", health.HealthWarning, true)
-	assertAppHealth(t, "./testdata/crossplane-healthy.yaml", "Success", health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/crossplane-apply-failure.yaml", "ApplyFailure", health.HealthWarning, true, "apply failed: an existing `high_availability.0.standby_availability_zone` can only be changed when exchanged with the zone specified in `zone`: ")
+	assertAppHealthMsg(t, "./testdata/crossplane-healthy.yaml", "ReconcileSuccess", health.HealthHealthy, true, "")
+	assertAppHealthMsg(t, "./testdata/crossplane-installed.yaml", "ActivePackageRevision", health.HealthHealthy, true, "")
+	assertAppHealthMsg(t, "./testdata/crossplane-provider-revision.yaml", "HealthyPackageRevision", health.HealthHealthy, true, "")
+	assertAppHealthMsg(t, "./testdata/crossplane-reconcile-error.yaml", "ReconcileError", health.HealthUnhealthy, true, "observe failed: cannot run plan: plan failed: Instance cannot be destroyed: Resource azurerm_kubernetes_cluster_node_pool.prodeu01 has lifecycle.prevent_destroy set, but the plan calls for this resource to be destroyed. To avoid this error and continue with the plan, either disable lifecycle.prevent_destroy or reduce the scope of the plan using the -target flag.")
 }
 
 func TestNamespace(t *testing.T) {

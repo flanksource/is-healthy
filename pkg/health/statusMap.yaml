@@ -182,7 +182,20 @@ image.toolkit.fluxcd.io/v1beta2/ImageUpdateAutomation: *flux
 # Not an actual kind.
 crossplane.io:
   conditions:
+    Healthy:
+      reasons:
+        HealthyPackageRevision:
+          health: healthy
+          message: true
+          ready: true
+    Installed:
+      reasons:
+        ActivePackageRevision:
+          health: healthy
+          message: true
+          ready: true
     Ready:
+      order: 2
       reasons:
         Available:
           ready: true
@@ -197,7 +210,7 @@ crossplane.io:
           health: unknown
           ready: false
     AsyncOperation:
-      order: -1
+      order: 1
       reasons:
         Finished:
           order: -1
@@ -207,14 +220,22 @@ crossplane.io:
           order: -1
           ready: false
     LastAsyncOperation:
+      order: 3
       onFalse:
-        ready: false
+        order: 5
+        message: true
         health: warning
     Synced:
+      order: 4
       reasons:
         ReconcileSuccess:
           ready: true
         ReconcileError:
           health: unhealthy
+          message: true
         ReconcilePaused:
           ready: false
+      onFalse:
+        order: 6
+        message: true
+        health: warning

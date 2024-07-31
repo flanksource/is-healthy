@@ -115,12 +115,13 @@ func (mapped *OnCondition) Apply(health *HealthStatus, c *metav1.Condition) {
 	if mapped.Status != "" {
 		if health.Status == "" || mapped.Order >= health.order {
 			health.Status = mapped.Status
+			health.order = mapped.Order
 		}
 	} else if c.Reason != "" {
 		if health.Status == "" || mapped.Order >= health.order {
 			health.Status = HealthStatusCode(c.Reason)
+			health.order = mapped.Order
 		}
-
 	}
 
 	if mapped.Message && c.Message != "" {
@@ -170,6 +171,7 @@ func (mapped *Condition) Apply(health *HealthStatus, c *metav1.Condition) {
 	} else if c.Status == metav1.ConditionUnknown && mapped.OnUnknown != nil {
 		mapped.OnUnknown.Apply(health, c)
 	}
+
 	if reason, ok := mapped.Reasons[c.Reason]; ok {
 		reason.Apply(health, c)
 	}

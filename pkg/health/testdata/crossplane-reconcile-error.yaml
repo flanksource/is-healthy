@@ -1,0 +1,101 @@
+apiVersion: containerservice.azure.upbound.io/v1beta1
+kind: KubernetesClusterNodePool
+metadata:
+  uid: 8680aee9-b7ed-4ccf-b29b-b9088fd1a686
+  name: prodeu01
+  labels:
+    kustomize.toolkit.fluxcd.io/name: workload-prod-az-eu-01
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  finalizers:
+    - finalizer.managedresource.crossplane.io
+  annotations:
+    crossplane.io/external-name: prodeu01
+    upjet.crossplane.io/provider-meta: '{"e2bfb730-ecaa-11e6-8f88-34363bc7c4c0":{"create":3600000000000,"delete":3600000000000,"read":300000000000,"update":3600000000000},"schema_version":"1"}'
+    crossplane.io/external-create-pending: 2024-05-23T08:47:21Z
+    crossplane.io/external-create-succeeded: 2024-05-23T08:47:21Z
+  creationTimestamp: 2024-05-23T08:15:32Z
+spec:
+  forProvider:
+    mode: User
+    osSku: Ubuntu
+    osType: Linux
+    vmSize: Standard_D8as_v5
+    maxPods: 250
+    maxCount: 0
+    minCount: 0
+    priority: Regular
+    nodeCount: 0
+    osDiskType: Ephemeral
+    podSubnetId: /subscriptions/0cd017bb-aa54-4611-b21f-ecf8daee0511/resourceGroups/crossplane/providers/Microsoft.Network/virtualNetworks/workload-prod-az-eu-01/subnets/workload-prod-az-eu-01-pods
+    osDiskSizeGb: 128
+    spotMaxPrice: -1
+    vnetSubnetId: /subscriptions/0cd017bb-aa54-4611-b21f-ecf8daee0511/resourceGroups/crossplane/providers/Microsoft.Network/virtualNetworks/workload-prod-az-eu-01/subnets/workload-prod-az-eu-01-nodes
+    scaleDownMode: Delete
+    podSubnetIdRef:
+      name: workload-prod-az-eu-01-pods
+    kubeletDiskType: OS
+    vnetSubnetIdRef:
+      name: workload-prod-az-eu-01-nodes
+    enableAutoScaling: true
+    kubernetesClusterId: /subscriptions/0cd017bb-aa54-4611-b21f-ecf8daee0511/resourceGroups/crossplane/providers/Microsoft.ContainerService/managedClusters/workload-prod-eu-01
+    orchestratorVersion: 1.27.9
+    kubernetesClusterIdRef:
+      name: workload-prod-eu-01
+  initProvider: {}
+  deletionPolicy: Delete
+  providerConfigRef:
+    name: azure-north-europe
+  managementPolicies:
+    - '*'
+status:
+  atProvider:
+    id: /subscriptions/0cd017bb-aa54-4611-b21f-ecf8daee0511/resourceGroups/crossplane/providers/Microsoft.ContainerService/managedClusters/workload-prod-eu-01/agentPools/prodeu01
+    mode: User
+    osSku: Ubuntu
+    osType: Linux
+    vmSize: Standard_D4s_v5
+    maxPods: 250
+    maxCount: 4
+    minCount: 0
+    priority: Regular
+    nodeCount: 1
+    osDiskType: Managed
+    fipsEnabled: false
+    hostGroupId: ''
+    podSubnetId: /subscriptions/0cd017bb-aa54-4611-b21f-ecf8daee0511/resourceGroups/crossplane/providers/Microsoft.Network/virtualNetworks/workload-prod-az-eu-01/subnets/workload-prod-az-eu-01-pods
+    osDiskSizeGb: 128
+    spotMaxPrice: -1
+    vnetSubnetId: /subscriptions/0cd017bb-aa54-4611-b21f-ecf8daee0511/resourceGroups/crossplane/providers/Microsoft.Network/virtualNetworks/workload-prod-az-eu-01/subnets/workload-prod-az-eu-01-nodes
+    scaleDownMode: Delete
+    evictionPolicy: ''
+    kubeletDiskType: OS
+    messageOfTheDay: ''
+    ultraSsdEnabled: false
+    enableAutoScaling: true
+    enableNodePublicIp: false
+    kubernetesClusterId: /subscriptions/0cd017bb-aa54-4611-b21f-ecf8daee0511/resourceGroups/crossplane/providers/Microsoft.ContainerService/managedClusters/workload-prod-eu-01
+    orchestratorVersion: 1.27.9
+    customCaTrustEnabled: false
+    enableHostEncryption: false
+    nodePublicIpPrefixId: ''
+    proximityPlacementGroupId: ''
+    capacityReservationGroupId: ''
+  conditions:
+    - type: Ready
+      reason: Available
+      status: 'True'
+    - type: Synced
+      reason: ReconcileError
+      status: 'False'
+      message: 'observe failed: cannot run plan: plan failed: Instance cannot be
+        destroyed: Resource azurerm_kubernetes_cluster_node_pool.prodeu01 has
+        lifecycle.prevent_destroy set, but the plan calls for this resource to
+        be destroyed. To avoid this error and continue with the plan, either
+        disable lifecycle.prevent_destroy or reduce the scope of the plan using
+        the -target flag.'
+    - type: LastAsyncOperation
+      reason: Success
+      status: 'True'
+    - type: AsyncOperation
+      reason: Finished
+      status: 'True'

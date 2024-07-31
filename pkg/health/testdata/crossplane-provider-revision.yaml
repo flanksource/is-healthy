@@ -1,0 +1,58 @@
+apiVersion: pkg.crossplane.io/v1
+kind: ProviderRevision
+metadata:
+  uid: b42bf5da-9dad-4082-a682-46de82bc996e
+  name: provider-azure-authorization-29b8a8ac7b22
+  labels:
+    pkg.crossplane.io/package: provider-azure-authorization
+    pkg.crossplane.io/provider-family: provider-family-azure
+  finalizers:
+    - revision.pkg.crossplane.io
+  annotations:
+    auth.upbound.io/group: azure.upbound.io
+    meta.crossplane.io/readme: >
+      Provider Azure is a Crossplane provider for [Microsoft
+      Azure](https://azure.microsoft.com)
+
+      developed and supported by Upbound.
+
+      Available resources and their fields can be found in the [Upbound
+
+      Marketplace](https://marketplace.upbound.io/providers/upbound/provider-azure).
+
+      If you encounter an issue please reach out on support@upbound.io email
+
+      address. This is a subpackage for the authorization API group.
+    meta.crossplane.io/source: github.com/upbound/provider-azure
+    meta.crossplane.io/maintainer: Upbound <support@upbound.io>
+    meta.crossplane.io/description: |
+      Upbound's official Crossplane provider to manage Microsoft Azure
+      authorization services in Kubernetes.
+    friendly-name.meta.crossplane.io: Provider Azure (authorization)
+  ownerReferences:
+    - uid: a84bcf77-4abc-4798-8e99-76c75964424f
+      kind: Provider
+      name: provider-azure-authorization
+      apiVersion: pkg.crossplane.io/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2023-11-12T15:50:08Z
+spec:
+  image: xpkg.upbound.io/upbound/provider-azure-authorization:v0.38.2
+  revision: 1
+  desiredState: Active
+  packagePullPolicy: IfNotPresent
+  controllerConfigRef:
+    name: provider-azure-family-config
+  webhookTLSSecretName: webhook-tls-secret
+  skipDependencyResolution: false
+  ignoreCrossplaneConstraints: false
+status:
+  conditions:
+    - type: Healthy
+      reason: HealthyPackageRevision
+      status: "True"
+  controllerRef:
+    name: provider-azure-authorization-29b8a8ac7b22
+  foundDependencies: 1
+  installedDependencies: 1
