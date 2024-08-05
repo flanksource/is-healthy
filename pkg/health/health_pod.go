@@ -85,21 +85,6 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 				health = msg.Health
 				status = msg.Status
 				messages = append(messages, msg.Message)
-			} else if containerStatus.RestartCount > 2 && containerStatus.LastTerminationState.Terminated != nil {
-				lastRestarted := containerStatus.LastTerminationState.Terminated.FinishedAt.Time
-				if time.Since(lastRestarted) < time.Minute*30 {
-					return &HealthStatus{
-						Health:  HealthUnhealthy,
-						Status:  HealthStatusCode(containerStatus.LastTerminationState.Terminated.Reason),
-						Message: strings.Join(messages, ", "),
-					}, nil
-				} else if time.Since(lastRestarted) < time.Hour*8 {
-					return &HealthStatus{
-						Health:  HealthWarning,
-						Status:  HealthStatusCode(containerStatus.LastTerminationState.Terminated.Reason),
-						Message: strings.Join(messages, ", "),
-					}, nil
-				}
 			}
 		}
 
@@ -176,29 +161,39 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 		switch pod.Spec.RestartPolicy {
 		case corev1.RestartPolicyAlways:
 			if isReady {
-				health := HealthHealthy
-				message := pod.Status.Message
+				h := &HealthStatus{
+					Health:  HealthHealthy,
+					Ready:   true,
+					Status:  HealthStatusRunning,
+					Message: pod.Status.Message,
+				}
 
 				// A ready pod can be in a warning state if it has been in a restart loop.
 				// i.e. the container completes successfully, but the pod keeps restarting.
 				for _, s := range pod.Status.ContainerStatuses {
-					if s.LastTerminationState.Terminated != nil {
+					possiblyInRestartLoop := s.RestartCount > 2 &&
+						s.LastTerminationState.Terminated != nil &&
+						time.Since(s.State.Running.StartedAt.Time) < time.Hour*4
+
+					if possiblyInRestartLoop {
 						lastTerminatedTime := s.LastTerminationState.Terminated.FinishedAt.Time
-						if !lastTerminatedTime.IsZero() && pod.Status.StartTime.Sub(lastTerminatedTime) < time.Hour {
-							health = HealthWarning
-							message = fmt.Sprintf("%s has restarted %d time(s)", s.Name, pod.Status.ContainerStatuses[0].RestartCount)
+						h.Message = fmt.Sprintf("%s has restarted %d time(s)", s.Name, pod.Status.ContainerStatuses[0].RestartCount)
+
+						if s.LastTerminationState.Terminated.Reason != "Completed" {
+							h.Status = HealthStatusCode(s.LastTerminationState.Terminated.Reason)
 						}
 
-						break
+						if time.Since(lastTerminatedTime) < time.Minute*30 {
+							h.Health = HealthUnhealthy
+							h.Ready = false
+						} else if time.Since(lastTerminatedTime) < time.Hour*8 {
+							h.Health = HealthWarning
+							h.Ready = false
+						}
 					}
 				}
 
-				return &HealthStatus{
-					Health:  health,
-					Ready:   true,
-					Status:  HealthStatusRunning,
-					Message: message,
-				}, nil
+				return h, nil
 			}
 
 			// if it's not ready, check to see if any container terminated, if so, it's degraded

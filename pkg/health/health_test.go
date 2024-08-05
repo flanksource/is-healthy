@@ -172,19 +172,22 @@ func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-not-ready-but-container-ready.yaml", health.HealthStatusRunning, health.HealthWarning, false)
 
 	// Restart Loop
-	assertAppHealth(t, "./testdata/pod-ready-container-terminated.yaml", health.HealthStatusRunning, health.HealthWarning, true)
+	assertAppHealth(t, "./testdata/pod-ready-container-terminated.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
+
 	assertAppHealthWithOverwrite(t, "./testdata/pod-ready-container-terminated.yaml", map[string]string{
-		"2024-07-18T12:03:16Z": "2024-07-18T12:05:16Z",
-	}, health.HealthStatusRunning, health.HealthWarning, true)
+		"2024-07-18T12:03:06Z": time.Now().Add(-time.Minute * 50).UTC().Format("2006-01-02T15:04:05Z"), // container last terminated
+	}, health.HealthStatusRunning, health.HealthWarning, false)
 
 	// Less than 30 minutes
 	assertAppHealthWithOverwrite(t, "./testdata/pod-high-restart-count.yaml", map[string]string{
 		"2024-07-17T14:29:51Z": time.Now().UTC().Add(-time.Minute).Format("2006-01-02T15:04:05Z"),
+		"2024-07-17T14:29:52Z": time.Now().UTC().Add(-time.Minute).Format("2006-01-02T15:04:05Z"), // start time
 	}, "OOMKilled", health.HealthUnhealthy, false)
 
 	// Less than 8 hours
 	assertAppHealthWithOverwrite(t, "./testdata/pod-high-restart-count.yaml", map[string]string{
 		"2024-07-17T14:29:51Z": time.Now().UTC().Add(-time.Hour).Format("2006-01-02T15:04:05Z"),
+		"2024-07-17T14:29:52Z": time.Now().UTC().Add(-time.Hour).Format("2006-01-02T15:04:05Z"), // start time
 	}, "OOMKilled", health.HealthWarning, false)
 
 	// More than 8 hours
