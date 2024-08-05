@@ -44,9 +44,9 @@ func getAppsv1DeploymentHealth(deployment *appsv1.Deployment, obj *unstructured.
 	}
 
 	if deployment.Status.ReadyReplicas == replicas {
-		status.PreppendMessage("%d pods ready", deployment.Status.ReadyReplicas)
+		status.PrependMessage("%d pods ready", deployment.Status.ReadyReplicas)
 	} else {
-		status.PreppendMessage("%d of %d pods ready", deployment.Status.ReadyReplicas, replicas)
+		status.PrependMessage("%d of %d pods ready", deployment.Status.ReadyReplicas, replicas)
 	}
 
 	if deployment.Spec.Paused {

@@ -49,7 +49,7 @@ func (hs *HealthStatus) AppendMessage(msg string, args ...interface{}) {
 	hs.Message += fmt.Sprintf(msg, args...)
 }
 
-func (hs *HealthStatus) PreppendMessage(msg string, args ...interface{}) {
+func (hs *HealthStatus) PrependMessage(msg string, args ...interface{}) {
 	if msg == "" {
 		return
 	}

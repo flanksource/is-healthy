@@ -98,6 +98,14 @@ func IsWorse(current, new HealthStatusCode) bool {
 	return newIndex > currentIndex
 }
 
+func GetHealthByConfigType(configType string, obj map[string]any) HealthStatus {
+	if strings.HasPrefix(configType, "Mongo::") {
+		return GetMongoHealth(obj)
+	}
+
+	return HealthStatus{}
+}
+
 // GetResourceHealth returns the health of a k8s resource
 func GetResourceHealth(obj *unstructured.Unstructured, healthOverride HealthOverride) (health *HealthStatus, err error) {
 	if healthCheck := GetHealthCheckFunc(obj.GroupVersionKind()); healthCheck != nil {
