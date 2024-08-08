@@ -163,6 +163,10 @@ func TestHPA(t *testing.T) {
 	assertAppHealth(t, "./testdata/hpa-v1-progressing-with-no-annotations.yaml", health.HealthStatusProgressing, health.HealthHealthy, false)
 }
 
+func TestKustomization(t *testing.T) {
+	assertAppHealthMsg(t, "./testdata/kustomization-reconciliation-failed.yaml", "ReconciliationFailed", health.HealthUnhealthy, false, "CronJob/scale-dev-up namespace not specified: the server could not find the requested resource\n")
+}
+
 func TestPod(t *testing.T) {
 	assertAppHealthWithOverwriteMsg(t, "./testdata/pod-not-ready-container-not-ready.yaml", map[string]string{
 		"2024-07-29T06:32:56Z": time.Now().Add(time.Minute * 10).Format(time.RFC3339),

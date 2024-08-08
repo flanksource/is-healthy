@@ -1,0 +1,37 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  uid: 73ffa0f4-2eb1-4d1b-8367-1c47128e3339
+  name: cronjobs
+  labels:
+    kustomize.toolkit.fluxcd.io/name: flux-objects
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  namespace: flux-system
+  finalizers:
+    - finalizers.fluxcd.io
+  creationTimestamp: 2024-08-01T06:52:47Z
+spec:
+  path: ./production/ifs-mgmt-mon-eks/cronjobs
+  force: false
+  prune: false
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: infrastructure
+  decryption:
+    provider: sops
+status:
+  conditions:
+    - type: Reconciling
+      reason: ProgressingWithRetry
+      status: 'True'
+      message: Detecting drift for revision
+        v1.34.0@sha1:bdbb399739638a189b76197d5112968827b6ecd7 with a timeout of
+        9m30s
+    - type: Ready
+      reason: ReconciliationFailed
+      status: 'False'
+      message: >
+        CronJob/scale-dev-up namespace not specified: the server could not find
+        the requested resource
+  lastAttemptedRevision: v1.34.0@sha1:bdbb399739638a189b76197d5112968827b6ecd7

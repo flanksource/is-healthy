@@ -82,6 +82,9 @@ Deployment:
 Kustomization:
   conditions:
     Ready:
+      onFalse:
+        message: true
+        health: unhealthy
       ready: true
       message: true
       reasons:
