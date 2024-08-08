@@ -1,7 +1,6 @@
 package health
 
 import (
-	"errors"
 	"fmt"
 
 	v1 "k8s.io/api/core/v1"
@@ -43,5 +42,9 @@ func getNodeHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 		}
 	}
 
-	return nil, errors.New("no conditions matched for node status")
+	return &HealthStatus{
+		Status:  HealthStatusUnknown,
+		Health:  HealthUnknown,
+		Message: "no conditions matched for node status",
+	}, nil
 }
