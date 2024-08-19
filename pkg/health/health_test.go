@@ -168,6 +168,17 @@ func TestKustomization(t *testing.T) {
 }
 
 func TestPod(t *testing.T) {
+	assertAppHealth(t, "./testdata/terminating-stuck.yaml", "TerminatingStalled", health.HealthUnhealthy, false)
+	assertAppHealth(t, "./testdata/terminating-namespace.yaml", "TerminatingStalled", health.HealthUnhealthy, false)
+
+	assertAppHealthWithOverwrite(t, "./testdata/pod-terminating.yaml", map[string]string{
+		"2024-07-01T06:52:22Z": time.Now().Add(-time.Minute * 20).UTC().Format("2006-01-02T15:04:05Z"),
+	}, health.HealthStatusTerminating, health.HealthWarning, false)
+
+	assertAppHealthWithOverwrite(t, "./testdata/pod-deletion.yaml", map[string]string{
+		"2018-12-03T10:16:04Z": time.Now().Add(-time.Minute).Format("2006-01-02T15:04:05Z"),
+	}, health.HealthStatusTerminating, health.HealthUnknown, false)
+
 	assertAppHealthWithOverwriteMsg(t, "./testdata/pod-not-ready-container-not-ready.yaml", map[string]string{
 		"2024-07-29T06:32:56Z": time.Now().Add(time.Minute * 10).Format(time.RFC3339),
 	}, health.HealthStatusStarting, health.HealthUnknown, false, "Container nginx is waiting for readiness probe")
@@ -201,10 +212,6 @@ func TestPod(t *testing.T) {
 
 	assertAppHealth(t, "./testdata/pod-old-restarts.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
 
-	assertAppHealth(t, "./testdata/pod-terminating.yaml", health.HealthStatusTerminating, health.HealthWarning, false)
-	status := getHealthStatus("./testdata/pod-terminating.yaml", t, nil)
-	assert.Contains(t, status.Message, "stuck in 'Terminating' for")
-
 	assertAppHealth(t, "./testdata/pod-pending.yaml", health.HealthStatusPending, health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/pod-running-not-ready.yaml", health.HealthStatusStarting, health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/pod-crashloop.yaml", health.HealthStatusCrashLoopBackoff, health.HealthUnhealthy, false)
@@ -216,10 +223,6 @@ func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
 	assertAppHealth(t, "./testdata/pod-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
 	assertAppHealth(t, "./testdata/pod-init-container-fail.yaml", health.HealthStatusCrashLoopBackoff, health.HealthUnhealthy, false)
-
-	assertAppHealthWithOverwrite(t, "./testdata/pod-deletion.yaml", map[string]string{
-		"2018-12-03T10:16:04Z": time.Now().Add(-time.Minute).Format("2006-01-02T15:04:05Z"),
-	}, health.HealthStatusTerminating, health.HealthUnknown, false)
 }
 
 // func TestAPIService(t *testing.T) {

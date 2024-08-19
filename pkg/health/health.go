@@ -1,7 +1,9 @@
 package health
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -108,6 +110,15 @@ func GetHealthByConfigType(configType string, obj map[string]any) HealthStatus {
 
 // GetResourceHealth returns the health of a k8s resource
 func GetResourceHealth(obj *unstructured.Unstructured, healthOverride HealthOverride) (health *HealthStatus, err error) {
+	if obj.GetDeletionTimestamp() != nil && !obj.GetDeletionTimestamp().IsZero() && time.Since(obj.GetDeletionTimestamp().Time) > time.Hour {
+		terminatingFor := time.Since(obj.GetDeletionTimestamp().Time)
+		return &HealthStatus{
+			Status:  "TerminatingStalled",
+			Health:  HealthUnhealthy,
+			Message: fmt.Sprintf("Resource is terminating, time since deletion: %v", terminatingFor),
+		}, nil
+	}
+
 	if healthCheck := GetHealthCheckFunc(obj.GroupVersionKind()); healthCheck != nil {
 		if health, err = healthCheck(obj); err != nil {
 			health = &HealthStatus{
