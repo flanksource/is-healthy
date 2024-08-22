@@ -234,7 +234,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 					continue
 				}
 
-				if time.Since(c.Status.State.Running.StartedAt.Time) <= time.Duration(c.Spec.ReadinessProbe.InitialDelaySeconds)*time.Second {
+				if c.Status.State.Running != nil && time.Since(c.Status.State.Running.StartedAt.Time) <= time.Duration(c.Spec.ReadinessProbe.InitialDelaySeconds)*time.Second {
 					containersWaitingForReadinessProbe = append(containersWaitingForReadinessProbe, c.Spec.Name)
 				}
 			}
