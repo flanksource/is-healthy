@@ -75,7 +75,7 @@ func TestCrossplane(t *testing.T) {
 	assertAppHealthMsg(t, "./testdata/crossplane-healthy.yaml", "ReconcileSuccess", health.HealthHealthy, true, "")
 	assertAppHealthMsg(t, "./testdata/crossplane-installed.yaml", "ActivePackageRevision", health.HealthHealthy, true, "")
 	assertAppHealthMsg(t, "./testdata/crossplane-provider-revision.yaml", "HealthyPackageRevision", health.HealthHealthy, true, "")
-	assertAppHealthMsg(t, "./testdata/crossplane-reconcile-error.yaml", "ReconcileError", health.HealthUnhealthy, true, "observe failed: cannot run plan: plan failed: Instance cannot be destroyed: Resource azurerm_kubernetes_cluster_node_pool.prodeu01 has lifecycle.prevent_destroy set, but the plan calls for this resource to be destroyed. To avoid this error and continue with the plan, either disable lifecycle.prevent_destroy or reduce the scope of the plan using the -target flag.")
+	assertAppHealthMsg(t, "./testdata/crossplane-reconcile-error.yaml", "ReconcileError", health.HealthWarning, true, "observe failed: cannot run plan: plan failed: Instance cannot be destroyed: Resource azurerm_kubernetes_cluster_node_pool.prodeu01 has lifecycle.prevent_destroy set, but the plan calls for this resource to be destroyed. To avoid this error and continue with the plan, either disable lifecycle.prevent_destroy or reduce the scope of the plan using the -target flag.")
 }
 
 func TestNamespace(t *testing.T) {
@@ -161,10 +161,6 @@ func TestHPA(t *testing.T) {
 	assertAppHealth(t, "./testdata/hpa-v1-healthy-toofew.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
 	assertAppHealth(t, "./testdata/hpa-v1-progressing.yaml", health.HealthStatusProgressing, health.HealthHealthy, false)
 	assertAppHealth(t, "./testdata/hpa-v1-progressing-with-no-annotations.yaml", health.HealthStatusProgressing, health.HealthHealthy, false)
-}
-
-func TestKustomization(t *testing.T) {
-	assertAppHealthMsg(t, "./testdata/kustomization-reconciliation-failed.yaml", "ReconciliationFailed", health.HealthUnhealthy, false, "CronJob/scale-dev-up namespace not specified: the server could not find the requested resource\n")
 }
 
 func TestPod(t *testing.T) {
@@ -288,7 +284,9 @@ func TestArgoApplication(t *testing.T) {
 }
 
 func TestFluxResources(t *testing.T) {
-	assertAppHealth(t, "./testdata/flux-kustomization-healthy.yaml", "Succeeded", health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/kustomization-reconciliation-failed.yaml", "ReconciliationFailed", health.HealthUnhealthy, false, "CronJob/scale-dev-up namespace not specified: the server could not find the requested resource\n")
+	assertAppHealthMsg(t, "./testdata/kustomization-reconciliation-failed-2.yaml", "ReconciliationFailed", health.HealthUnhealthy, false, "HelmRelease/mission-control-agent/atlas-topology dry-run failed: failed to create typed patch object (mission-control-agent/atlas-topology; helm.toolkit.fluxcd.io/v2, Kind=HelmRelease): .spec.chart.spec.targetNamespace: field not declared in schema\n")
+	assertAppHealth(t, "./testdata/flux-kustomization-healthy.yaml", "ReconciliationSucceeded", health.HealthHealthy, true)
 	assertAppHealth(t, "./testdata/flux-kustomization-unhealthy.yaml", "Progressing", health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/flux-kustomization-failed.yaml", "BuildFailed", health.HealthUnhealthy, false)
 	status := getHealthStatus("./testdata/flux-kustomization-failed.yaml", t, nil)

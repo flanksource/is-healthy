@@ -82,7 +82,9 @@ Deployment:
 Kustomization:
   conditions:
     Ready:
+      order: 2
       onFalse:
+        order: 3
         message: true
         health: unhealthy
       ready: true
@@ -104,6 +106,7 @@ Kustomization:
         DependencyNotReady:
           health: warning
     Healthy:
+      order: 1
       health: healthy
       onFalse:
         message: true
@@ -233,6 +236,7 @@ crossplane.io:
       reasons:
         ReconcileSuccess:
           ready: true
+          health: healthy
         ReconcileError:
           health: unhealthy
           message: true

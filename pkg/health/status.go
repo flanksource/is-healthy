@@ -109,7 +109,10 @@ func (mapped *OnCondition) Apply(health *HealthStatus, c *metav1.Condition) {
 	}
 
 	if mapped.Health != "" {
-		health.Health = mapped.Health
+		if mapped.Order >= health.order || health.Health == HealthUnknown {
+			// Only set if order is higher or health is unknown
+			health.Health = mapped.Health
+		}
 	}
 
 	if mapped.Status != "" {
@@ -129,7 +132,6 @@ func (mapped *OnCondition) Apply(health *HealthStatus, c *metav1.Condition) {
 			health.Message = c.Message
 		}
 	}
-
 }
 
 type Condition struct {

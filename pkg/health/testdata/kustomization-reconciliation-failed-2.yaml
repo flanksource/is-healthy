@@ -1,0 +1,103 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  uid: 3397183d-cb66-40bd-9257-3e2a86550b2b
+  name: mission-control-agent
+  labels:
+    kustomize.toolkit.fluxcd.io/name: flux-objects
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  namespace: flux-system
+  finalizers:
+    - finalizers.fluxcd.io
+  creationTimestamp: 2024-04-26T12:33:06Z
+spec:
+  path: ./production/mgmt-mon-eks/mission-control-agent
+  force: false
+  prune: true
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: infrastructure
+  decryption:
+    provider: sops
+  healthChecks:
+    - kind: HelmRelease
+      name: mission-control-agent
+      namespace: mission-control-agent
+      apiVersion: helm.toolkit.fluxcd.io/v2
+    - kind: HelmRelease
+      name: mission-control-kubernetes-bundle
+      namespace: mission-control-agent
+      apiVersion: helm.toolkit.fluxcd.io/v2
+    - kind: HelmRelease
+      name: dev-kubernetes-bundle
+      namespace: mission-control-agent
+      apiVersion: helm.toolkit.fluxcd.io/v2
+    - kind: HelmRelease
+      name: uat-kubernetes-bundle
+      namespace: mission-control-agent
+      apiVersion: helm.toolkit.fluxcd.io/v2
+    - kind: HelmRelease
+      name: prod-kubernetes-bundle
+      namespace: mission-control-agent
+      apiVersion: helm.toolkit.fluxcd.io/v2
+    - kind: HelmRelease
+      name: produs-kubernetes-bundle
+      namespace: mission-control-agent
+      apiVersion: helm.toolkit.fluxcd.io/v2
+status:
+  inventory:
+    entries:
+      - v: v1
+        id: _mission-control-agent__Namespace
+      - v: v1
+        id: mission-control-agent_agent-values__Secret
+      - v: v1
+        id: mission-control-agent_dev-kubeconfig__Secret
+      - v: v1
+        id: mission-control-agent_prod-kubeconfig__Secret
+      - v: v1
+        id: mission-control-agent_produs-kubeconfig__Secret
+      - v: v1
+        id: mission-control-agent_uat-kubeconfig__Secret
+      - v: v1
+        id: mission-control-agent_dev-api_canaries.flanksource.com_Canary
+      - v: v1
+        id: mission-control-agent_prod-api_canaries.flanksource.com_Canary
+      - v: v1
+        id: mission-control-agent_uat-api_canaries.flanksource.com_Canary
+      - v: v2
+        id: mission-control-agent_dev-kubernetes-bundle_helm.toolkit.fluxcd.io_HelmRelease
+      - v: v2
+        id: mission-control-agent_mission-control-agent_helm.toolkit.fluxcd.io_HelmRelease
+      - v: v2
+        id: mission-control-agent_mission-control-kubernetes-bundle_helm.toolkit.fluxcd.io_HelmRelease
+      - v: v2
+        id: mission-control-agent_prod-kubernetes-bundle_helm.toolkit.fluxcd.io_HelmRelease
+      - v: v2
+        id: mission-control-agent_produs-kubernetes-bundle_helm.toolkit.fluxcd.io_HelmRelease
+      - v: v2
+        id: mission-control-agent_uat-kubernetes-bundle_helm.toolkit.fluxcd.io_HelmRelease
+      - v: v1beta2
+        id: mission-control-agent_flanksource_source.toolkit.fluxcd.io_HelmRepository
+  conditions:
+    - type: Reconciling
+      reason: ProgressingWithRetry
+      status: "True"
+      message: Detecting drift for revision
+        v1.41.0@sha1:1017a790ae011337ce5b0cfb4b57b908d84dced9 with a timeout of
+        9m30s
+    - type: Ready
+      reason: ReconciliationFailed
+      status: "False"
+      message: >
+        HelmRelease/mission-control-agent/atlas-topology dry-run failed: failed
+        to create typed patch object (mission-control-agent/atlas-topology;
+        helm.toolkit.fluxcd.io/v2, Kind=HelmRelease):
+        .spec.chart.spec.targetNamespace: field not declared in schema
+    - type: Healthy
+      reason: Succeeded
+      status: "True"
+      message: Health check passed in 207.123164ms
+  lastAppliedRevision: v1.40.2@sha1:dcd6f4eeafdac4a4d34affc1c23883eb6fa8a772
+  lastAttemptedRevision: v1.41.0@sha1:1017a790ae011337ce5b0cfb4b57b908d84dced9
