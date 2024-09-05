@@ -211,6 +211,7 @@ func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/pod-pending.yaml", health.HealthStatusPending, health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/pod-running-not-ready.yaml", health.HealthStatusStarting, health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/pod-crashloop.yaml", health.HealthStatusCrashLoopBackoff, health.HealthUnhealthy, false)
+	assertAppHealth(t, "./testdata/pod-crashloop-pending.yaml", health.HealthStatusCrashLoopBackoff, health.HealthUnhealthy, false)
 	assertAppHealth(t, "./testdata/pod-imagepullbackoff.yaml", "ImagePullBackOff", health.HealthUnhealthy, false)
 	assertAppHealth(t, "./testdata/pod-error.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
 	assertAppHealth(t, "./testdata/pod-running-restart-always.yaml", health.HealthStatusRunning, health.HealthHealthy, true)

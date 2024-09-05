@@ -115,6 +115,15 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	switch pod.Status.Phase {
 	case corev1.PodPending:
 		for _, ctrStatus := range pod.Status.InitContainerStatuses {
+			if ctrStatus.LastTerminationState.Terminated != nil && ctrStatus.LastTerminationState.Terminated.Reason == "Error" {
+				// A pending pod whose container was previously terminated with error should be marked as unhealthy (instead of unknown)
+				return &HealthStatus{
+					Health:  HealthUnhealthy,
+					Status:  HealthStatusCrashLoopBackoff,
+					Message: ctrStatus.LastTerminationState.Terminated.Reason,
+				}, nil
+			}
+
 			if msg := getCommonContainerError(&ctrStatus); msg != nil {
 				return msg, nil
 			}
