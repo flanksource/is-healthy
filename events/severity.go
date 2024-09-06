@@ -186,6 +186,8 @@ func GetSeverity(event string) string {
 		return SeverityInfo
 	case "UpdatedExternalResource":
 		return SeverityLow
+	case "UpgradeSucceeded":
+		return SeverityLow
 	case "UpdatedLoadBalancer":
 		return SeverityLow
 	case "Upgrade":
