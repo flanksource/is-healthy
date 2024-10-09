@@ -2,6 +2,8 @@ package health
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -24,6 +26,24 @@ func getDeploymentHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 }
 
 func getAppsv1DeploymentHealth(deployment *appsv1.Deployment, obj *unstructured.Unstructured) (*HealthStatus, error) {
+	var containersWaitingForReadiness []string
+	for _, container := range deployment.Spec.Template.Spec.Containers {
+		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
+			deadline := deployment.CreationTimestamp.Add(time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds))
+			if time.Now().Before(deadline) {
+				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
+			}
+		}
+	}
+
+	if len(containersWaitingForReadiness) > 0 {
+		return &HealthStatus{
+			Health:  HealthUnknown,
+			Status:  HealthStatusStarting,
+			Message: fmt.Sprintf("Container(s) %s is waiting for readiness probe", strings.Join(containersWaitingForReadiness, ",")),
+		}, nil
+	}
+
 	status, err := GetDefaultHealth(obj)
 	if err != nil {
 		return status, err

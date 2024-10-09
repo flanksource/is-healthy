@@ -2,6 +2,8 @@ package health
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -25,6 +27,24 @@ func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 }
 
 func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, error) {
+	var containersWaitingForReadiness []string
+	for _, container := range replicaSet.Spec.Template.Spec.Containers {
+		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
+			deadline := replicaSet.CreationTimestamp.Add(time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds))
+			if time.Now().Before(deadline) {
+				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
+			}
+		}
+	}
+
+	if len(containersWaitingForReadiness) > 0 {
+		return &HealthStatus{
+			Health:  HealthUnknown,
+			Status:  HealthStatusStarting,
+			Message: fmt.Sprintf("Container(s) %s is waiting for readiness probe", strings.Join(containersWaitingForReadiness, ",")),
+		}, nil
+	}
+
 	health := HealthUnknown
 	if (replicaSet.Spec.Replicas == nil || *replicaSet.Spec.Replicas == 0) && replicaSet.Status.Replicas == 0 {
 		return &HealthStatus{
