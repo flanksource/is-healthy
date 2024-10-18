@@ -11,6 +11,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// duration after the creation of a resource
+// within which we deem the health to be Unknown
+const replicaSetBufferPeriod = time.Minute * 10
+
 func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	gvk := obj.GroupVersionKind()
 	switch gvk {
@@ -27,10 +31,19 @@ func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 }
 
 func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, error) {
+	if time.Since(replicaSet.CreationTimestamp.Time) <= replicaSetBufferPeriod {
+		return &HealthStatus{
+			Health: HealthUnknown,
+			Status: HealthStatusStarting,
+		}, nil
+	}
+
 	var containersWaitingForReadiness []string
 	for _, container := range replicaSet.Spec.Template.Spec.Containers {
 		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			deadline := replicaSet.CreationTimestamp.Add(time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds))
+			deadline := replicaSet.CreationTimestamp.Add(
+				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
+			)
 			if time.Now().Before(deadline) {
 				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
 			}
@@ -39,9 +52,12 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 
 	if len(containersWaitingForReadiness) > 0 {
 		return &HealthStatus{
-			Health:  HealthUnknown,
-			Status:  HealthStatusStarting,
-			Message: fmt.Sprintf("Container(s) %s is waiting for readiness probe", strings.Join(containersWaitingForReadiness, ",")),
+			Health: HealthUnknown,
+			Status: HealthStatusStarting,
+			Message: fmt.Sprintf(
+				"Container(s) %s is waiting for readiness probe",
+				strings.Join(containersWaitingForReadiness, ","),
+			),
 		}, nil
 	}
 
@@ -62,7 +78,8 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 		health = HealthUnhealthy
 	}
 
-	if replicaSet.Generation == replicaSet.Status.ObservedGeneration && replicaSet.Status.ReadyReplicas == *replicaSet.Spec.Replicas {
+	if replicaSet.Generation == replicaSet.Status.ObservedGeneration &&
+		replicaSet.Status.ReadyReplicas == *replicaSet.Spec.Replicas {
 		return &HealthStatus{
 			Health: health,
 			Status: HealthStatusRunning,
@@ -84,7 +101,6 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 			Health:  health,
 			Status:  HealthStatusScalingUp,
 			Message: fmt.Sprintf("%d of %d pods ready", replicaSet.Status.ReadyReplicas, *replicaSet.Spec.Replicas),
-			Ready:   true,
 		}, nil
 	}
 
@@ -93,7 +109,6 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 			Health:  health,
 			Status:  HealthStatusScalingDown,
 			Message: fmt.Sprintf("%d pods terminating", replicaSet.Status.ReadyReplicas-*replicaSet.Spec.Replicas),
-			Ready:   true,
 		}, nil
 	}
 
@@ -103,7 +118,10 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 	}, nil
 }
 
-func getAppsv1ReplicaSetCondition(status appsv1.ReplicaSetStatus, condType appsv1.ReplicaSetConditionType) *appsv1.ReplicaSetCondition {
+func getAppsv1ReplicaSetCondition(
+	status appsv1.ReplicaSetStatus,
+	condType appsv1.ReplicaSetConditionType,
+) *appsv1.ReplicaSetCondition {
 	for i := range status.Conditions {
 		c := status.Conditions[i]
 		if c.Type == condType {

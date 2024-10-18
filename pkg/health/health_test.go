@@ -163,6 +163,12 @@ func TestHPA(t *testing.T) {
 	assertAppHealth(t, "./testdata/hpa-v1-progressing-with-no-annotations.yaml", health.HealthStatusProgressing, health.HealthHealthy, false)
 }
 
+func TestReplicaSet(t *testing.T) {
+	assertAppHealthWithOverwrite(t, "./testdata/replicaset-ittools.yml", map[string]string{
+		"2024-08-03T06:06:18Z": time.Now().Add(-time.Minute * 2).UTC().Format("2006-01-02T15:04:05Z"),
+	}, health.HealthStatusStarting, health.HealthUnknown, false)
+}
+
 func TestPod(t *testing.T) {
 	assertAppHealth(t, "./testdata/terminating-stuck.yaml", "TerminatingStalled", health.HealthUnhealthy, false)
 	assertAppHealth(t, "./testdata/terminating-namespace.yaml", "TerminatingStalled", health.HealthUnhealthy, false)

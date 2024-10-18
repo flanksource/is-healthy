@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  annotations:
+    deployment.kubernetes.io/desired-replicas: "1"
+    deployment.kubernetes.io/max-replicas: "1"
+    deployment.kubernetes.io/revision: "2"
+    meta.helm.sh/release-name: ittools
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2024-08-03T06:06:18Z"
+  generation: 52
+  labels:
+    app.kubernetes.io/component: main
+    app.kubernetes.io/instance: ittools
+    app.kubernetes.io/name: ittools
+    pod-template-hash: 5fbf458f49
+  name: ittools-5fbf458f49
+  namespace: default
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Deployment
+    name: ittools
+    uid: d2beccff-8da9-42e8-8459-e7ff938b2ffd
+  resourceVersion: "96413911"
+  uid: c044b250-2445-4813-b00f-22b696c5fcf2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: main
+      app.kubernetes.io/instance: ittools
+      app.kubernetes.io/name: ittools
+      pod-template-hash: 5fbf458f49
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: main
+        app.kubernetes.io/instance: ittools
+        app.kubernetes.io/name: ittools
+        pod-template-hash: 5fbf458f49
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - image: corentinth/it-tools:latest
+        imagePullPolicy: Always
+        name: it-tools
+        resources:
+          limits:
+            memory: 50Mi
+          requests:
+            cpu: 25m
+            memory: 10Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: false
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 1
+  fullyLabeledReplicas: 1
+  observedGeneration: 52
+  readyReplicas: 1
+  replicas: 1
