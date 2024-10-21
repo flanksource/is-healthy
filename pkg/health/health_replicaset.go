@@ -11,8 +11,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// duration after the creation of a resource
-// within which we deem the health to be Unknown
+// duration after the creation of a replica set
+// within which we never deem the it to be unhealthy.
 const replicaSetBufferPeriod = time.Minute * 10
 
 func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
@@ -31,36 +31,23 @@ func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 }
 
 func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, error) {
-	if time.Since(replicaSet.CreationTimestamp.Time) <= replicaSetBufferPeriod {
-		return &HealthStatus{
-			Health: HealthUnknown,
-			Status: HealthStatusStarting,
-		}, nil
-	}
+	isWithinBufferPeriod := replicaSet.CreationTimestamp.Add(replicaSetBufferPeriod).After(time.Now())
 
 	var containersWaitingForReadiness []string
 	for _, container := range replicaSet.Spec.Template.Spec.Containers {
-		bufferPeriod := replicaSet.CreationTimestamp.Add(replicaSetBufferPeriod)
-
 		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			bufferPeriod = replicaSet.CreationTimestamp.Add(
-				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
-			)
-		}
-
-		if time.Now().Before(bufferPeriod) {
-			containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
+			deadline := replicaSet.CreationTimestamp.Add(time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds))
+			if time.Now().Before(deadline) {
+				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
+			}
 		}
 	}
 
 	if len(containersWaitingForReadiness) > 0 {
 		return &HealthStatus{
-			Health: HealthUnknown,
-			Status: HealthStatusStarting,
-			Message: fmt.Sprintf(
-				"Container(s) %s is waiting for readiness probe",
-				strings.Join(containersWaitingForReadiness, ","),
-			),
+			Health:  HealthUnknown,
+			Status:  HealthStatusStarting,
+			Message: fmt.Sprintf("Container(s) %s is waiting for readiness probe", strings.Join(containersWaitingForReadiness, ",")),
 		}, nil
 	}
 
@@ -81,8 +68,12 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 		health = HealthUnhealthy
 	}
 
-	if replicaSet.Generation == replicaSet.Status.ObservedGeneration &&
-		replicaSet.Status.ReadyReplicas == *replicaSet.Spec.Replicas {
+	if (health == HealthUnhealthy || health == HealthWarning) && isWithinBufferPeriod {
+		// within the buffer period, we don't mark a ReplicaSet as unhealthy
+		health = HealthUnknown
+	}
+
+	if replicaSet.Generation == replicaSet.Status.ObservedGeneration && replicaSet.Status.ReadyReplicas == *replicaSet.Spec.Replicas {
 		return &HealthStatus{
 			Health: health,
 			Status: HealthStatusRunning,
@@ -121,10 +112,7 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 	}, nil
 }
 
-func getAppsv1ReplicaSetCondition(
-	status appsv1.ReplicaSetStatus,
-	condType appsv1.ReplicaSetConditionType,
-) *appsv1.ReplicaSetCondition {
+func getAppsv1ReplicaSetCondition(status appsv1.ReplicaSetStatus, condType appsv1.ReplicaSetConditionType) *appsv1.ReplicaSetCondition {
 	for i := range status.Conditions {
 		c := status.Conditions[i]
 		if c.Type == condType {

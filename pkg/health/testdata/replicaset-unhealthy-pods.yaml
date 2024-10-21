@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  uid: f6579017-448f-425a-9645-ea3c93700948
+  name: failing-deployment-866585899d
+  labels:
+    app: failing-app
+    pod-template-hash: 866585899d
+  namespace: default
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    deployment.kubernetes.io/max-replicas: "2"
+    deployment.kubernetes.io/desired-replicas: "1"
+  ownerReferences:
+    - uid: 1ab20b2b-e2c8-4e85-b7b6-5709ba594c0d
+      kind: Deployment
+      name: failing-deployment
+      apiVersion: apps/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-10-21T11:20:19Z
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: failing-app
+      pod-template-hash: 866585899d
+  template:
+    spec:
+      dnsPolicy: ClusterFirst
+      containers:
+        - args:
+            - -c
+            - sleep 5 && exit 1
+          name: failing-container
+          image: busybox
+          command:
+            - /bin/sh
+          resources: {}
+          imagePullPolicy: Always
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+    metadata:
+      labels:
+        app: failing-app
+        pod-template-hash: 866585899d
+status:
+  replicas: 1
+  fullyLabeledReplicas: 1
