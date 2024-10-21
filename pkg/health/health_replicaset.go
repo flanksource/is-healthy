@@ -40,13 +40,16 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 
 	var containersWaitingForReadiness []string
 	for _, container := range replicaSet.Spec.Template.Spec.Containers {
+		bufferPeriod := replicaSet.CreationTimestamp.Add(replicaSetBufferPeriod)
+
 		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			deadline := replicaSet.CreationTimestamp.Add(
+			bufferPeriod = replicaSet.CreationTimestamp.Add(
 				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
 			)
-			if time.Now().Before(deadline) {
-				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
-			}
+		}
+
+		if time.Now().Before(bufferPeriod) {
+			containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
 		}
 	}
 
