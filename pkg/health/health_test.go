@@ -84,7 +84,12 @@ func TestNamespace(t *testing.T) {
 }
 
 func TestCertificate(t *testing.T) {
-	assertAppHealth(t, "./testdata/about-to-expire.yaml", "Warning", health.HealthWarning, true)
+	assertAppHealth(t, "./testdata/certificate-expired.yaml", "Expired", health.HealthUnhealthy, true)
+
+	assertAppHealthWithOverwrite(t, "./testdata/about-to-expire.yaml", map[string]string{
+		"2024-06-26T12:25:46Z": time.Now().Add(time.Hour).UTC().Format("2006-01-02T15:04:05Z"),
+	}, health.HealthStatusWarning, health.HealthWarning, true)
+
 	assertAppHealth(t, "./testdata/certificate-healthy.yaml", "Issued", health.HealthHealthy, true)
 	b := "../resource_customizations/cert-manager.io/Certificate/testdata/"
 	assertAppHealth(t, b+"degraded_configError.yaml", "ConfigError", health.HealthUnhealthy, true)

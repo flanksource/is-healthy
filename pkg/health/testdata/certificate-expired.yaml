@@ -1,0 +1,33 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  creationTimestamp: "2023-12-01T10:15:32Z"
+  generation: 1
+  labels:
+    kustomize.toolkit.fluxcd.io/name: nginx
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  name: expired-homelab-cert
+  namespace: nginx-ingress
+  resourceVersion: "32456789"
+  uid: 9e45b2c8-156d-42a1-bc34-7d592f3a1e4d
+spec:
+  commonName: home.flanksource.com
+  dnsNames:
+    - home.flanksource.com
+    - "*.home.flanksource.com"
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  secretName: expired-homelab-cert
+status:
+  conditions:
+    - lastTransitionTime: "2024-01-01T10:15:38Z"
+      message: Certificate has expired
+      observedGeneration: 1
+      reason: Expired
+      status: "False"
+      type: Ready
+  notAfter: "2024-01-01T10:15:37Z"
+  notBefore: "2023-12-01T10:15:38Z"
+  renewalTime: "2024-01-01T10:15:37Z"
+  revision: 1
