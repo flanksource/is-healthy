@@ -7,6 +7,14 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
+var (
+	defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
+)
+
+func SetDefaultCertificateExpiryWarningPeriod(p time.Duration) {
+	defaultCertExpiryWarningPeriod = p
+}
+
 func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	if _renewalTime, ok := obj.Object["status"].(map[string]any)["renewalTime"]; ok {
 		if renewalTimeString := _renewalTime.(string); ok {
@@ -33,7 +41,7 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 				return nil, fmt.Errorf("failed to parse notAfter time(%s): %v", notAfter, err)
 			}
 
-			if time.Until(notAfterTime) < time.Hour {
+			if time.Until(notAfterTime) < defaultCertExpiryWarningPeriod {
 				return &HealthStatus{
 					Health:  HealthWarning,
 					Status:  HealthStatusWarning,
