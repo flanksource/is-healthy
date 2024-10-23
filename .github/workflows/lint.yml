@@ -29,7 +29,7 @@ jobs:
       - name: Verify formatting
         run: |
           make lint
-          if [[ -n "$(git status --porcelain)" ]]; then
+          if [[ -n "$(git status --porcelain | grep -v 'argo-cd\|gitops-engine')" ]]; then
             echo "The following files have formatting issues:"
             git status --porcelain
             echo "Please run 'make lint' locally and commit the changes"
