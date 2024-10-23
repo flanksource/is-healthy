@@ -20,7 +20,9 @@ const (
 func GetAWSResourceHealth(resourceType, status string) (health HealthStatus) {
 	if resourceStatuses, found := awsResourceHealthmap[resourceType]; found {
 		if v, found := resourceStatuses[strings.ToLower(status)]; found {
-			v.Status = HealthStatusCode(lo.Capitalize(strings.ReplaceAll(strings.ReplaceAll(status, "-", " "), "_", " ")))
+			v.Status = HealthStatusCode(
+				lo.Capitalize(strings.ReplaceAll(strings.ReplaceAll(status, "-", " "), "_", " ")),
+			)
 			return v
 		}
 	}

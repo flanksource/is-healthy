@@ -36,7 +36,9 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 	var containersWaitingForReadiness []string
 	for _, container := range replicaSet.Spec.Template.Spec.Containers {
 		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			deadline := replicaSet.CreationTimestamp.Add(time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds))
+			deadline := replicaSet.CreationTimestamp.Add(
+				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
+			)
 			if time.Now().Before(deadline) {
 				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
 			}
@@ -45,9 +47,12 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 
 	if len(containersWaitingForReadiness) > 0 {
 		return &HealthStatus{
-			Health:  HealthUnknown,
-			Status:  HealthStatusStarting,
-			Message: fmt.Sprintf("Container(s) %s is waiting for readiness probe", strings.Join(containersWaitingForReadiness, ",")),
+			Health: HealthUnknown,
+			Status: HealthStatusStarting,
+			Message: fmt.Sprintf(
+				"Container(s) %s is waiting for readiness probe",
+				strings.Join(containersWaitingForReadiness, ","),
+			),
 		}, nil
 	}
 
@@ -73,7 +78,8 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 		health = HealthUnknown
 	}
 
-	if replicaSet.Generation == replicaSet.Status.ObservedGeneration && replicaSet.Status.ReadyReplicas == *replicaSet.Spec.Replicas {
+	if replicaSet.Generation == replicaSet.Status.ObservedGeneration &&
+		replicaSet.Status.ReadyReplicas == *replicaSet.Spec.Replicas {
 		return &HealthStatus{
 			Health: health,
 			Status: HealthStatusRunning,
@@ -112,7 +118,10 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 	}, nil
 }
 
-func getAppsv1ReplicaSetCondition(status appsv1.ReplicaSetStatus, condType appsv1.ReplicaSetConditionType) *appsv1.ReplicaSetCondition {
+func getAppsv1ReplicaSetCondition(
+	status appsv1.ReplicaSetStatus,
+	condType appsv1.ReplicaSetConditionType,
+) *appsv1.ReplicaSetCondition {
 	for i := range status.Conditions {
 		c := status.Conditions[i]
 		if c.Type == condType {

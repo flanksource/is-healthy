@@ -86,13 +86,13 @@ type OnCondition struct {
 	// When 2 conditions are true, which one takes precedence from a status/message perspective
 	Order int `yaml:"order,omitempty" json:"order,omitempty"`
 	// If the condition matches, mark ready
-	Ready bool `json:"ready" yaml:"ready"`
+	Ready bool `yaml:"ready"           json:"ready"`
 
 	// If the condition matches, mark not ready
 	NotReady bool `json:"notReady" yaml:"notReady,omitempty"`
 
 	// If the condition is true, use the conditions message
-	Message bool   `json:"message" yaml:"message"`
+	Message bool   `json:"message"          yaml:"message"`
 	Health  Health `json:"health,omitempty" yaml:"health,omitempty"`
 	// Health to set if the condition is false
 
@@ -137,7 +137,7 @@ func (mapped *OnCondition) Apply(health *HealthStatus, c *metav1.Condition) {
 type Condition struct {
 	OnCondition `yaml:",inline" json:",inline"`
 
-	OnFalse   *OnCondition `yaml:"onFalse,omitempty" json:"onFalse,omitempty"`
+	OnFalse   *OnCondition `yaml:"onFalse,omitempty"   json:"onFalse,omitempty"`
 	OnUnknown *OnCondition `yaml:"onUnknown,omitempty" json:"onUnknown,omitempty"`
 
 	// Custom settings per reason
@@ -180,7 +180,7 @@ func (mapped *Condition) Apply(health *HealthStatus, c *metav1.Condition) {
 }
 
 type StatusMap struct {
-	Conditions          map[string]Condition `yaml:"conditions" json:"conditions"`
+	Conditions          map[string]Condition `yaml:"conditions"          json:"conditions"`
 	UnhealthyIsNotReady bool                 `yaml:"unhealthyIsNotReady" json:"unhealthyIsNotReady"`
 }
 

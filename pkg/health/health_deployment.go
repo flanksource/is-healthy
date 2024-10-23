@@ -29,7 +29,9 @@ func getAppsv1DeploymentHealth(deployment *appsv1.Deployment, obj *unstructured.
 	var containersWaitingForReadiness []string
 	for _, container := range deployment.Spec.Template.Spec.Containers {
 		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			deadline := deployment.CreationTimestamp.Add(time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds))
+			deadline := deployment.CreationTimestamp.Add(
+				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
+			)
 			if time.Now().Before(deadline) {
 				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
 			}
@@ -38,9 +40,12 @@ func getAppsv1DeploymentHealth(deployment *appsv1.Deployment, obj *unstructured.
 
 	if len(containersWaitingForReadiness) > 0 {
 		return &HealthStatus{
-			Health:  HealthUnknown,
-			Status:  HealthStatusStarting,
-			Message: fmt.Sprintf("Container(s) %s is waiting for readiness probe", strings.Join(containersWaitingForReadiness, ",")),
+			Health: HealthUnknown,
+			Status: HealthStatusStarting,
+			Message: fmt.Sprintf(
+				"Container(s) %s is waiting for readiness probe",
+				strings.Join(containersWaitingForReadiness, ","),
+			),
 		}, nil
 	}
 

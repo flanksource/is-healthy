@@ -109,8 +109,12 @@ func GetHealthByConfigType(configType string, obj map[string]any) HealthStatus {
 }
 
 // GetResourceHealth returns the health of a k8s resource
-func GetResourceHealth(obj *unstructured.Unstructured, healthOverride HealthOverride) (health *HealthStatus, err error) {
-	if obj.GetDeletionTimestamp() != nil && !obj.GetDeletionTimestamp().IsZero() && time.Since(obj.GetDeletionTimestamp().Time) > time.Hour {
+func GetResourceHealth(
+	obj *unstructured.Unstructured,
+	healthOverride HealthOverride,
+) (health *HealthStatus, err error) {
+	if obj.GetDeletionTimestamp() != nil && !obj.GetDeletionTimestamp().IsZero() &&
+		time.Since(obj.GetDeletionTimestamp().Time) > time.Hour {
 		terminatingFor := time.Since(obj.GetDeletionTimestamp().Time)
 		return &HealthStatus{
 			Status:  "TerminatingStalled",

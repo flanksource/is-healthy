@@ -30,7 +30,9 @@ const (
 
 type ResourceHealthOverrides map[string]ResourceOverride
 
-func (overrides ResourceHealthOverrides) GetResourceHealth(obj *unstructured.Unstructured) (*health.HealthStatus, error) {
+func (overrides ResourceHealthOverrides) GetResourceHealth(
+	obj *unstructured.Unstructured,
+) (*health.HealthStatus, error) {
 	luaVM := VM{
 		ResourceOverrides: overrides,
 	}
@@ -207,7 +209,10 @@ func (vm VM) ExecuteResourceAction(obj *unstructured.Unstructured, script string
 		for _, impactedResource := range impactedResources {
 			// Cleaning the resource is only relevant to "patch"
 			if impactedResource.K8SOperation == PatchOperation {
-				impactedResource.UnstructuredObj.Object = cleanReturnedObj(impactedResource.UnstructuredObj.Object, obj.Object)
+				impactedResource.UnstructuredObj.Object = cleanReturnedObj(
+					impactedResource.UnstructuredObj.Object,
+					obj.Object,
+				)
 			}
 
 		}

@@ -36,9 +36,19 @@ func GetArgoWorkflowHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 	case "", nodePending:
 		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusProgressing, Message: wf.Status.Message}, nil
 	case nodeRunning:
-		return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusProgressing, Message: wf.Status.Message}, nil
+		return &HealthStatus{
+			Ready:   true,
+			Health:  HealthHealthy,
+			Status:  HealthStatusProgressing,
+			Message: wf.Status.Message,
+		}, nil
 	case nodeSucceeded:
-		return &HealthStatus{Ready: true, Health: HealthHealthy, Status: HealthStatusHealthy, Message: wf.Status.Message}, nil
+		return &HealthStatus{
+			Ready:   true,
+			Health:  HealthHealthy,
+			Status:  HealthStatusHealthy,
+			Message: wf.Status.Message,
+		}, nil
 	case nodeFailed, nodeError:
 		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: wf.Status.Message}, nil
 	}

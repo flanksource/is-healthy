@@ -35,7 +35,8 @@ func getAppsv1DaemonSetHealth(daemon *appsv1.DaemonSet) (*HealthStatus, error) {
 		health = HealthUnhealthy
 	}
 
-	if daemon.Generation == daemon.Status.ObservedGeneration && daemon.Status.UpdatedNumberScheduled == daemon.Status.DesiredNumberScheduled {
+	if daemon.Generation == daemon.Status.ObservedGeneration &&
+		daemon.Status.UpdatedNumberScheduled == daemon.Status.DesiredNumberScheduled {
 		return &HealthStatus{
 			Health: HealthHealthy,
 			Ready:  true,
@@ -45,24 +46,36 @@ func getAppsv1DaemonSetHealth(daemon *appsv1.DaemonSet) (*HealthStatus, error) {
 
 	if daemon.Spec.UpdateStrategy.Type == appsv1.OnDeleteDaemonSetStrategyType {
 		return &HealthStatus{
-			Health:  health,
-			Ready:   daemon.Status.NumberAvailable == daemon.Status.DesiredNumberScheduled,
-			Status:  HealthStatusRunning,
-			Message: fmt.Sprintf("%d of %d pods updated", daemon.Status.UpdatedNumberScheduled, daemon.Status.DesiredNumberScheduled),
+			Health: health,
+			Ready:  daemon.Status.NumberAvailable == daemon.Status.DesiredNumberScheduled,
+			Status: HealthStatusRunning,
+			Message: fmt.Sprintf(
+				"%d of %d pods updated",
+				daemon.Status.UpdatedNumberScheduled,
+				daemon.Status.DesiredNumberScheduled,
+			),
 		}, nil
 	}
 	if daemon.Status.UpdatedNumberScheduled < daemon.Status.DesiredNumberScheduled {
 		return &HealthStatus{
-			Health:  health,
-			Status:  HealthStatusRollingOut,
-			Message: fmt.Sprintf("%d of %d pods updated", daemon.Status.UpdatedNumberScheduled, daemon.Status.DesiredNumberScheduled),
+			Health: health,
+			Status: HealthStatusRollingOut,
+			Message: fmt.Sprintf(
+				"%d of %d pods updated",
+				daemon.Status.UpdatedNumberScheduled,
+				daemon.Status.DesiredNumberScheduled,
+			),
 		}, nil
 	}
 	if daemon.Status.NumberAvailable < daemon.Status.DesiredNumberScheduled {
 		return &HealthStatus{
-			Health:  health,
-			Status:  HealthStatusRollingOut,
-			Message: fmt.Sprintf("%d of %d pods ready", daemon.Status.NumberAvailable, daemon.Status.DesiredNumberScheduled),
+			Health: health,
+			Status: HealthStatusRollingOut,
+			Message: fmt.Sprintf(
+				"%d of %d pods ready",
+				daemon.Status.NumberAvailable,
+				daemon.Status.DesiredNumberScheduled,
+			),
 		}, nil
 	}
 

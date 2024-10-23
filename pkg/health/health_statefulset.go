@@ -41,7 +41,9 @@ func getAppsv1StatefulSetHealth(sts *appsv1.StatefulSet) (*HealthStatus, error) 
 	var containersWaitingForReadiness []string
 	for _, container := range sts.Spec.Template.Spec.Containers {
 		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			deadline := sts.CreationTimestamp.Add(time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds))
+			deadline := sts.CreationTimestamp.Add(
+				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
+			)
 			if time.Now().Before(deadline) {
 				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
 			}
@@ -50,9 +52,12 @@ func getAppsv1StatefulSetHealth(sts *appsv1.StatefulSet) (*HealthStatus, error) 
 
 	if len(containersWaitingForReadiness) > 0 {
 		return &HealthStatus{
-			Health:  HealthUnknown,
-			Status:  HealthStatusStarting,
-			Message: fmt.Sprintf("Container(s) %s is waiting for readiness probe", strings.Join(containersWaitingForReadiness, ",")),
+			Health: HealthUnknown,
+			Status: HealthStatusStarting,
+			Message: fmt.Sprintf(
+				"Container(s) %s is waiting for readiness probe",
+				strings.Join(containersWaitingForReadiness, ","),
+			),
 		}, nil
 	}
 

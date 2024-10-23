@@ -58,7 +58,8 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	getCommonContainerError := func(containerStatus *corev1.ContainerStatus) *HealthStatus {
 		waiting := containerStatus.State.Waiting
 		// Article listing common container errors: https://medium.com/kokster/debugging-crashloopbackoffs-with-init-containers-26f79e9fb5bf
-		if waiting != nil && (strings.HasPrefix(waiting.Reason, "Err") || strings.HasSuffix(waiting.Reason, "Error") || strings.HasSuffix(waiting.Reason, "BackOff")) {
+		if waiting != nil &&
+			(strings.HasPrefix(waiting.Reason, "Err") || strings.HasSuffix(waiting.Reason, "Error") || strings.HasSuffix(waiting.Reason, "BackOff")) {
 			return &HealthStatus{
 				Status:  HealthStatusCode(waiting.Reason),
 				Health:  HealthUnhealthy,
@@ -115,7 +116,8 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	switch pod.Status.Phase {
 	case corev1.PodPending:
 		for _, ctrStatus := range pod.Status.InitContainerStatuses {
-			if ctrStatus.LastTerminationState.Terminated != nil && ctrStatus.LastTerminationState.Terminated.Reason == "Error" {
+			if ctrStatus.LastTerminationState.Terminated != nil &&
+				ctrStatus.LastTerminationState.Terminated.Reason == "Error" {
 				// A pending pod whose container was previously terminated with error should be marked as unhealthy (instead of unknown)
 				return &HealthStatus{
 					Health:  HealthUnhealthy,
@@ -156,7 +158,12 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	case corev1.PodFailed:
 		if pod.Status.Message != "" {
 			// Pod has a nice error message. Use that.
-			return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusError, Ready: true, Message: pod.Status.Message}, nil
+			return &HealthStatus{
+				Health:  HealthUnhealthy,
+				Status:  HealthStatusError,
+				Ready:   true,
+				Message: pod.Status.Message,
+			}, nil
 		}
 		for _, ctr := range append(pod.Status.InitContainerStatuses, pod.Status.ContainerStatuses...) {
 			if msg := getFailMessage(&ctr); msg != "" {
@@ -186,7 +193,11 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 
 					if possiblyInRestartLoop {
 						lastTerminatedTime := s.LastTerminationState.Terminated.FinishedAt.Time
-						h.Message = fmt.Sprintf("%s has restarted %d time(s)", s.Name, pod.Status.ContainerStatuses[0].RestartCount)
+						h.Message = fmt.Sprintf(
+							"%s has restarted %d time(s)",
+							s.Name,
+							pod.Status.ContainerStatuses[0].RestartCount,
+						)
 
 						if s.LastTerminationState.Terminated.Reason != "Completed" {
 							h.Status = HealthStatusCode(s.LastTerminationState.Terminated.Reason)
@@ -243,16 +254,24 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 					continue
 				}
 
-				if c.Status.State.Running != nil && time.Since(c.Status.State.Running.StartedAt.Time) <= time.Duration(c.Spec.ReadinessProbe.InitialDelaySeconds)*time.Second {
+				if c.Status.State.Running != nil &&
+					time.Since(
+						c.Status.State.Running.StartedAt.Time,
+					) <= time.Duration(
+						c.Spec.ReadinessProbe.InitialDelaySeconds,
+					)*time.Second {
 					containersWaitingForReadinessProbe = append(containersWaitingForReadinessProbe, c.Spec.Name)
 				}
 			}
 
 			// otherwise we are progressing towards a ready state
 			return &HealthStatus{
-				Health:  HealthUnknown,
-				Status:  HealthStatusStarting,
-				Message: fmt.Sprintf("Container %s is waiting for readiness probe", strings.Join(containersWaitingForReadinessProbe, ",")),
+				Health: HealthUnknown,
+				Status: HealthStatusStarting,
+				Message: fmt.Sprintf(
+					"Container %s is waiting for readiness probe",
+					strings.Join(containersWaitingForReadinessProbe, ","),
+				),
 			}, nil
 
 		case corev1.RestartPolicyOnFailure, corev1.RestartPolicyNever:
