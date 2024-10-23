@@ -26,7 +26,6 @@ func getJobHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getBatchv1JobHealth(job *batchv1.Job) (*HealthStatus, error) {
-
 	for _, condition := range job.Status.Conditions {
 		switch condition.Type {
 		case batchv1.JobFailed:

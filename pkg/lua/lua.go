@@ -175,7 +175,6 @@ func (vm VM) ExecuteResourceAction(obj *unstructured.Unstructured, script string
 	returnValue := l.Get(-1)
 	if returnValue.Type() == lua.LTTable {
 		jsonBytes, err := luajson.Encode(returnValue)
-
 		if err != nil {
 			return nil, err
 		}
@@ -214,7 +213,6 @@ func (vm VM) ExecuteResourceAction(obj *unstructured.Unstructured, script string
 					obj.Object,
 				)
 			}
-
 		}
 		return impactedResources, nil
 	}

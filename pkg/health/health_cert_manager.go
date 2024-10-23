@@ -7,9 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-var (
-	defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
-)
+var defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
 
 func SetDefaultCertificateExpiryWarningPeriod(p time.Duration) {
 	defaultCertExpiryWarningPeriod = p

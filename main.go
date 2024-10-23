@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/flanksource/is-healthy/pkg/health"
 	"github.com/flanksource/is-healthy/pkg/lua"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
-
-	"os"
 )
 
 func main() {
@@ -37,5 +36,4 @@ func main() {
 	if health.IsWorse(health.HealthStatusHealthy, _health.Status) {
 		os.Exit(1)
 	}
-
 }

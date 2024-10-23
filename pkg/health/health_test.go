@@ -215,6 +215,7 @@ func TestStatefulSetOnDeleteHealth(t *testing.T) {
 func TestDaemonSetOnDeleteHealth(t *testing.T) {
 	assertAppHealth(t, "./testdata/daemonset-ondelete.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
 }
+
 func TestPVCHealth(t *testing.T) {
 	assertAppHealth(t, "./testdata/pvc-bound.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
 	assertAppHealth(t, "./testdata/pvc-pending.yaml", health.HealthStatusProgressing, health.HealthHealthy, false)
@@ -304,7 +305,6 @@ func TestReplicaSet(t *testing.T) {
 	assertAppHealthWithOverwrite(t, "./testdata/replicaset-unhealthy-pods.yaml", map[string]string{
 		"2024-10-21T11:20:19Z": time.Now().Add(-time.Minute * 2).UTC().Format("2006-01-02T15:04:05Z"),
 	}, health.HealthStatusScalingUp, health.HealthUnknown, false)
-
 }
 
 func TestPod(t *testing.T) {
@@ -432,16 +432,17 @@ func TestPod(t *testing.T) {
 // }
 
 func TestGetArgoWorkflowHealth(t *testing.T) {
-	sampleWorkflow := unstructured.Unstructured{Object: map[string]interface{}{
-		"spec": map[string]interface{}{
-			"entrypoint":    "sampleEntryPoint",
-			"extraneousKey": "we are agnostic to extraneous keys",
+	sampleWorkflow := unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"spec": map[string]interface{}{
+				"entrypoint":    "sampleEntryPoint",
+				"extraneousKey": "we are agnostic to extraneous keys",
+			},
+			"status": map[string]interface{}{
+				"phase":   "Running",
+				"message": "This node is running",
+			},
 		},
-		"status": map[string]interface{}{
-			"phase":   "Running",
-			"message": "This node is running",
-		},
-	},
 	}
 
 	argohealth, err := health.GetArgoWorkflowHealth(&sampleWorkflow)
@@ -449,16 +450,17 @@ func TestGetArgoWorkflowHealth(t *testing.T) {
 	assert.Equal(t, health.HealthStatusProgressing, argohealth.Status)
 	assert.Equal(t, "This node is running", argohealth.Message)
 
-	sampleWorkflow = unstructured.Unstructured{Object: map[string]interface{}{
-		"spec": map[string]interface{}{
-			"entrypoint":    "sampleEntryPoint",
-			"extraneousKey": "we are agnostic to extraneous keys",
+	sampleWorkflow = unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"spec": map[string]interface{}{
+				"entrypoint":    "sampleEntryPoint",
+				"extraneousKey": "we are agnostic to extraneous keys",
+			},
+			"status": map[string]interface{}{
+				"phase":   "Succeeded",
+				"message": "This node is has succeeded",
+			},
 		},
-		"status": map[string]interface{}{
-			"phase":   "Succeeded",
-			"message": "This node is has succeeded",
-		},
-	},
 	}
 
 	argohealth, err = health.GetArgoWorkflowHealth(&sampleWorkflow)
@@ -466,19 +468,19 @@ func TestGetArgoWorkflowHealth(t *testing.T) {
 	assert.Equal(t, health.HealthStatusHealthy, argohealth.Status)
 	assert.Equal(t, "This node is has succeeded", argohealth.Message)
 
-	sampleWorkflow = unstructured.Unstructured{Object: map[string]interface{}{
-		"spec": map[string]interface{}{
-			"entrypoint":    "sampleEntryPoint",
-			"extraneousKey": "we are agnostic to extraneous keys",
+	sampleWorkflow = unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"spec": map[string]interface{}{
+				"entrypoint":    "sampleEntryPoint",
+				"extraneousKey": "we are agnostic to extraneous keys",
+			},
 		},
-	},
 	}
 
 	argohealth, err = health.GetArgoWorkflowHealth(&sampleWorkflow)
 	require.NoError(t, err)
 	assert.Equal(t, health.HealthStatusProgressing, argohealth.Status)
 	assert.Equal(t, "", argohealth.Message)
-
 }
 
 func TestArgoApplication(t *testing.T) {

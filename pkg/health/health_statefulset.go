@@ -98,5 +98,4 @@ func getAppsv1StatefulSetHealth(sts *appsv1.StatefulSet) (*HealthStatus, error) 
 		Health: health,
 		Status: HealthStatusRunning,
 	}, nil
-
 }

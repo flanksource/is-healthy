@@ -94,7 +94,6 @@ func TestExecuteNewHealthStatusFunction(t *testing.T) {
 		Ready:   true,
 	}
 	assert.Equal(t, expectedHealthStatus, status)
-
 }
 
 func TestExecuteWildcardHealthStatusFunction(t *testing.T) {
@@ -108,7 +107,6 @@ func TestExecuteWildcardHealthStatusFunction(t *testing.T) {
 		Message: "testWildcardMessage",
 	}
 	assert.Equal(t, expectedHealthStatus, status)
-
 }
 
 const osLuaScript = `os.getenv("HOME")`
@@ -356,7 +354,6 @@ func TestExecuteResourceActionDiscoveryInvalidReturn(t *testing.T) {
 	actions, err := vm.ExecuteResourceActionDiscovery(testObj, invalidDiscoveryLua)
 	assert.Nil(t, actions)
 	assert.Error(t, err)
-
 }
 
 const validActionLua = `
@@ -491,6 +488,7 @@ result[2] = impactedResource2
 
 return result
 `
+
 const mixedOperationActionLuaOk = `
 job1 = {}
 job1.apiVersion = "batch/v1"

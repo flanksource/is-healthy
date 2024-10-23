@@ -24,7 +24,6 @@ func getDaemonSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getAppsv1DaemonSetHealth(daemon *appsv1.DaemonSet) (*HealthStatus, error) {
-
 	health := HealthUnknown
 
 	if daemon.Status.NumberAvailable == daemon.Status.DesiredNumberScheduled {

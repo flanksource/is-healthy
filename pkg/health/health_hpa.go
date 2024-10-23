@@ -12,13 +12,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var (
-	progressingStatus = &HealthStatus{
-		Health:  HealthHealthy,
-		Status:  HealthStatusProgressing,
-		Message: "Waiting to Autoscale",
-	}
-)
+var progressingStatus = &HealthStatus{
+	Health:  HealthHealthy,
+	Status:  HealthStatusProgressing,
+	Message: "Waiting to Autoscale",
+}
 
 type hpaCondition struct {
 	Type    string

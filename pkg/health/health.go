@@ -161,7 +161,6 @@ func GetResourceHealth(
 		}, nil
 	}
 	return health, err
-
 }
 
 // GetHealthCheckFunc returns built-in health check function or nil if health check is not supported
