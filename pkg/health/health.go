@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flanksource/commons/properties"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -231,4 +232,11 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 		}
 	}
 	return nil
+}
+
+func init() {
+	properties.RegisterListener(func(p *properties.Properties) {
+		v := p.Duration(defaultCertExpiryWarningPeriod, "health.cert-manager.expiryGracePeriod")
+		defaultCertExpiryWarningPeriod = v
+	})
 }

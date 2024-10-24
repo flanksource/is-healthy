@@ -9,10 +9,6 @@ import (
 
 var defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
 
-func SetDefaultCertificateExpiryWarningPeriod(p time.Duration) {
-	defaultCertExpiryWarningPeriod = p
-}
-
 func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	if _notAfter, ok := obj.Object["status"].(map[string]any)["notAfter"]; ok {
 		if notAfter := _notAfter.(string); ok {
