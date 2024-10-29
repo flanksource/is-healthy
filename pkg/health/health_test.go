@@ -146,7 +146,13 @@ func TestNamespace(t *testing.T) {
 }
 
 func TestCertificateRequest(t *testing.T) {
-	assertAppHealth(t, "./testdata/certificate-request-approved.yaml", "Approved", health.HealthHealthy, true)
+	// approved but not issued in 1h
+	assertAppHealth(t, "./testdata/certificate-request-approved.yaml", "Approved", health.HealthUnhealthy, false)
+
+	// approved in the last 1h
+	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-request-approved.yaml", map[string]string{
+		"2024-10-28T08:22:13Z": time.Now().Add(-time.Minute * 10).Format(time.RFC3339),
+	}, "Approved", health.HealthHealthy, false, "Certificate request has been approved by cert-manager.io")
 }
 
 func TestCertificate(t *testing.T) {

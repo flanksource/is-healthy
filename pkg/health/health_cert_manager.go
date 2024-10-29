@@ -22,19 +22,56 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 		return nil, fmt.Errorf("failed to convert unstructured certificateRequest to typed: %w", err)
 	}
 
-	for _, cr := range certReq.Status.Conditions {
-		if string(cr.Status) != string(v1.ConditionTrue) {
+	conditionMap := make(map[certmanagerv1.CertificateRequestConditionType]certmanagerv1.CertificateRequestCondition)
+	for _, condition := range certReq.Status.Conditions {
+		if string(condition.Status) != string(v1.ConditionTrue) {
 			continue
 		}
 
-		if cr.Type == "Approved" {
-			return &HealthStatus{
-				Health:  HealthHealthy,
-				Message: cr.Message,
-				Status:  HealthStatusCode(cr.Type),
-				Ready:   true,
-			}, nil
+		conditionMap[condition.Type] = condition
+	}
+
+	if cr, ok := conditionMap[certmanagerv1.CertificateRequestConditionDenied]; ok {
+		return &HealthStatus{
+			Health:  HealthUnhealthy,
+			Message: cr.Message,
+			Status:  HealthStatusCode(cr.Type),
+			Ready:   true,
+		}, nil
+	}
+
+	if cr, ok := conditionMap[certmanagerv1.CertificateRequestConditionInvalidRequest]; ok {
+		return &HealthStatus{
+			Health:  HealthUnhealthy,
+			Message: cr.Message,
+			Status:  HealthStatusCode(cr.Type),
+			Ready:   true,
+		}, nil
+	}
+
+	if cr, ok := conditionMap[certmanagerv1.CertificateRequestConditionReady]; ok {
+		return &HealthStatus{
+			Health:  HealthHealthy,
+			Message: cr.Message,
+			Status:  HealthStatusCode(cr.Type),
+			Ready:   true,
+		}, nil
+	}
+
+	if cr, ok := conditionMap[certmanagerv1.CertificateRequestConditionApproved]; ok {
+		// approved but not issued
+		h := &HealthStatus{
+			Health:  HealthHealthy,
+			Message: cr.Message,
+			Status:  HealthStatusCode(cr.Type),
+			Ready:   false,
 		}
+
+		if time.Since(certReq.CreationTimestamp.Time) > time.Hour {
+			h.Health = HealthUnhealthy
+		}
+
+		return h, nil
 	}
 
 	status, err := GetDefaultHealth(obj)
