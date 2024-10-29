@@ -1,12 +1,13 @@
 package health
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
+	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
@@ -16,25 +17,21 @@ func SetDefaultCertificateExpiryWarningPeriod(p time.Duration) {
 }
 
 func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
-	conditions, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
-	if err != nil {
-		return nil, err
+	var certReq certmanagerv1.CertificateRequest
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &certReq); err != nil {
+		return nil, fmt.Errorf("failed to convert unstructured certificateRequest to typed: %w", err)
 	}
 
-	if !found {
-		return nil, errors.New("certificate request doesn't have any conditions in the status")
-	}
+	for _, cr := range certReq.Status.Conditions {
+		if string(cr.Status) != string(v1.ConditionTrue) {
+			continue
+		}
 
-	for _, c := range conditions {
-		cType := c.(map[string]any)["type"].(string)
-		status := c.(map[string]any)["status"].(string)
-		message := c.(map[string]any)["message"].(string)
-
-		if cType == "Approved" && status == string(v1.ConditionTrue) {
+		if cr.Type == "Approved" {
 			return &HealthStatus{
 				Health:  HealthHealthy,
-				Message: message,
-				Status:  HealthStatusCode(cType),
+				Message: cr.Message,
+				Status:  HealthStatusCode(cr.Type),
 				Ready:   true,
 			}, nil
 		}
@@ -49,48 +46,64 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 }
 
 func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
-	if _notAfter, ok := obj.Object["status"].(map[string]any)["notAfter"]; ok {
-		if notAfter := _notAfter.(string); ok {
-			notAfterTime, err := time.Parse(time.RFC3339, notAfter)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse notAfter time(%s): %v", notAfter, err)
+	var cert certmanagerv1.Certificate
+	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &cert); err != nil {
+		return nil, fmt.Errorf("failed to convert unstructured certificate to typed: %w", err)
+	}
+
+	for _, c := range cert.Status.Conditions {
+		if string(c.Status) != string(v1.ConditionTrue) {
+			continue
+		}
+
+		if c.Type == "Issuing" && cert.Status.NotBefore != nil {
+			hs := &HealthStatus{
+				Status:  HealthStatusCode(c.Reason),
+				Ready:   false,
+				Message: c.Message,
 			}
 
-			if notAfterTime.Before(time.Now()) {
-				return &HealthStatus{
-					Health:  HealthUnhealthy,
-					Status:  "Expired",
-					Message: "Certificate has expired",
-					Ready:   true,
-				}, nil
-			}
-
-			if time.Until(notAfterTime) < defaultCertExpiryWarningPeriod {
-				return &HealthStatus{
-					Health:  HealthWarning,
-					Status:  HealthStatusWarning,
-					Message: fmt.Sprintf("Certificate is expiring soon (%s)", notAfter),
-					Ready:   true,
-				}, nil
+			if overdue := time.Since(cert.Status.NotBefore.Time); overdue > time.Hour {
+				hs.Health = HealthUnhealthy
+				return hs, nil
+			} else if overdue > time.Minute*15 {
+				hs.Health = HealthWarning
+				return hs, nil
 			}
 		}
 	}
 
-	if _renewalTime, ok := obj.Object["status"].(map[string]any)["renewalTime"]; ok {
-		if renewalTimeString := _renewalTime.(string); ok {
-			renewalTime, err := time.Parse(time.RFC3339, renewalTimeString)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse renewal time (%s): %v", renewalTimeString, err)
-			}
+	if cert.Status.NotAfter != nil {
+		notAfterTime := cert.Status.NotAfter.Time
+		if notAfterTime.Before(time.Now()) {
+			return &HealthStatus{
+				Health:  HealthUnhealthy,
+				Status:  "Expired",
+				Message: "Certificate has expired",
+				Ready:   true,
+			}, nil
+		}
 
-			if time.Since(renewalTime) > time.Minute*5 {
-				return &HealthStatus{
-					Health:  HealthWarning,
-					Status:  HealthStatusWarning,
-					Message: fmt.Sprintf("Certificate should have been renewed at %s", renewalTimeString),
-					Ready:   true,
-				}, nil
-			}
+		if time.Until(notAfterTime) < defaultCertExpiryWarningPeriod {
+			return &HealthStatus{
+				Health:  HealthWarning,
+				Status:  HealthStatusWarning,
+				Message: fmt.Sprintf("Certificate is expiring soon (%s)", notAfterTime),
+				Ready:   true,
+			}, nil
+		}
+	}
+
+	if cert.Status.RenewalTime != nil {
+		renewalTime := cert.Status.RenewalTime.Time
+
+		if time.Since(renewalTime) > time.Minute*5 {
+			return &HealthStatus{
+				Health:  HealthWarning,
+				Status:  HealthStatusWarning,
+				Message: fmt.Sprintf("Certificate should have been renewed at %s", renewalTime),
+				Ready:   true,
+			}, nil
 		}
 	}
 

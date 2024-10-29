@@ -145,8 +145,18 @@ func TestNamespace(t *testing.T) {
 	)
 }
 
-func TestCertificate(t *testing.T) {
+func TestCertificateRequest(t *testing.T) {
 	assertAppHealth(t, "./testdata/certificate-request-approved.yaml", "Approved", health.HealthHealthy, true)
+}
+
+func TestCertificate(t *testing.T) {
+	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-stuck.yaml", map[string]string{
+		"2024-10-28T08:05:00Z": time.Now().Add(-time.Minute * 50).Format(time.RFC3339),
+	}, "IncorrectIssuer", health.HealthWarning, false, `Issuing certificate as Secret was previously issued by "Issuer.cert-manager.io/"`)
+
+	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-stuck.yaml", map[string]string{
+		"2024-10-28T08:05:00Z": time.Now().Add(-time.Hour * 2).Format(time.RFC3339),
+	}, "IncorrectIssuer", health.HealthUnhealthy, false, `Issuing certificate as Secret was previously issued by "Issuer.cert-manager.io/"`)
 
 	assertAppHealth(t, "./testdata/certificate-expired.yaml", "Expired", health.HealthUnhealthy, true)
 

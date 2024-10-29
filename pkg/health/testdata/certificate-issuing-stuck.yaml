@@ -1,0 +1,48 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  uid: 73dc6b75-a54c-4cf7-92eb-bb2ea356a1c3
+  name: gitlab-wildcard-tls
+  labels:
+    app: kas
+    chart: kas-8.5.1
+    release: gitlab
+    heritage: Helm
+    helm.toolkit.fluxcd.io/name: gitlab
+    app.kubernetes.io/managed-by: Helm
+    helm.toolkit.fluxcd.io/namespace: gitlab
+  namespace: gitlab
+  ownerReferences:
+    - uid: e5bfab40-3e8b-44c8-9bd9-eed9da3ff0a7
+      kind: Ingress
+      name: gitlab-kas
+      apiVersion: networking.k8s.io/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-10-28T08:11:09Z
+spec:
+  usages:
+    - digital signature
+    - key encipherment
+
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-dns
+    group: cert-manager.io
+  secretName: gitlab-wildcard-tls
+status:
+  notAfter: 2025-10-28T08:05:00Z
+  notBefore: 2024-10-28T08:05:00Z
+  conditions:
+    - type: Ready
+      reason: IncorrectIssuer
+      status: "False"
+      message: Issuing certificate as Secret was previously issued by
+        "Issuer.cert-manager.io/"
+    - type: Issuing
+      reason: IncorrectIssuer
+      status: "True"
+      message: Issuing certificate as Secret was previously issued by
+        "Issuer.cert-manager.io/"
+  renewalTime: 2025-06-28T16:05:00Z
