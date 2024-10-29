@@ -1,0 +1,57 @@
+apiVersion: cert-manager.io/v1
+kind: CertificateRequest
+metadata:
+  uid: e9719a93-fd45-4998-8dc9-519904d64d92
+  name: gitlab-registry-tls-1
+  labels:
+    app: registry
+    chart: registry-0.7.0
+    release: gitlab
+    heritage: Helm
+    helm.toolkit.fluxcd.io/name: gitlab
+    app.kubernetes.io/managed-by: Helm
+    helm.toolkit.fluxcd.io/namespace: gitlab
+  namespace: gitlab
+  annotations:
+    cert-manager.io/certificate-name: gitlab-registry-tls
+    cert-manager.io/certificate-revision: "1"
+    cert-manager.io/private-key-secret-name: gitlab-registry-tls-rxvln
+  ownerReferences:
+    - uid: 7328d775-104a-4a6a-b419-c65a16995819
+      kind: Certificate
+      name: gitlab-registry-tls
+      apiVersion: cert-manager.io/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-10-28T08:22:13Z
+spec:
+  uid: af529559-388a-4dc4-9235-eea2791dab08
+  extra:
+    authentication.kubernetes.io/pod-uid:
+      - 5ac25ab3-c084-4d50-8877-d6e1f781a400
+    authentication.kubernetes.io/pod-name:
+      - cert-manager-5584949975-5hrss
+  groups:
+    - system:serviceaccounts
+    - system:serviceaccounts:cert-manager
+    - system:authenticated
+  usages:
+    - digital signature
+    - key encipherment
+  request:
+  username: system:serviceaccount:cert-manager:cert-manager
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-dns
+    group: cert-manager.io
+status:
+  conditions:
+    - type: Approved
+      reason: cert-manager.io
+      status: "True"
+      message: Certificate request has been approved by cert-manager.io
+    - type: Ready
+      reason: Pending
+      status: "False"
+      message: 'Waiting on certificate issuance from order
+        gitlab/gitlab-registry-tls-1-751983884: "pending"'

@@ -1,9 +1,11 @@
 package health
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -11,6 +13,39 @@ var defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
 
 func SetDefaultCertificateExpiryWarningPeriod(p time.Duration) {
 	defaultCertExpiryWarningPeriod = p
+}
+
+func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
+	conditions, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
+	if err != nil {
+		return nil, err
+	}
+
+	if !found {
+		return nil, errors.New("certificate request doesn't have any conditions in the status")
+	}
+
+	for _, c := range conditions {
+		cType := c.(map[string]any)["type"].(string)
+		status := c.(map[string]any)["status"].(string)
+		message := c.(map[string]any)["message"].(string)
+
+		if cType == "Approved" && status == string(v1.ConditionTrue) {
+			return &HealthStatus{
+				Health:  HealthHealthy,
+				Message: message,
+				Status:  HealthStatusCode(cType),
+				Ready:   true,
+			}, nil
+		}
+	}
+
+	status, err := GetDefaultHealth(obj)
+	if err != nil {
+		return status, err
+	}
+
+	return status, nil
 }
 
 func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {

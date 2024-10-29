@@ -146,6 +146,8 @@ func TestNamespace(t *testing.T) {
 }
 
 func TestCertificate(t *testing.T) {
+	assertAppHealth(t, "./testdata/certificate-request-approved.yaml", "Approved", health.HealthHealthy, true)
+
 	assertAppHealth(t, "./testdata/certificate-expired.yaml", "Expired", health.HealthUnhealthy, true)
 
 	assertAppHealthWithOverwrite(t, "./testdata/about-to-expire.yaml", map[string]string{

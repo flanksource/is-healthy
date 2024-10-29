@@ -200,7 +200,12 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 	case "kustomize.toolkit.fluxcd.io", "helm.toolkit.fluxcd.io", "source.toolkit.fluxcd.io":
 		return GetDefaultHealth
 	case "cert-manager.io":
-		return GetCertificateHealth
+		switch gvk.Kind {
+		case "CertificateRequest":
+			return GetCertificateRequestHealth
+		default:
+			return GetCertificateHealth
+		}
 	case "networking.k8s.io":
 		switch gvk.Kind {
 		case IngressKind:
