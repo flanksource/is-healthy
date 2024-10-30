@@ -2,6 +2,10 @@
 test:
 	go test ./... -v
 
+.PHONY: tidy
+tidy:
+	go mod tidy -go=1.20 -compat=1.20
+
 .PHONY: lint
 lint:
 	golangci-lint run
