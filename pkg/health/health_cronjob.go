@@ -5,7 +5,6 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func getCronJobHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
@@ -13,9 +12,9 @@ func getCronJobHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	switch gvk {
 	case batchv1.SchemeGroupVersion.WithKind(CronJobKind):
 		var job batchv1.CronJob
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &job)
+		err := convertFromUnstructured(obj, &job)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert unstructured Job to typed: %v", err)
+			return nil, err
 		}
 		return getBatchv1CronJobHealth(&job)
 	default:

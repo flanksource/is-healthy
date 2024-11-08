@@ -1,17 +1,14 @@
 package health
 
 import (
-	"fmt"
-
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func getNamespaceHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	var node v1.Namespace
-	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &node); err != nil {
-		return nil, fmt.Errorf("failed to convert unstructured Node to typed: %v", err)
+	if err := convertFromUnstructured(obj, &node); err != nil {
+		return nil, err
 	}
 
 	if node.Status.Phase == v1.NamespaceActive {

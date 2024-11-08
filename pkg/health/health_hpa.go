@@ -9,7 +9,6 @@ import (
 	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
 	autoscalingv2beta2 "k8s.io/api/autoscaling/v2beta2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var progressingStatus = &HealthStatus{
@@ -27,35 +26,34 @@ type hpaCondition struct {
 
 func getHPAHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	gvk := obj.GroupVersionKind()
-	failedConversionMsg := "failed to convert unstructured HPA to typed: %v"
 
 	switch gvk {
 	case autoscalingv1.SchemeGroupVersion.WithKind(HorizontalPodAutoscalerKind):
 		var hpa autoscalingv1.HorizontalPodAutoscaler
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &hpa)
+		err := convertFromUnstructured(obj, &hpa)
 		if err != nil {
-			return nil, fmt.Errorf(failedConversionMsg, err)
+			return nil, err
 		}
 		return getAutoScalingV1HPAHealth(&hpa)
 	case autoscalingv2beta1.SchemeGroupVersion.WithKind(HorizontalPodAutoscalerKind):
 		var hpa autoscalingv2beta1.HorizontalPodAutoscaler
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &hpa)
+		err := convertFromUnstructured(obj, &hpa)
 		if err != nil {
-			return nil, fmt.Errorf(failedConversionMsg, err)
+			return nil, err
 		}
 		return getAutoScalingV2beta1HPAHealth(&hpa)
 	case autoscalingv2beta2.SchemeGroupVersion.WithKind(HorizontalPodAutoscalerKind):
 		var hpa autoscalingv2beta2.HorizontalPodAutoscaler
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &hpa)
+		err := convertFromUnstructured(obj, &hpa)
 		if err != nil {
-			return nil, fmt.Errorf(failedConversionMsg, err)
+			return nil, err
 		}
 		return getAutoScalingV2beta2HPAHealth(&hpa)
 	case autoscalingv2.SchemeGroupVersion.WithKind(HorizontalPodAutoscalerKind):
 		var hpa autoscalingv2.HorizontalPodAutoscaler
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &hpa)
+		err := convertFromUnstructured(obj, &hpa)
 		if err != nil {
-			return nil, fmt.Errorf(failedConversionMsg, err)
+			return nil, err
 		}
 		return getAutoScalingV2HPAHealth(&hpa)
 	default:

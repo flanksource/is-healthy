@@ -5,13 +5,12 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func getNodeHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	var node v1.Node
-	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &node); err != nil {
-		return nil, fmt.Errorf("failed to convert unstructured Node to typed: %v", err)
+	if err := convertFromUnstructured(obj, &node); err != nil {
+		return nil, err
 	}
 
 	for _, taint := range node.Spec.Taints {

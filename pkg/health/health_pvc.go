@@ -5,7 +5,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func getPVCHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
@@ -13,9 +12,9 @@ func getPVCHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	switch gvk {
 	case corev1.SchemeGroupVersion.WithKind(PersistentVolumeClaimKind):
 		var pvc corev1.PersistentVolumeClaim
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &pvc)
+		err := convertFromUnstructured(obj, &pvc)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert unstructured PersistentVolumeClaim to typed: %v", err)
+			return nil, err
 		}
 		return getCorev1PVCHealth(&pvc)
 	default:

@@ -7,7 +7,6 @@ import (
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
@@ -18,7 +17,7 @@ func SetDefaultCertificateExpiryWarningPeriod(p time.Duration) {
 
 func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	var certReq certmanagerv1.CertificateRequest
-	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &certReq); err != nil {
+	if err := convertFromUnstructured(obj, &certReq); err != nil {
 		return nil, fmt.Errorf("failed to convert unstructured certificateRequest to typed: %w", err)
 	}
 
@@ -84,7 +83,7 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 
 func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	var cert certmanagerv1.Certificate
-	if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &cert); err != nil {
+	if err := convertFromUnstructured(obj, &cert); err != nil {
 		return nil, fmt.Errorf("failed to convert unstructured certificate to typed: %w", err)
 	}
 

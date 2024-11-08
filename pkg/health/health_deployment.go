@@ -7,7 +7,6 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func getDeploymentHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
@@ -15,9 +14,9 @@ func getDeploymentHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 	switch gvk {
 	case appsv1.SchemeGroupVersion.WithKind(DeploymentKind):
 		var deployment appsv1.Deployment
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &deployment)
+		err := convertFromUnstructured(obj, &deployment)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert unstructured Deployment to typed: %v", err)
+			return nil, err
 		}
 		return getAppsv1DeploymentHealth(&deployment, obj)
 	default:

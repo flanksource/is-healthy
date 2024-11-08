@@ -8,7 +8,6 @@ import (
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func getPodHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
@@ -16,9 +15,9 @@ func getPodHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	switch gvk {
 	case corev1.SchemeGroupVersion.WithKind(PodKind):
 		var pod corev1.Pod
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &pod)
+		err := convertFromUnstructured(obj, &pod)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert unstructured Pod to typed: %v", err)
+			return nil, err
 		}
 		return getCorev1PodHealth(&pod)
 	default:

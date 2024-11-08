@@ -5,7 +5,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func getServiceHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
@@ -13,9 +12,9 @@ func getServiceHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	switch gvk {
 	case corev1.SchemeGroupVersion.WithKind(ServiceKind):
 		var service corev1.Service
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &service)
+		err := convertFromUnstructured(obj, &service)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert unstructured Service to typed: %v", err)
+			return nil, err
 		}
 		return getCorev1ServiceHealth(&service)
 	default:
