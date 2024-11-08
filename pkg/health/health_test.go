@@ -22,30 +22,31 @@ import (
 
 const RFC3339Micro = "2006-01-02T15:04:05Z"
 
-var _now = time.Now().UTC()
-var defaultOverrides = map[string]string{
+var (
+	_now             = time.Now().UTC()
+	defaultOverrides = map[string]string{
+		"@now":     _now.Format(RFC3339Micro),
+		"@now-1m":  _now.Add(-time.Minute * 1).Format(RFC3339Micro),
+		"@now-10m": _now.Add(-time.Minute * 5).Format(RFC3339Micro),
+		"@now-15m": _now.Add(-time.Minute * 15).Format(RFC3339Micro),
 
-	"@now":     _now.Format(RFC3339Micro),
-	"@now-1m":  _now.Add(-time.Minute * 1).Format(RFC3339Micro),
-	"@now-10m": _now.Add(-time.Minute * 5).Format(RFC3339Micro),
-	"@now-15m": _now.Add(-time.Minute * 15).Format(RFC3339Micro),
+		"@now-5m":  _now.Add(-time.Minute * 5).Format(RFC3339Micro),
+		"@now-1h":  _now.Add(-time.Hour).Format(RFC3339Micro),
+		"@now-2h":  _now.Add(-time.Hour * 2).Format(RFC3339Micro),
+		"@now-4h":  _now.Add(-time.Hour * 4).Format(RFC3339Micro),
+		"@now-8h":  _now.Add(-time.Hour * 8).Format(RFC3339Micro),
+		"@now-1d":  _now.Add(-time.Hour * 24).Format(RFC3339Micro),
+		"@now+10m": _now.Add(time.Minute * 10).Format(RFC3339Micro),
+		"@now+5m":  _now.Add(time.Minute * 5).Format(RFC3339Micro),
+		"@now+15m": _now.Add(time.Minute * 15).Format(RFC3339Micro),
 
-	"@now-5m":  _now.Add(-time.Minute * 5).Format(RFC3339Micro),
-	"@now-1h":  _now.Add(-time.Hour).Format(RFC3339Micro),
-	"@now-2h":  _now.Add(-time.Hour * 2).Format(RFC3339Micro),
-	"@now-4h":  _now.Add(-time.Hour * 4).Format(RFC3339Micro),
-	"@now-8h":  _now.Add(-time.Hour * 8).Format(RFC3339Micro),
-	"@now-1d":  _now.Add(-time.Hour * 24).Format(RFC3339Micro),
-	"@now+10m": _now.Add(time.Minute * 10).Format(RFC3339Micro),
-	"@now+5m":  _now.Add(time.Minute * 5).Format(RFC3339Micro),
-	"@now+15m": _now.Add(time.Minute * 15).Format(RFC3339Micro),
-
-	"@now+1h": _now.Add(time.Hour).Format(RFC3339Micro),
-	"@now+2h": _now.Add(time.Hour * 2).Format(RFC3339Micro),
-	"@now+4h": _now.Add(time.Hour * 4).Format(RFC3339Micro),
-	"@now+8h": _now.Add(time.Hour * 8).Format(RFC3339Micro),
-	"@now+1d": _now.Add(time.Hour * 24).Format(RFC3339Micro),
-}
+		"@now+1h": _now.Add(time.Hour).Format(RFC3339Micro),
+		"@now+2h": _now.Add(time.Hour * 2).Format(RFC3339Micro),
+		"@now+4h": _now.Add(time.Hour * 4).Format(RFC3339Micro),
+		"@now+8h": _now.Add(time.Hour * 8).Format(RFC3339Micro),
+		"@now+1d": _now.Add(time.Hour * 24).Format(RFC3339Micro),
+	}
+)
 
 func assertAppHealthMsg(
 	t *testing.T,
@@ -130,7 +131,6 @@ func assertAppHealthWithOverwrite(
 }
 
 func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string) *health.HealthStatus {
-
 	if !strings.HasPrefix(yamlPath, "./testdata/") && !strings.HasPrefix(yamlPath, "../resource_customizations") {
 		yamlPath = "./testdata/" + yamlPath
 	}
@@ -148,7 +148,7 @@ func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string
 		yamlString = strings.ReplaceAll(yamlString, k, v)
 	}
 
-	//2nd iteration
+	// 2nd iteration
 	for _, k := range keys {
 		v := overwrites[k]
 		yamlString = strings.ReplaceAll(yamlString, k, v)
@@ -291,11 +291,46 @@ func TestDeploymentHealth(t *testing.T) {
 
 func TestStatefulSetHealth(t *testing.T) {
 	assertAppHealthMsg(t, "./testdata/statefulset.yaml", health.HealthStatusRunning, health.HealthHealthy, true, "")
-	assertAppHealthMsg(t, "./testdata/statefulset-starting.yaml", health.HealthStatusStarting, health.HealthUnknown, false, "0 of 1 pods ready", "@now", "@now-1m")
-	assertAppHealthMsg(t, "./testdata/statefulset-starting.yaml", health.HealthStatusStarting, health.HealthUnknown, false, "0 of 1 pods ready", "@now", "@now-5m")
-	assertAppHealthMsg(t, "./testdata/statefulset-starting.yaml", health.HealthStatusStarting, health.HealthUnhealthy, false, "0 of 1 pods ready", "@now", "@now-15m")
-	assertAppHealthMsg(t, "./testdata/statefulset-starting.yaml", health.HealthStatusStarting, health.HealthUnhealthy, false, "0 of 1 pods ready", "@now", "@now-1d")
-
+	assertAppHealthMsg(
+		t,
+		"./testdata/statefulset-starting.yaml",
+		health.HealthStatusStarting,
+		health.HealthUnknown,
+		false,
+		"0 of 1 pods ready",
+		"@now",
+		"@now-1m",
+	)
+	assertAppHealthMsg(
+		t,
+		"./testdata/statefulset-starting.yaml",
+		health.HealthStatusStarting,
+		health.HealthUnknown,
+		false,
+		"0 of 1 pods ready",
+		"@now",
+		"@now-5m",
+	)
+	assertAppHealthMsg(
+		t,
+		"./testdata/statefulset-starting.yaml",
+		health.HealthStatusStarting,
+		health.HealthUnhealthy,
+		false,
+		"0 of 1 pods ready",
+		"@now",
+		"@now-15m",
+	)
+	assertAppHealthMsg(
+		t,
+		"./testdata/statefulset-starting.yaml",
+		health.HealthStatusStarting,
+		health.HealthUnhealthy,
+		false,
+		"0 of 1 pods ready",
+		"@now",
+		"@now-1d",
+	)
 }
 
 func TestStatefulSetOnDeleteHealth(t *testing.T) {

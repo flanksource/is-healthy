@@ -62,9 +62,15 @@ func getAppsv1StatefulSetHealth(sts *appsv1.StatefulSet) (*HealthStatus, error) 
 
 	if sts.Spec.Replicas != nil && sts.Status.UpdatedReplicas < replicas {
 		return &HealthStatus{
-			Health:  health,
-			Status:  HealthStatusRollingOut,
-			Message: fmt.Sprintf("%d of %d pods updated, %d of %d ready", sts.Status.UpdatedReplicas, replicas, sts.Status.ReadyReplicas, replicas),
+			Health: health,
+			Status: HealthStatusRollingOut,
+			Message: fmt.Sprintf(
+				"%d of %d pods updated, %d of %d ready",
+				sts.Status.UpdatedReplicas,
+				replicas,
+				sts.Status.ReadyReplicas,
+				replicas,
+			),
 		}, nil
 	}
 

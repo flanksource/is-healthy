@@ -117,8 +117,7 @@ func GetHealthByConfigType(configType string, obj map[string]any, states ...stri
 	case "mongo":
 		return GetMongoHealth(obj)
 	case "kubernetes", "crossplane", "missioncontrol", "flux", "argo":
-		hr, err :=
-			GetResourceHealth(&unstructured.Unstructured{Object: obj}, DefaultOverrides)
+		hr, err := GetResourceHealth(&unstructured.Unstructured{Object: obj}, DefaultOverrides)
 		if hr != nil {
 			return *hr
 		}

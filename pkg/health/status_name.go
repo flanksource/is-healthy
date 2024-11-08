@@ -25,14 +25,31 @@ func GetHealthFromStatusName(status string) (health HealthStatus) {
 	status = strings.ToLower(status)
 
 	switch status {
-	case "update complete cleanup in progress", "update in progress", "updating", "maintenance", "rebooting", "storage full", "storage optimization", "upgrading", "resetting master credentials", "modifying":
+	case "update complete cleanup in progress",
+		"update in progress",
+		"updating",
+		"maintenance",
+		"rebooting",
+		"storage full",
+		"storage optimization",
+		"upgrading",
+		"resetting master credentials",
+		"modifying":
 		hr.Health = HealthHealthy
 	case "stopped", "terminated", "delete complete", "deleted":
 		hr.Health = HealthUnknown
 		hr.Ready = true
 	case "stopping", "shutting down", "delete in progress", "import in progress", "deleting":
 		hr.Health = HealthUnknown
-	case "create failed", "delete failed", "import rollback failed", "rollback failed", "update failed", "update rollback failed", "failed", "error", "insufficient capacity":
+	case "create failed",
+		"delete failed",
+		"import rollback failed",
+		"rollback failed",
+		"update failed",
+		"update rollback failed",
+		"failed",
+		"error",
+		"insufficient capacity":
 		hr.Health = HealthUnhealthy
 		hr.Ready = true
 	case "running", "active", "create complete", "import complete", "update complete", "available", "in use":

@@ -146,7 +146,9 @@ func GetStartDeadline(containers ...corev1.Container) time.Duration {
 	max := PodStartingBufferPeriod
 	for _, container := range containers {
 		if readiness := container.ReadinessProbe; readiness != nil {
-			podLevel := time.Second * time.Duration(readiness.InitialDelaySeconds+readiness.FailureThreshold*(readiness.PeriodSeconds+readiness.TimeoutSeconds))
+			podLevel := time.Second * time.Duration(
+				readiness.InitialDelaySeconds+readiness.FailureThreshold*(readiness.PeriodSeconds+readiness.TimeoutSeconds),
+			)
 			if podLevel > max {
 				max = podLevel
 			}
