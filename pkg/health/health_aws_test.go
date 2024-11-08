@@ -14,22 +14,22 @@ func TestMapAWSStatus(t *testing.T) {
 	}{
 		{
 			name: "ec2",
-			args: args{status: "shutting-down", resourceType: AWSResourceTypeEC2},
+			args: args{status: "shutting-down", resourceType: ""},
 			want: "Shutting Down",
 		},
 		{
 			name: "unknown resource",
 			args: args{status: "shutting-down", resourceType: "blob"},
-			want: HealthStatusUnknown,
+			want: "Shutting Down",
 		},
 		{
-			name: "unknown type",
-			args: args{status: "wakingup", resourceType: AWSResourceTypeEC2},
-			want: HealthStatusUnknown,
+			name: "Wakingup",
+			args: args{status: "wakingup", resourceType: ""},
+			want: "Wakingup",
 		},
 		{
 			name: "cloudformation",
-			args: args{status: "import_rollback_complete", resourceType: AWSResourceTypeCloudformationStack},
+			args: args{status: "import_rollback_complete", resourceType: ""},
 			want: HealthStatusCode("Import Rollback Complete"),
 		},
 	}

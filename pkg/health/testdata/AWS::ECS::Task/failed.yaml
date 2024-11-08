@@ -1,0 +1,89 @@
+Attachments:
+  - Id: 8a9b2c3d-1e2f-4a5b-6c7d-8e9f0a1b2c3d
+    Type: ElasticNetworkInterface
+    Status: DELETED
+    Details:
+      - Name: subnetId
+        Value: subnet-0a1b2c3d4e5f6789a
+      - Name: networkInterfaceId
+        Value: eni-0a1b2c3d4e5f6789a
+      - Name: macAddress
+        Value: 02:ab:cd:ef:12:34
+      - Name: privateDnsName
+        Value: ip-10-20-30-40.eu-west-1.compute.internal
+      - Name: privateIPv4Address
+        Value: 10.20.30.40
+Attributes:
+  - Name: ecs.cpu-architecture
+    Value: x86_64
+    TargetType: ""
+AvailabilityZone: eu-west-1b
+ClusterArn: arn:aws:ecs:eu-west-1:123456789012:cluster/dev-processing-cluster
+Connectivity: CONNECTED
+ConnectivityAt: 2024-11-07T09:40:39.723Z
+Containers:
+  - Cpu: "0"
+    Name: dev-processing-container
+    Image: docker.infoslipscloud.com/iiab-processing-fargate:dev
+    GpuIds: []
+    TaskArn: arn:aws:ecs:eu-west-1:123456789012:task/dev-processing-cluster/1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p
+    RuntimeId: 1a2b3c4d5e6f7g8h9i0j-0022005641
+    LastStatus: STOPPED
+    ContainerArn: arn:aws:ecs:eu-west-1:123456789012:container/dev-processing-cluster/1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p/9a8b7c6d-5e4f-3g2h-1i0j-9k8l7m6n5o4p
+    HealthStatus: UNKNOWN
+    ManagedAgents: []
+    NetworkBindings: []
+    MemoryReservation: "256"
+    NetworkInterfaces:
+      - AttachmentId: 8a9b2c3d-1e2f-4a5b-6c7d-8e9f0a1b2c3d
+        PrivateIpv4Address: 10.20.30.40
+Cpu: "4096"
+CreatedAt: 2024-11-07T09:40:36.25Z
+DesiredStatus: STOPPED
+EnableExecuteCommand: false
+EphemeralStorage:
+  SizeInGiB: 20
+ExecutionStoppedAt: 2024-11-07T09:41:44.982Z
+FargateEphemeralStorage:
+  SizeInGiB: 20
+Group: family:dev-processing-task
+HealthStatus: UNKNOWN
+InferenceAccelerators: []
+LastStatus: STOPPED
+LaunchType: FARGATE
+Memory: "16384"
+Overrides:
+  Cpu: "4096"
+  Memory: "16384"
+  ContainerOverrides:
+    - Cpu: 4096
+      Name: dev-processing-container
+      Memory: 16384
+      Command:
+        - RunId=1a2b3c4d5e6f7g8h:9i0j1k2l3m4n5o6p
+      Environment:
+        - Name: ENVIRONMENT
+          Value: dev
+        - Name: ASPNETCORE_ENVIRONMENT
+          Value: FargateTask
+      EnvironmentFiles: []
+      MemoryReservation: 12228
+      ResourceRequirements: []
+  InferenceAcceleratorOverrides: []
+PlatformFamily: Linux
+PlatformVersion: 1.4.0
+PullStartedAt: 2024-11-07T09:40:48.908Z
+PullStoppedAt: 2024-11-07T09:40:48.911Z
+StopCode: TaskFailedToStart
+StoppedAt: 2024-11-07T09:42:08.829Z
+StoppedReason: 'CannotPullContainerError: pull image manifest has been retried 5
+  time(s): failed to resolve ref
+  docker.com/iiab-processing-fargate:dev: failed to do request:
+  Head
+  "https://docker.com/v2/iiab-processing-fargate/manifests/dev":
+  dial tcp 10.0.0.1:443: connect: connection refused'
+StoppingAt: 2024-11-07T09:41:55.017Z
+Tags: []
+TaskArn: arn:aws:ecs:eu-west-1:123456789012:task/dev-processing-cluster/1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p
+TaskDefinitionArn: arn:aws:ecs:eu-west-1:123456789012:task-definition/dev-processing-task:17
+Version: 4
