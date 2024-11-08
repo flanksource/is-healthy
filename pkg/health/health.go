@@ -5,9 +5,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/duration"
 )
+
+var DefaultOverrides HealthOverride
 
 type Health string
 
@@ -40,6 +44,7 @@ const (
 	HealthStatusEvicted          HealthStatusCode = "Evicted"
 	HealthStatusCompleted        HealthStatusCode = "Completed"
 	HealthStatusCrashLoopBackoff HealthStatusCode = "CrashLoopBackOff"
+	HealthStatusCrashed          HealthStatusCode = "Crashed"
 	HealthStatusCreating         HealthStatusCode = "Creating"
 	HealthStatusDeleted          HealthStatusCode = "Deleted"
 	HealthStatusDeleting         HealthStatusCode = "Deleting"
@@ -100,12 +105,37 @@ func IsWorse(current, new HealthStatusCode) bool {
 	return newIndex > currentIndex
 }
 
-func GetHealthByConfigType(configType string, obj map[string]any) HealthStatus {
-	if strings.HasPrefix(configType, "Mongo::") {
-		return GetMongoHealth(obj)
+func GetHealthByConfigType(configType string, obj map[string]any, states ...string) HealthStatus {
+	switch configType {
+	case "AWS::ECS::Task":
+		return GetECSTaskHealth(obj)
 	}
 
-	return HealthStatus{}
+	configClass := strings.Split(configType, "::")[0]
+
+	switch strings.ToLower(configClass) {
+	case "mongo":
+		return GetMongoHealth(obj)
+	case "kubernetes", "crossplane", "missioncontrol", "flux", "argo":
+		hr, err :=
+			GetResourceHealth(&unstructured.Unstructured{Object: obj}, DefaultOverrides)
+		if hr != nil {
+			return *hr
+		}
+		if err != nil {
+			return HealthStatus{
+				Status:  "HealthParseError",
+				Message: lo.Elipse(err.Error(), 500),
+			}
+		}
+	}
+
+	if len(states) > 0 {
+		return GetHealthFromStatusName(states[0])
+	}
+	return HealthStatus{
+		Health: HealthUnknown,
+	}
 }
 
 // GetResourceHealth returns the health of a k8s resource
@@ -119,7 +149,7 @@ func GetResourceHealth(
 		return &HealthStatus{
 			Status:  "TerminatingStalled",
 			Health:  HealthUnhealthy,
-			Message: fmt.Sprintf("Resource is terminating, time since deletion: %v", terminatingFor),
+			Message: fmt.Sprintf("terminating for %v", duration.ShortHumanDuration(terminatingFor.Truncate(time.Hour))),
 		}, nil
 	}
 

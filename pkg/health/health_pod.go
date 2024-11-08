@@ -35,7 +35,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 		terminatingFor := time.Since(pod.ObjectMeta.DeletionTimestamp.Time)
 		if terminatingFor >= time.Minute*15 {
 			status = HealthWarning
-			message = fmt.Sprintf("stuck in 'Terminating' for %s", terminatingFor)
+			message = fmt.Sprintf("stuck in 'Terminating' for %s", terminatingFor.Truncate(time.Minute))
 		}
 
 		return &HealthStatus{

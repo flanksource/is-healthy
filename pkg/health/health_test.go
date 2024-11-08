@@ -6,17 +6,46 @@ package health_test
 
 import (
 	"os"
+	"sort"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/flanksource/is-healthy/pkg/health"
-	"github.com/flanksource/is-healthy/pkg/lua"
+	_ "github.com/flanksource/is-healthy/pkg/lua"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"sigs.k8s.io/yaml"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
+
+const RFC3339Micro = "2006-01-02T15:04:05Z"
+
+var _now = time.Now().UTC()
+var defaultOverrides = map[string]string{
+
+	"@now":     _now.Format(RFC3339Micro),
+	"@now-1m":  _now.Add(-time.Minute * 1).Format(RFC3339Micro),
+	"@now-10m": _now.Add(-time.Minute * 5).Format(RFC3339Micro),
+	"@now-15m": _now.Add(-time.Minute * 15).Format(RFC3339Micro),
+
+	"@now-5m":  _now.Add(-time.Minute * 5).Format(RFC3339Micro),
+	"@now-1h":  _now.Add(-time.Hour).Format(RFC3339Micro),
+	"@now-2h":  _now.Add(-time.Hour * 2).Format(RFC3339Micro),
+	"@now-4h":  _now.Add(-time.Hour * 4).Format(RFC3339Micro),
+	"@now-8h":  _now.Add(-time.Hour * 8).Format(RFC3339Micro),
+	"@now-1d":  _now.Add(-time.Hour * 24).Format(RFC3339Micro),
+	"@now+10m": _now.Add(time.Minute * 10).Format(RFC3339Micro),
+	"@now+5m":  _now.Add(time.Minute * 5).Format(RFC3339Micro),
+	"@now+15m": _now.Add(time.Minute * 15).Format(RFC3339Micro),
+
+	"@now+1h": _now.Add(time.Hour).Format(RFC3339Micro),
+	"@now+2h": _now.Add(time.Hour * 2).Format(RFC3339Micro),
+	"@now+4h": _now.Add(time.Hour * 4).Format(RFC3339Micro),
+	"@now+8h": _now.Add(time.Hour * 8).Format(RFC3339Micro),
+	"@now+1d": _now.Add(time.Hour * 24).Format(RFC3339Micro),
+}
 
 func assertAppHealthMsg(
 	t *testing.T,
@@ -25,8 +54,20 @@ func assertAppHealthMsg(
 	expectedHealth health.Health,
 	expectedReady bool,
 	expectedMsg string,
+	overrides ...string,
 ) {
-	health := getHealthStatus(yamlPath, t, nil)
+	m := make(map[string]string)
+	for k, v := range defaultOverrides {
+		m[k] = v
+	}
+	for i := 0; i < len(overrides); i += 2 {
+		if v, ok := defaultOverrides[overrides[i+1]]; ok {
+			m[overrides[i]] = v
+		} else {
+			m[overrides[i]] = overrides[i+1]
+		}
+	}
+	health := getHealthStatus(yamlPath, t, m)
 	assert.NotNil(t, health)
 	assert.Equal(t, expectedHealth, health.Health)
 	assert.Equal(t, expectedReady, health.Ready)
@@ -40,8 +81,16 @@ func assertAppHealth(
 	expectedStatus health.HealthStatusCode,
 	expectedHealth health.Health,
 	expectedReady bool,
+	overrides ...string,
 ) {
-	health := getHealthStatus(yamlPath, t, nil)
+	m := make(map[string]string)
+	for k, v := range defaultOverrides {
+		m[k] = v
+	}
+	for i := 0; i < len(overrides); i += 2 {
+		m[overrides[i]] = overrides[i+1]
+	}
+	health := getHealthStatus(yamlPath, t, m)
 	assert.NotNil(t, health)
 	assert.Equal(t, expectedHealth, health.Health)
 	assert.Equal(t, expectedReady, health.Ready)
@@ -81,19 +130,43 @@ func assertAppHealthWithOverwrite(
 }
 
 func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string) *health.HealthStatus {
+
+	if !strings.HasPrefix(yamlPath, "./testdata/") && !strings.HasPrefix(yamlPath, "../resource_customizations") {
+		yamlPath = "./testdata/" + yamlPath
+	}
 	yamlBytes, err := os.ReadFile(yamlPath)
 	require.NoError(t, err)
 
-	// Basic, search & replace overwrite
-	for k, v := range overwrites {
-		yamlBytes = []byte(strings.ReplaceAll(string(yamlBytes), k, v))
+	yamlString := string(yamlBytes)
+	keys := lo.Keys(overwrites)
+	sort.Slice(keys, func(i, j int) bool {
+		return len(keys[i]) > len(keys[j])
+	})
+
+	for _, k := range keys {
+		v := overwrites[k]
+		yamlString = strings.ReplaceAll(yamlString, k, v)
+	}
+
+	//2nd iteration
+	for _, k := range keys {
+		v := overwrites[k]
+		yamlString = strings.ReplaceAll(yamlString, k, v)
+	}
+
+	if strings.Contains(yamlPath, "::") {
+		configType := strings.Split(yamlPath, "/")[2]
+		var obj map[string]any
+		err = yaml.Unmarshal([]byte(yamlString), &obj)
+		require.NoError(t, err)
+		return lo.ToPtr(health.GetHealthByConfigType(configType, obj))
 	}
 
 	var obj unstructured.Unstructured
-	err = yaml.Unmarshal(yamlBytes, &obj)
+	err = yaml.Unmarshal([]byte(yamlString), &obj)
 	require.NoError(t, err)
 
-	health, err := health.GetResourceHealth(&obj, lua.ResourceHealthOverrides{})
+	health, err := health.GetResourceHealth(&obj, health.DefaultOverrides)
 	require.NoError(t, err)
 	return health
 }
@@ -217,7 +290,12 @@ func TestDeploymentHealth(t *testing.T) {
 }
 
 func TestStatefulSetHealth(t *testing.T) {
-	assertAppHealth(t, "./testdata/statefulset.yaml", health.HealthStatusRollingOut, health.HealthWarning, false)
+	assertAppHealthMsg(t, "./testdata/statefulset.yaml", health.HealthStatusRunning, health.HealthHealthy, true, "")
+	assertAppHealthMsg(t, "./testdata/statefulset-starting.yaml", health.HealthStatusStarting, health.HealthUnknown, false, "0 of 1 pods ready", "@now", "@now-1m")
+	assertAppHealthMsg(t, "./testdata/statefulset-starting.yaml", health.HealthStatusStarting, health.HealthUnknown, false, "0 of 1 pods ready", "@now", "@now-5m")
+	assertAppHealthMsg(t, "./testdata/statefulset-starting.yaml", health.HealthStatusStarting, health.HealthUnhealthy, false, "0 of 1 pods ready", "@now", "@now-15m")
+	assertAppHealthMsg(t, "./testdata/statefulset-starting.yaml", health.HealthStatusStarting, health.HealthUnhealthy, false, "0 of 1 pods ready", "@now", "@now-1d")
+
 }
 
 func TestStatefulSetOnDeleteHealth(t *testing.T) {

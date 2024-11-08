@@ -2,12 +2,10 @@ package health
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func getStatefulSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
@@ -15,9 +13,8 @@ func getStatefulSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 	switch gvk {
 	case appsv1.SchemeGroupVersion.WithKind(StatefulSetKind):
 		var sts appsv1.StatefulSet
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &sts)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert unstructured StatefulSet to typed: %v", err)
+		if err := convertFromUnstructured(obj, &sts); err != nil {
+			return nil, err
 		}
 		return getAppsv1StatefulSetHealth(&sts)
 	default:
@@ -35,61 +32,55 @@ func getAppsv1StatefulSetHealth(sts *appsv1.StatefulSet) (*HealthStatus, error) 
 		return &HealthStatus{
 			Status: HealthStatusScaledToZero,
 			Health: HealthUnknown,
+			Ready:  true,
 		}, nil
 	}
 
-	var containersWaitingForReadiness []string
-	for _, container := range sts.Spec.Template.Spec.Containers {
-		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			deadline := sts.CreationTimestamp.Add(
-				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
-			)
-			if time.Now().Before(deadline) {
-				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
-			}
-		}
-	}
-
-	if len(containersWaitingForReadiness) > 0 {
-		return &HealthStatus{
-			Health: HealthUnknown,
-			Status: HealthStatusStarting,
-			Message: fmt.Sprintf(
-				"Container(s) %s is waiting for readiness probe",
-				strings.Join(containersWaitingForReadiness, ","),
-			),
-		}, nil
-	}
+	startDeadline := GetStartDeadline(sts.Spec.Template.Spec.Containers...)
+	age := time.Since(sts.CreationTimestamp.Time).Truncate(time.Minute).Abs()
 
 	health := HealthHealthy
 	if sts.Status.ReadyReplicas == 0 {
-		health = HealthUnhealthy
+		if sts.Status.CurrentReplicas > 0 && age < startDeadline {
+			health = HealthUnknown
+		} else {
+			health = HealthUnhealthy
+		}
 	} else if sts.Status.UpdatedReplicas == 0 {
 		health = HealthWarning
-	} else if sts.Spec.Replicas != nil && sts.Status.ReadyReplicas >= *sts.Spec.Replicas {
+	} else if sts.Status.ReadyReplicas >= replicas {
 		health = HealthHealthy
 	}
 
 	if sts.Spec.Replicas != nil && sts.Status.ReadyReplicas < *sts.Spec.Replicas {
 		return &HealthStatus{
 			Health:  health,
-			Status:  HealthStatusRollingOut,
+			Status:  HealthStatusStarting,
 			Message: fmt.Sprintf("%d of %d pods ready", sts.Status.ReadyReplicas, *sts.Spec.Replicas),
 		}, nil
 	}
 
-	if sts.Spec.Replicas != nil && sts.Status.UpdatedReplicas < *sts.Spec.Replicas {
+	if sts.Spec.Replicas != nil && sts.Status.UpdatedReplicas < replicas {
 		return &HealthStatus{
 			Health:  health,
 			Status:  HealthStatusRollingOut,
-			Message: fmt.Sprintf("%d of %d pods updated", sts.Status.UpdatedReplicas, *sts.Spec.Replicas),
+			Message: fmt.Sprintf("%d of %d pods updated, %d of %d ready", sts.Status.UpdatedReplicas, replicas, sts.Status.ReadyReplicas, replicas),
 		}, nil
 	}
 
 	if sts.Status.ObservedGeneration == 0 || sts.Generation > sts.Status.ObservedGeneration {
 		return &HealthStatus{
-			Health: health,
-			Status: HealthStatusRollingOut,
+			Health:  health,
+			Status:  HealthStatusRollingOut,
+			Message: fmt.Sprintf("generation not up to date %d", sts.Generation),
+		}, nil
+	}
+
+	if sts.Status.UpdateRevision != "" && sts.Status.CurrentRevision != sts.Status.UpdateRevision {
+		return &HealthStatus{
+			Health:  health,
+			Status:  HealthStatusRollingOut,
+			Message: fmt.Sprintf("revision not up to date %s", sts.Status.UpdateRevision),
 		}, nil
 	}
 

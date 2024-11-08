@@ -1,0 +1,197 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  uid: ff7c99d6-86a8-4cbc-a367-80b14ffc4a03
+  name: postgresql
+  labels:
+    helm.sh/chart: postgresql-16.1.1
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 17.0.0
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/component: primary
+    helm.toolkit.fluxcd.io/name: postgresql
+    app.kubernetes.io/managed-by: Helm
+    helm.toolkit.fluxcd.io/namespace: default
+  namespace: default
+  annotations:
+    meta.helm.sh/release-name: postgresql
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "@now"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/component: primary
+  template:
+    spec:
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: dshm
+          emptyDir:
+            medium: Memory
+        - name: data
+          emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: postgresql
+                    app.kubernetes.io/instance: postgresql
+                    app.kubernetes.io/component: primary
+      dnsPolicy: ClusterFirst
+      containers:
+        - env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: /bitnami/postgresql
+            - name: PGDATA
+              value: /bitnami/postgresql/data
+            - name: POSTGRES_USER
+              value: admin
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: postgresql
+            - name: POSTGRES_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: postgres-password
+                  name: postgresql
+            - name: POSTGRES_DATABASE
+              value: exampledb
+            - name: POSTGRESQL_ENABLE_LDAP
+              value: "no"
+            - name: POSTGRESQL_ENABLE_TLS
+              value: "no"
+            - name: POSTGRESQL_LOG_HOSTNAME
+              value: "false"
+            - name: POSTGRESQL_LOG_CONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_LOG_DISCONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+              value: "off"
+            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+              value: error
+            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+              value: pgaudit
+          name: postgresql
+          image: docker.io/bitnami/postgresql:17.0.0-debian-12-r9
+          ports:
+            - name: tcp-postgresql
+              protocol: TCP
+              containerPort: 5432
+          resources:
+            limits:
+              cpu: 150m
+              memory: 192Mi
+              ephemeral-storage: 2Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 50Mi
+          volumeMounts:
+            - name: empty-dir
+              subPath: tmp-dir
+              mountPath: /tmp
+            - name: empty-dir
+              subPath: app-conf-dir
+              mountPath: /opt/bitnami/postgresql/conf
+            - name: empty-dir
+              subPath: app-tmp-dir
+              mountPath: /opt/bitnami/postgresql/tmp
+            - name: dshm
+              mountPath: /dev/shm
+            - name: data
+              mountPath: /bitnami/postgresql
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "admin" -d "dbname=exampledb" -h 127.0.0.1
+                  -p 5432
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+            initialDelaySeconds: 30
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - -e
+                - >
+                  exec pg_isready -U "admin" -d "dbname=exampledb" -h 127.0.0.1
+                  -p 5432
+
+                  [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+            successThreshold: 1
+            initialDelaySeconds: 5
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1001
+            privileged: false
+            runAsGroup: 1001
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccount: postgresql
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+      serviceAccountName: postgresql
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+    metadata:
+      name: postgresql
+      labels:
+        helm.sh/chart: postgresql-16.1.1
+        app.kubernetes.io/name: postgresql
+        app.kubernetes.io/version: 17.0.0
+        app.kubernetes.io/instance: postgresql
+        app.kubernetes.io/component: primary
+        app.kubernetes.io/managed-by: Helm
+  serviceName: postgresql-hl
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  podManagementPolicy: OrderedReady
+  revisionHistoryLimit: 10
+  persistentVolumeClaimRetentionPolicy:
+    whenScaled: Retain
+    whenDeleted: Retain
+status:
+  replicas: 1
+  collisionCount: 0
+  updateRevision: postgresql-57fcd45cfb
+  currentReplicas: 1
+  currentRevision: postgresql-57fcd45cfb
+  updatedReplicas: 1
+  availableReplicas: 0

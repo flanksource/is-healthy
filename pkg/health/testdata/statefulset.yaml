@@ -117,5 +117,6 @@ status:
   currentRevision: redis-master-7b8f75b98
   observedGeneration: 1
   readyReplicas: 1
+  updatedReplicas: 1
   replicas: 1
   updateRevision: redis-master-7b8f75b98

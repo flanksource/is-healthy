@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/json"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 const (
@@ -121,4 +124,37 @@ func getPodConditionFromList(
 		}
 	}
 	return -1, nil
+}
+
+func convertFromUnstructured[T any](o *unstructured.Unstructured, to *T) error {
+	js, err := json.Marshal(o)
+	if err != nil {
+		return fmt.Errorf("failed to marshal object to JSON: %w", err)
+	}
+
+	if err = json.Unmarshal(js, to); err != nil {
+		return fmt.Errorf("failed to unmarshal object into: %T: %v", *to, err)
+	}
+	return nil
+}
+
+// duration after the creation of a replica set
+// within which we never deem the it to be unhealthy.
+const PodStartingBufferPeriod = time.Minute * 10
+
+func GetStartDeadline(containers ...corev1.Container) time.Duration {
+	max := PodStartingBufferPeriod
+	for _, container := range containers {
+		if readiness := container.ReadinessProbe; readiness != nil {
+			podLevel := time.Second * time.Duration(readiness.InitialDelaySeconds+readiness.FailureThreshold*(readiness.PeriodSeconds+readiness.TimeoutSeconds))
+			if podLevel > max {
+				max = podLevel
+			}
+		}
+	}
+	return max.Truncate(time.Minute)
+}
+
+func IsContainerStarting(creation time.Time, containers ...corev1.Container) bool {
+	return time.Since(creation) < GetStartDeadline(containers...)
 }

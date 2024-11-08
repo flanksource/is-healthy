@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flanksource/is-healthy/pkg/health"
 	lua "github.com/yuin/gopher-lua"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	luajson "layeh.com/gopher-json"
 
+	"github.com/flanksource/is-healthy/pkg/health"
 	"github.com/flanksource/is-healthy/pkg/resource_customizations"
 )
 
@@ -29,6 +29,10 @@ const (
 )
 
 type ResourceHealthOverrides map[string]ResourceOverride
+
+func init() {
+	health.DefaultOverrides = ResourceHealthOverrides{}
+}
 
 func (overrides ResourceHealthOverrides) GetResourceHealth(
 	obj *unstructured.Unstructured,
