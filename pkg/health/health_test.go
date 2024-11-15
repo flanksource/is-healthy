@@ -68,12 +68,14 @@ func assertAppHealthMsg(
 			m[overrides[i]] = overrides[i+1]
 		}
 	}
-	health := getHealthStatus(yamlPath, t, m)
-	assert.NotNil(t, health)
-	assert.Equal(t, expectedHealth, health.Health)
-	assert.Equal(t, expectedReady, health.Ready)
-	assert.Equal(t, expectedStatus, health.Status)
-	assert.Equal(t, expectedMsg, health.Message)
+	t.Run(yamlPath, func(t *testing.T) {
+		health := getHealthStatus(yamlPath, t, m)
+		assert.NotNil(t, health)
+		assert.Equal(t, expectedHealth, health.Health)
+		assert.Equal(t, expectedReady, health.Ready)
+		assert.Equal(t, expectedStatus, health.Status)
+		assert.Equal(t, expectedMsg, health.Message)
+	})
 }
 
 func assertAppHealth(
@@ -87,6 +89,9 @@ func assertAppHealth(
 	m := make(map[string]string)
 	for k, v := range defaultOverrides {
 		m[k] = v
+	}
+	if len(overrides)%2 == 1 {
+		assert.FailNow(t, "even number of overrides")
 	}
 	for i := 0; i < len(overrides); i += 2 {
 		m[overrides[i]] = overrides[i+1]
@@ -251,53 +256,97 @@ func TestCertificate(t *testing.T) {
 
 func TestExternalSecrets(t *testing.T) {
 	b := "../resource_customizations/external-secrets.io/ExternalSecret/testdata/"
-	assertAppHealth(t, b+"degraded.yaml", "", health.HealthUnhealthy, true)
-	assertAppHealth(t, b+"progressing.yaml", "Progressing", health.HealthUnknown, false)
-	assertAppHealth(t, b+"healthy.yaml", "", health.HealthHealthy, true)
+	assertAppHealth(t, b+"degraded.yaml", "SecretSyncedError", health.HealthUnhealthy, false)
+	assertAppHealth(t, b+"progressing.yaml", "", health.HealthUnknown, false)
+	assertAppHealth(t, b+"healthy.yaml", "SecretSynced", health.HealthHealthy, true)
 }
 
 func TestDeploymentHealth(t *testing.T) {
-	assertAppHealth(t, "./testdata/nginx.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/nginx.yaml", health.HealthStatusRunning, health.HealthHealthy, true, "1/1 ready")
+	assertAppHealthMsg(
+		t,
+		"./deployment-scaled-up.yaml",
+		health.HealthStatusRunning,
+		health.HealthHealthy,
+		true,
+		"3/3 ready",
+	)
+
+	assertAppHealthMsg(
+		t,
+		"./deployment-rollout-failed.yaml",
+		health.HealthStatusUpdating,
+		health.HealthWarning,
+		true,
+		"1/2 ready, 1 updating",
+	)
+	assertAppHealthMsg(
 		t,
 		"./testdata/deployment-progressing.yaml",
-		health.HealthStatusStarting,
-		health.HealthHealthy,
-		false,
+		health.HealthStatusUpdating,
+		health.HealthWarning,
+		true,
+		"1/2 ready, 1 updating",
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/deployment-suspended.yaml",
 		health.HealthStatusSuspended,
 		health.HealthHealthy,
 		false,
+		"1/1 ready, 1 updating, 1 terminating",
 	)
-	assertAppHealth(t, "./testdata/deployment-degraded.yaml", health.HealthStatusStarting, health.HealthHealthy, false)
-	assertAppHealth(
+	assertAppHealthMsg(
+		t,
+		"./testdata/deployment-degraded.yaml",
+		health.HealthStatusUpdating,
+		health.HealthWarning,
+		true,
+		"1/2 ready, 1 updating",
+	)
+
+	assertAppHealthMsg(
+		t,
+		"./testdata/deployment-starting.yaml",
+		health.HealthStatusStarting,
+		health.HealthUnknown,
+		true,
+		"0/2 ready, 1 updating",
+	)
+	assertAppHealthMsg(
 		t,
 		"./testdata/deployment-scaling-down.yaml",
 		health.HealthStatusScalingDown,
 		health.HealthHealthy,
-		false,
+		true,
+		"1/1 ready, 1 updating, 1 terminating",
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/deployment-failed.yaml",
-		health.HealthStatusRolloutFailed,
+		"Failed Create",
 		health.HealthUnhealthy,
 		false,
+		"0/1 ready",
 	)
 }
 
 func TestStatefulSetHealth(t *testing.T) {
-	assertAppHealthMsg(t, "./testdata/statefulset.yaml", health.HealthStatusRunning, health.HealthHealthy, true, "")
+	assertAppHealthMsg(
+		t,
+		"./testdata/statefulset.yaml",
+		health.HealthStatusRunning,
+		health.HealthHealthy,
+		true,
+		"1/1 ready",
+	)
 	assertAppHealthMsg(
 		t,
 		"./testdata/statefulset-starting.yaml",
 		health.HealthStatusStarting,
 		health.HealthUnknown,
-		false,
-		"0 of 1 pods ready",
+		true,
+		"0/1 ready",
 		"@now",
 		"@now-1m",
 	)
@@ -306,40 +355,44 @@ func TestStatefulSetHealth(t *testing.T) {
 		"./testdata/statefulset-starting.yaml",
 		health.HealthStatusStarting,
 		health.HealthUnknown,
-		false,
-		"0 of 1 pods ready",
+		true,
+		"0/1 ready",
 		"@now",
 		"@now-5m",
 	)
 	assertAppHealthMsg(
 		t,
 		"./testdata/statefulset-starting.yaml",
-		health.HealthStatusStarting,
+		health.HealthStatusCrashLoop,
 		health.HealthUnhealthy,
-		false,
-		"0 of 1 pods ready",
+		true,
+		"0/1 ready",
 		"@now",
 		"@now-15m",
 	)
 	assertAppHealthMsg(
 		t,
 		"./testdata/statefulset-starting.yaml",
-		health.HealthStatusStarting,
+		health.HealthStatusCrashLoop,
 		health.HealthUnhealthy,
-		false,
-		"0 of 1 pods ready",
+		true,
+		"0/1 ready",
 		"@now",
 		"@now-1d",
 	)
 }
 
 func TestStatefulSetOnDeleteHealth(t *testing.T) {
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/statefulset-ondelete.yaml",
-		health.HealthStatusRollingOut,
+		"TerminatingStalled",
 		health.HealthWarning,
 		false,
+		"terminating for 1d",
+
+		"@now",
+		"@now-1d",
 	)
 }
 
@@ -378,7 +431,22 @@ func TestIngressHealth(t *testing.T) {
 }
 
 func TestCRD(t *testing.T) {
-	assertAppHealth(t, "./testdata/knative-service.yaml", health.HealthStatusProgressing, health.HealthUnknown, false)
+	b := "../resource_customizations/serving.knative.dev/Service/testdata/"
+
+	assertAppHealth(t, "./testdata/knative-service.yaml", "", health.HealthUnknown, false)
+	assertAppHealth(t, b+"degraded.yaml", "RevisionFailed", health.HealthUnhealthy, false)
+	assertAppHealth(t, b+"healthy.yaml", "", health.HealthHealthy, true)
+	assertAppHealth(t, b+"progressing.yaml", "", health.HealthUnknown, false)
+}
+
+func TestCnrmPubSub(t *testing.T) {
+	b := "../resource_customizations/pubsub.cnrm.cloud.google.com/PubSubTopic/testdata/"
+
+	assertAppHealth(t, b+"dependency_not_found.yaml", "DependencyNotFound", health.HealthUnhealthy, true)
+	assertAppHealth(t, b+"dependency_not_ready.yaml", "DependencyNotReady", health.HealthUnknown, false)
+	assertAppHealth(t, b+"up_to_date.yaml", "UpToDate", health.HealthHealthy, true)
+	assertAppHealth(t, b+"update_failed.yaml", "UpdateFailed", health.HealthUnhealthy, true)
+	assertAppHealth(t, b+"update_in_progress.yaml", "", health.HealthUnknown, false)
 }
 
 func TestJob(t *testing.T) {
@@ -439,8 +507,8 @@ func TestReplicaSet(t *testing.T) {
 }
 
 func TestPod(t *testing.T) {
-	assertAppHealth(t, "./testdata/terminating-stuck.yaml", "TerminatingStalled", health.HealthUnhealthy, false)
-	assertAppHealth(t, "./testdata/terminating-namespace.yaml", "TerminatingStalled", health.HealthUnhealthy, false)
+	assertAppHealth(t, "./testdata/terminating-stuck.yaml", "TerminatingStalled", health.HealthWarning, false)
+	assertAppHealth(t, "./testdata/terminating-namespace.yaml", "TerminatingStalled", health.HealthWarning, false)
 
 	assertAppHealthWithOverwrite(t, "./testdata/pod-terminating.yaml", map[string]string{
 		"2024-07-01T06:52:22Z": time.Now().Add(-time.Minute * 20).UTC().Format("2006-01-02T15:04:05Z"),

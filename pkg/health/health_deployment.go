@@ -2,10 +2,12 @@ package health
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
+	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -24,85 +26,100 @@ func getDeploymentHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 	}
 }
 
-func getAppsv1DeploymentHealth(deployment *appsv1.Deployment, obj *unstructured.Unstructured) (*HealthStatus, error) {
-	var containersWaitingForReadiness []string
-	for _, container := range deployment.Spec.Template.Spec.Containers {
-		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			deadline := deployment.CreationTimestamp.Add(
-				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
-			)
-			if time.Now().Before(deadline) {
-				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
-			}
+type ReplicaStatus struct {
+	Object                                         *unstructured.Unstructured
+	Containers                                     []corev1.Container
+	Desired, Replicas, Ready, Updated, Unavailable int
+}
+
+func (rs ReplicaStatus) String() string {
+	s := fmt.Sprintf("%d/%d ready", rs.Ready, rs.Desired)
+
+	if rs.Replicas != rs.Updated {
+		s += fmt.Sprintf(", %d updating", rs.Replicas-rs.Updated)
+	}
+
+	if rs.Replicas > rs.Desired {
+		s += fmt.Sprintf(", %d terminating", rs.Replicas-rs.Desired)
+	}
+	return s
+}
+
+func getReplicaHealth(s ReplicaStatus) *HealthStatus {
+	hs := &HealthStatus{
+		Message: s.String(),
+	}
+	startDeadline := GetStartDeadline(s.Containers...)
+	age := time.Since(s.Object.GetCreationTimestamp().Time).Truncate(time.Minute).Abs()
+
+	gs := GetGenericStatus(s.Object)
+
+	progressing := gs.FindCondition("Progressing")
+	isStarting := age < startDeadline
+	isProgressDeadlineExceeded := !isStarting && (progressing.Reason == "ProgressDeadlineExceeded")
+	hs.Ready = progressing.Status == "True"
+
+	hs.Health = lo.Ternary(s.Ready >= s.Desired, HealthHealthy, lo.Ternary(s.Ready > 0, HealthWarning, HealthUnhealthy))
+
+	if s.Desired == 0 && s.Replicas == 0 {
+		hs.Ready = true
+		hs.Status = HealthStatusScaledToZero
+		hs.Health = HealthUnknown
+		return hs
+	}
+	if s.Replicas == 0 {
+		if isProgressDeadlineExceeded {
+			hs.Status = "Failed Create"
+			hs.Health = HealthUnhealthy
+		} else {
+			hs.Status = "Pending"
+			hs.Health = HealthUnknown
 		}
+	} else if s.Ready == 0 && isStarting && !isProgressDeadlineExceeded {
+		hs.Health = HealthUnknown
+		hs.Status = HealthStatusStarting
+	} else if s.Ready == 0 && !isStarting {
+		hs.Health = HealthUnhealthy
+		hs.Status = HealthStatusCrashLoop
+	} else if s.Desired == 0 && s.Replicas > 0 {
+		hs.Status = HealthStatusScalingDown
+		hs.Health = lo.Ternary(isProgressDeadlineExceeded, HealthWarning, HealthHealthy)
+	} else if s.Ready == s.Desired && s.Desired == s.Updated && s.Replicas == s.Desired {
+		hs.Status = HealthStatusRunning
+	} else if s.Desired != s.Updated {
+		hs.Status = HealthStatusUpdating
+	} else if s.Replicas > s.Desired {
+		hs.Status = HealthStatusScalingDown
+	} else if s.Replicas < s.Desired {
+		hs.Status = HealthStatusScalingUp
 	}
 
-	if len(containersWaitingForReadiness) > 0 {
-		return &HealthStatus{
-			Health: HealthUnknown,
-			Status: HealthStatusStarting,
-			Message: fmt.Sprintf(
-				"Container(s) %s is waiting for readiness probe",
-				strings.Join(containersWaitingForReadiness, ","),
-			),
-		}, nil
+	if isStarting && hs.Health == HealthUnhealthy {
+		hs.Health = HealthUnknown
 	}
 
-	status, err := GetDefaultHealth(obj)
-	if err != nil {
-		return status, err
-	}
+	return hs
+}
 
+func getAppsv1DeploymentHealth(deployment *appsv1.Deployment, obj *unstructured.Unstructured) (*HealthStatus, error) {
 	replicas := int32(0)
-
 	if deployment.Spec.Replicas != nil {
 		replicas = *deployment.Spec.Replicas
 	}
 
-	if replicas == 0 && deployment.Status.Replicas == 0 {
-		return &HealthStatus{
-			Ready:  true,
-			Status: HealthStatusScaledToZero,
-			Health: HealthUnknown,
-		}, nil
-	}
-
-	if deployment.Status.ReadyReplicas == replicas {
-		status.PrependMessage("%d pods ready", deployment.Status.ReadyReplicas)
-	} else {
-		status.PrependMessage("%d of %d pods ready", deployment.Status.ReadyReplicas, replicas)
-	}
+	replicaHealth := getReplicaHealth(
+		ReplicaStatus{
+			Object:     obj,
+			Containers: deployment.Spec.Template.Spec.Containers,
+			Desired:    int(replicas), Replicas: int(deployment.Status.Replicas),
+			Ready: int(deployment.Status.ReadyReplicas), Updated: int(deployment.Status.UpdatedReplicas),
+			Unavailable: int(deployment.Status.UnavailableReplicas),
+		})
 
 	if deployment.Spec.Paused {
-		status.Ready = false
-		status.Status = HealthStatusSuspended
-		return status, err
+		replicaHealth.Status = HealthStatusSuspended
+		replicaHealth.Ready = false
 	}
 
-	if deployment.Status.ReadyReplicas > 0 {
-		status.Status = HealthStatusRunning
-	}
-
-	if status.Health == HealthUnhealthy {
-		return status, nil
-	}
-
-	if deployment.Status.ReadyReplicas < replicas {
-		status.AppendMessage("%d starting", deployment.Status.Replicas-deployment.Status.ReadyReplicas)
-		if deployment.Status.Replicas < replicas {
-			status.AppendMessage("%d creating", replicas-deployment.Status.Replicas)
-		}
-		status.Ready = false
-		status.Status = HealthStatusStarting
-	} else if deployment.Status.UpdatedReplicas < replicas {
-		status.AppendMessage("%d updating", replicas-deployment.Status.UpdatedReplicas)
-		status.Ready = false
-		status.Status = HealthStatusRollingOut
-	} else if deployment.Status.Replicas > replicas {
-		status.AppendMessage("%d pods terminating", deployment.Status.Replicas-replicas)
-		status.Ready = false
-		status.Status = HealthStatusScalingDown
-	}
-
-	return status, nil
+	return replicaHealth, nil
 }

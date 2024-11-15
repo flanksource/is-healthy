@@ -44,6 +44,7 @@ const (
 	HealthStatusEvicted          HealthStatusCode = "Evicted"
 	HealthStatusCompleted        HealthStatusCode = "Completed"
 	HealthStatusCrashLoopBackoff HealthStatusCode = "CrashLoopBackOff"
+	HealthStatusCrashLoop        HealthStatusCode = "CrashLoop"
 	HealthStatusCrashed          HealthStatusCode = "Crashed"
 	HealthStatusCreating         HealthStatusCode = "Creating"
 	HealthStatusDeleted          HealthStatusCode = "Deleted"
@@ -51,7 +52,7 @@ const (
 	HealthStatusTerminating      HealthStatusCode = "Terminating"
 	HealthStatusError            HealthStatusCode = "Error"
 	HealthStatusRolloutFailed    HealthStatusCode = "Rollout Failed"
-	HealthStatusInaccesible      HealthStatusCode = "Inaccesible"
+	HealthStatusInaccesible      HealthStatusCode = "Inaccessible"
 	HealthStatusInfo             HealthStatusCode = "Info"
 	HealthStatusPending          HealthStatusCode = "Pending"
 	HealthStatusMaintenance      HealthStatusCode = "Maintenance"
@@ -147,7 +148,7 @@ func GetResourceHealth(
 		terminatingFor := time.Since(obj.GetDeletionTimestamp().Time)
 		return &HealthStatus{
 			Status:  "TerminatingStalled",
-			Health:  HealthUnhealthy,
+			Health:  HealthWarning,
 			Message: fmt.Sprintf("terminating for %v", duration.ShortHumanDuration(terminatingFor.Truncate(time.Hour))),
 		}, nil
 	}
@@ -196,10 +197,6 @@ func GetResourceHealth(
 func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	if gvk.Kind == "Node" {
 		return getNodeHealth
-	}
-
-	if strings.HasSuffix(gvk.Group, ".crossplane.io") || strings.HasSuffix(gvk.Group, ".upbound.io") {
-		return GetDefaultHealth
 	}
 
 	switch gvk.Group {
@@ -264,5 +261,5 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 			return getHPAHealth
 		}
 	}
-	return nil
+	return GetDefaultHealth
 }
