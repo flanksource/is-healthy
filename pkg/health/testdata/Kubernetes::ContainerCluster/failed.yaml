@@ -1,0 +1,79 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+  uid: f56c9c02-6a1d-440d-9c58-fff66643e546
+  name: workload-prod-eu-02
+  labels:
+    kustomize.toolkit.fluxcd.io/name: config-connector
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  namespace: workload-prod-eu-02
+  finalizers:
+    - cnrm.cloud.google.com/finalizer
+    - cnrm.cloud.google.com/deletion-defender
+  annotations:
+    cnrm.cloud.google.com/project-id: workload-prod-eu-02
+    cnrm.cloud.google.com/state-into-spec: merge
+    cnrm.cloud.google.com/management-conflict-prevention-policy: none
+  creationTimestamp: 2024-11-13T09:26:00Z
+spec:
+  location: europe-west1
+  networkRef:
+    external: projects/flanksource-prod/global/networks/flanksource-workload
+  description: Flanksource Prod Workload Cluster
+  networkingMode: VPC_NATIVE
+  releaseChannel:
+    channel: STABLE
+  initialNodeCount: 1
+  maintenancePolicy:
+    dailyMaintenanceWindow:
+      startTime: 00:00
+  clusterAutoscaling:
+    enabled: false
+  ipAllocationPolicy:
+    clusterIpv4CidrBlock: /20
+    servicesIpv4CidrBlock: /22
+  notificationConfig:
+    pubsub:
+      enabled: true
+      topicRef:
+        name: workload-prod-eu-02-cluster-notifications
+  privateClusterConfig:
+    enablePrivateNodes: true
+    masterIpv4CidrBlock: 10.1.239.208/28
+    enablePrivateEndpoint: true
+    masterGlobalAccessConfig:
+      enabled: true
+  workloadIdentityConfig:
+    workloadPool: workload-prod-eu-02.svc.id.goog
+  masterAuthorizedNetworksConfig:
+    cidrBlocks:
+      - cidrBlock: 10.1.140.0/22
+        displayName: Tailscale exit range
+      - cidrBlock: 10.1.112.0/20
+        displayName: Hub Pods
+status:
+  conditions:
+    - type: Ready
+      reason: UpdateFailed
+      status: "False"
+      message: >-
+        Update call failed: error applying desired state: summary: googleapi:
+        Error 403: Google Compute Engine: Required 'compute.networks.get'
+        permission for
+        'projects/flanksource-prod/global/networks/flanksource-workload'.
+
+        Details:
+
+        [
+          {
+            "@type": "type.googleapis.com/google.rpc.RequestInfo",
+            "requestId": "0xf1e9e3ca2797eb18"
+          },
+          {
+            "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+            "domain": "container.googleapis.com",
+            "reason": "GCE_PERMISSION_DENIED"
+          }
+        ]
+
+        , forbidden

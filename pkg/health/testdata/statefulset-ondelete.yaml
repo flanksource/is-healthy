@@ -16,6 +16,7 @@ metadata:
   namespace: default
   resourceVersion: "514251"
   selfLink: /apis/apps/v1/namespaces/default/statefulsets/redis-master
+  deletionTimestamp: "@now"
   uid: 1f80ab97-8bf6-11e8-aff0-42010a8a0fc6
 spec:
   podManagementPolicy: OrderedReady

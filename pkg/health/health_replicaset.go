@@ -2,17 +2,12 @@ package health
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
-
-// duration after the creation of a replica set
-// within which we never deem the it to be unhealthy.
-const replicaSetBufferPeriod = time.Minute * 10
 
 func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	gvk := obj.GroupVersionKind()
@@ -29,34 +24,28 @@ func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 	}
 }
 
-func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, error) {
-	isWithinBufferPeriod := replicaSet.CreationTimestamp.Add(replicaSetBufferPeriod).After(time.Now())
+func getAppsv1ReplicaSetHealth(rs *appsv1.ReplicaSet) (*HealthStatus, error) {
+	replicas := int32(0)
+	if rs.Spec.Replicas != nil {
+		replicas = *rs.Spec.Replicas
+	}
+	startDeadline := GetStartDeadline(rs.Spec.Template.Spec.Containers...)
+	age := time.Since(rs.CreationTimestamp.Time).Truncate(time.Minute).Abs()
 
-	var containersWaitingForReadiness []string
-	for _, container := range replicaSet.Spec.Template.Spec.Containers {
-		if container.ReadinessProbe != nil && container.ReadinessProbe.InitialDelaySeconds > 0 {
-			deadline := replicaSet.CreationTimestamp.Add(
-				time.Second * time.Duration(container.ReadinessProbe.InitialDelaySeconds),
-			)
-			if time.Now().Before(deadline) {
-				containersWaitingForReadiness = append(containersWaitingForReadiness, container.Name)
-			}
+	health := HealthHealthy
+	if rs.Status.ReadyReplicas == 0 {
+		if rs.Status.Replicas > 0 && age < startDeadline {
+			health = HealthUnknown
+		} else {
+			health = HealthUnhealthy
 		}
+	} else if rs.Status.ReadyReplicas < replicas {
+		health = HealthWarning
+	} else if rs.Status.ReadyReplicas >= replicas {
+		health = HealthHealthy
 	}
 
-	if len(containersWaitingForReadiness) > 0 {
-		return &HealthStatus{
-			Health: HealthUnknown,
-			Status: HealthStatusStarting,
-			Message: fmt.Sprintf(
-				"Container(s) %s is waiting for readiness probe",
-				strings.Join(containersWaitingForReadiness, ","),
-			),
-		}, nil
-	}
-
-	health := HealthUnknown
-	if (replicaSet.Spec.Replicas == nil || *replicaSet.Spec.Replicas == 0) && replicaSet.Status.Replicas == 0 {
+	if replicas == 0 && rs.Status.Replicas == 0 {
 		return &HealthStatus{
 			Ready:  true,
 			Status: HealthStatusScaledToZero,
@@ -64,21 +53,8 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 		}, nil
 	}
 
-	if replicaSet.Spec.Replicas != nil && replicaSet.Status.ReadyReplicas >= *replicaSet.Spec.Replicas {
-		health = HealthHealthy
-	} else if replicaSet.Status.ReadyReplicas > 0 {
-		health = HealthWarning
-	} else {
-		health = HealthUnhealthy
-	}
-
-	if (health == HealthUnhealthy || health == HealthWarning) && isWithinBufferPeriod {
-		// within the buffer period, we don't mark a ReplicaSet as unhealthy
-		health = HealthUnknown
-	}
-
-	if replicaSet.Generation == replicaSet.Status.ObservedGeneration &&
-		replicaSet.Status.ReadyReplicas == *replicaSet.Spec.Replicas {
+	if rs.Generation == rs.Status.ObservedGeneration &&
+		rs.Status.ReadyReplicas == *rs.Spec.Replicas {
 		return &HealthStatus{
 			Health: health,
 			Status: HealthStatusRunning,
@@ -86,7 +62,7 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 		}, nil
 	}
 
-	failCondition := getAppsv1ReplicaSetCondition(replicaSet.Status, appsv1.ReplicaSetReplicaFailure)
+	failCondition := getAppsv1ReplicaSetCondition(rs.Status, appsv1.ReplicaSetReplicaFailure)
 	if failCondition != nil && failCondition.Status == corev1.ConditionTrue {
 		return &HealthStatus{
 			Health:  health,
@@ -95,19 +71,19 @@ func getAppsv1ReplicaSetHealth(replicaSet *appsv1.ReplicaSet) (*HealthStatus, er
 		}, nil
 	}
 
-	if replicaSet.Status.ReadyReplicas < *replicaSet.Spec.Replicas {
+	if rs.Status.ReadyReplicas < *rs.Spec.Replicas {
 		return &HealthStatus{
 			Health:  health,
 			Status:  HealthStatusScalingUp,
-			Message: fmt.Sprintf("%d of %d pods ready", replicaSet.Status.ReadyReplicas, *replicaSet.Spec.Replicas),
+			Message: fmt.Sprintf("%d of %d pods ready", rs.Status.ReadyReplicas, *rs.Spec.Replicas),
 		}, nil
 	}
 
-	if replicaSet.Status.ReadyReplicas > *replicaSet.Spec.Replicas {
+	if rs.Status.ReadyReplicas > *rs.Spec.Replicas {
 		return &HealthStatus{
 			Health:  health,
 			Status:  HealthStatusScalingDown,
-			Message: fmt.Sprintf("%d pods terminating", replicaSet.Status.ReadyReplicas-*replicaSet.Spec.Replicas),
+			Message: fmt.Sprintf("%d pods terminating", rs.Status.ReadyReplicas-*rs.Spec.Replicas),
 		}, nil
 	}
 

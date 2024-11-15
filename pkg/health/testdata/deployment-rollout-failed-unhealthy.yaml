@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guestbook-ui
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: guestbook-ui
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: guestbook-ui
+        app.kubernetes.io/instance: guestbook-default
+    spec:
+      containers:
+        - image: gcr.io/heptio-images/ks-guestbook-demo:0.3
+          imagePullPolicy: IfNotPresent
+          name: guestbook-ui
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+status:
+  replicas: 2
+  conditions:
+    - type: Available
+      reason: MinimumReplicasUnavailable
+      status: "False"
+      message: Deployment does not have minimum availability.
+    - type: Progressing
+      reason: ProgressDeadlineExceeded
+      status: "False"
+      message: ReplicaSet "mission-control-99b64d74c" has timed out progressing.
+  readyReplicas: 1
+  updatedReplicas: 1
+  availableReplicas: 1
+  unavailableReplicas: 1

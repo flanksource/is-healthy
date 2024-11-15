@@ -1,0 +1,425 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  uid: 9c7274c7-c5b9-47d6-ba94-e474ea7e6f59
+  name: snipe-it-helm
+  namespace: argo-apps
+  annotations:
+    argocd.argoproj.io/refresh: normal
+    argocd.argoproj.io/sync-wave: "-5"
+    argocd.argoproj.io/tracking-id: argo-apps_snipe-it-wrapper:argoproj.io/Application:argo-apps/snipe-it-helm
+  creationTimestamp: 2024-10-03T15:24:34Z
+spec:
+  source:
+    helm:
+      valuesObject:
+        image:
+          tag: v7.0.13
+        mysql:
+          enabled: false
+        config:
+          snipeit:
+            env: production
+            url: https://assets.np-apps.acme.systems
+            debug: false
+            timezone: Europe/London
+          externalSecrets: snipe-it
+        ingress:
+          tls:
+            - hosts:
+                - assets.np-apps.acme.systems
+              secretName: snipe-it-tls
+          path: /
+          hosts:
+            - assets.np-apps.acme.systems
+          enabled: true
+          pathType: ImplementationSpecific
+          className: nginx-internal
+          annotations:
+            kubernetes.io/tls-acme: "true"
+    chart: snipeit
+    repoURL: https://storage.googleapis.com/t3n-helm-charts
+    targetRevision: 3.4.1
+  project: apps-project
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: snipe-it
+status:
+  sync:
+    status: Synced
+    revision: 3.4.1
+    comparedTo:
+      source:
+        helm:
+          valuesObject:
+            mysql:
+              enabled: false
+            config:
+              snipeit:
+                env: non-prod
+                url: assets.np-apps.acme.systems
+                timezone: Europe/London
+            ingress:
+              tls:
+                - hosts:
+                    - assets.np-apps.acme.systems
+                  secretName: snipe-it-tls
+              path: /
+              hosts:
+                - assets.np-apps.acme.systems
+              enabled: true
+              pathType: ImplementationSpecific
+              className: nginx-internal
+              annotations:
+                kubernetes.io/tls-acme: "true"
+            externalSecrets: snipe-it
+        chart: snipeit
+        repoURL: https://storage.googleapis.com/t3n-helm-charts
+        targetRevision: 3.4.1
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: snipe-it
+  health:
+    status: Degraded
+  history:
+    - id: 0
+      source:
+        helm:
+          valuesObject:
+            mysql:
+              enabled: false
+            config:
+              snipeit:
+                env: non-prod
+                url: assets.np-apps.acme.systems
+                timezone: Europe/London
+            ingress:
+              tls:
+                - hosts:
+                    - assets.np-apps.acme.systems
+                  secretName: snipe-it-tls
+              path: /
+              hosts:
+                - assets.np-apps.acme.systems
+              enabled: true
+              pathType: ImplementationSpecific
+              className: nginx-internal
+              annotations:
+                kubernetes.io/tls-acme: "true"
+            externalSecrets: snipe-it
+        chart: snipeit
+        repoURL: https://storage.googleapis.com/t3n-helm-charts
+        targetRevision: 3.4.1
+      revision: 3.4.1
+      deployedAt: 2024-10-07T09:39:46Z
+      deployStartedAt: 2024-10-07T09:39:43Z
+    - id: 1
+      source:
+        helm:
+          valuesObject:
+            mysql:
+              enabled: false
+            config:
+              snipeit:
+                env: non-prod
+                url: assets.np-apps.acme.systems
+                timezone: Europe/London
+              externalSecrets: snipe-it
+            ingress:
+              tls:
+                - hosts:
+                    - assets.np-apps.acme.systems
+                  secretName: snipe-it-tls
+              path: /
+              hosts:
+                - assets.np-apps.acme.systems
+              enabled: true
+              pathType: ImplementationSpecific
+              className: nginx-internal
+              annotations:
+                kubernetes.io/tls-acme: "true"
+        chart: snipeit
+        repoURL: https://storage.googleapis.com/t3n-helm-charts
+        targetRevision: 3.4.1
+      revision: 3.4.1
+      deployedAt: 2024-10-07T10:00:44Z
+      deployStartedAt: 2024-10-07T10:00:41Z
+    - id: 2
+      source:
+        helm:
+          valuesObject:
+            mysql:
+              enabled: false
+            config:
+              snipeit:
+                env: non-prod
+                url: assets.np-apps.acme.systems
+                debug: true
+                timezone: Europe/London
+              externalSecrets: snipe-it
+            ingress:
+              tls:
+                - hosts:
+                    - assets.np-apps.acme.systems
+                  secretName: snipe-it-tls
+              path: /
+              hosts:
+                - assets.np-apps.acme.systems
+              enabled: true
+              pathType: ImplementationSpecific
+              className: nginx-internal
+              annotations:
+                kubernetes.io/tls-acme: "true"
+        chart: snipeit
+        repoURL: https://storage.googleapis.com/t3n-helm-charts
+        targetRevision: 3.4.1
+      revision: 3.4.1
+      deployedAt: 2024-10-07T10:21:51Z
+      deployStartedAt: 2024-10-07T10:21:45Z
+    - id: 3
+      source:
+        helm:
+          valuesObject:
+            image:
+              tag: v7.0.13
+            mysql:
+              enabled: false
+            config:
+              snipeit:
+                env: non-prod
+                url: assets.np-apps.acme.systems
+                debug: true
+                timezone: Europe/London
+              externalSecrets: snipe-it
+            ingress:
+              tls:
+                - hosts:
+                    - assets.np-apps.acme.systems
+                  secretName: snipe-it-tls
+              path: /
+              hosts:
+                - assets.np-apps.acme.systems
+              enabled: true
+              pathType: ImplementationSpecific
+              className: nginx-internal
+              annotations:
+                kubernetes.io/tls-acme: "true"
+        chart: snipeit
+        repoURL: https://storage.googleapis.com/t3n-helm-charts
+        targetRevision: 3.4.1
+      revision: 3.4.1
+      deployedAt: 2024-10-07T11:03:50Z
+      deployStartedAt: 2024-10-07T11:03:44Z
+    - id: 4
+      source:
+        helm:
+          valuesObject:
+            image:
+              tag: v7.0.13
+            mysql:
+              enabled: false
+            config:
+              snipeit:
+                env: production
+                url: https://assets.np-apps.acme.systems
+                debug: true
+                timezone: Europe/London
+              externalSecrets: snipe-it
+            ingress:
+              tls:
+                - hosts:
+                    - assets.np-apps.acme.systems
+                  secretName: snipe-it-tls
+              path: /
+              hosts:
+                - assets.np-apps.acme.systems
+              enabled: true
+              pathType: ImplementationSpecific
+              className: nginx-internal
+              annotations:
+                kubernetes.io/tls-acme: "true"
+        chart: snipeit
+        repoURL: https://storage.googleapis.com/t3n-helm-charts
+        targetRevision: 3.4.1
+      revision: 3.4.1
+      deployedAt: 2024-10-08T10:03:44Z
+      deployStartedAt: 2024-10-08T10:03:40Z
+    - id: 5
+      source:
+        helm:
+          valuesObject:
+            image:
+              tag: v7.0.13
+            mysql:
+              enabled: false
+            config:
+              snipeit:
+                env: production
+                url: https://assets.np-apps.acme.systems
+                debug: false
+                timezone: Europe/London
+              externalSecrets: snipe-it
+            ingress:
+              tls:
+                - hosts:
+                    - assets.np-apps.acme.systems
+                  secretName: snipe-it-tls
+              path: /
+              hosts:
+                - assets.np-apps.acme.systems
+              enabled: true
+              pathType: ImplementationSpecific
+              className: nginx-internal
+              annotations:
+                kubernetes.io/tls-acme: "true"
+        chart: snipeit
+        repoURL: https://storage.googleapis.com/t3n-helm-charts
+        targetRevision: 3.4.1
+      revision: 3.4.1
+      deployedAt: 2024-10-08T13:50:17Z
+      deployStartedAt: 2024-10-08T13:50:14Z
+  summary:
+    images:
+      - busybox
+      - snipe/snipe-it:v6.0.14
+    externalURLs:
+      - https://assets.np-apps.acme.systems/
+  resources:
+    - kind: PersistentVolumeClaim
+      name: snipe-it-helm-snipeit
+      health:
+        status: Healthy
+      status: Synced
+      version: v1
+      namespace: snipe-it
+    - kind: Secret
+      name: snipe-it-helm-snipeit
+      status: Synced
+      version: v1
+      namespace: snipe-it
+    - kind: Service
+      name: snipe-it-helm-snipeit
+      health:
+        status: Healthy
+      status: Synced
+      version: v1
+      namespace: snipe-it
+    - kind: Deployment
+      name: snipe-it-helm-snipeit
+      group: apps
+      health:
+        status: Degraded
+        message: Deployment "snipe-it-helm-snipeit" exceeded its progress deadline
+      status: Synced
+      version: v1
+      namespace: snipe-it
+    - kind: Ingress
+      name: snipe-it-helm-snipeit
+      group: networking.k8s.io
+      health:
+        status: Healthy
+      status: Synced
+      version: v1
+      namespace: snipe-it
+  sourceType: Helm
+  reconciledAt: 2024-10-07T10:00:30Z
+  operationState:
+    phase: Succeeded
+    message: successfully synced (all tasks run)
+    operation:
+      sync:
+        prune: true
+        revision: 3.4.1
+        syncOptions:
+          - CreateNamespace=false
+      retry:
+        limit: 5
+      initiatedBy:
+        automated: true
+    startedAt: 2024-10-08T13:50:14Z
+    finishedAt: 2024-10-08T13:50:17Z
+    syncResult:
+      source:
+        helm:
+          valuesObject:
+            image:
+              tag: v7.0.13
+            mysql:
+              enabled: false
+            config:
+              snipeit:
+                env: production
+                url: https://assets.np-apps.acme.systems
+                debug: false
+                timezone: Europe/London
+              externalSecrets: snipe-it
+            ingress:
+              tls:
+                - hosts:
+                    - assets.np-apps.acme.systems
+                  secretName: snipe-it-tls
+              path: /
+              hosts:
+                - assets.np-apps.acme.systems
+              enabled: true
+              pathType: ImplementationSpecific
+              className: nginx-internal
+              annotations:
+                kubernetes.io/tls-acme: "true"
+        chart: snipeit
+        repoURL: https://storage.googleapis.com/t3n-helm-charts
+        targetRevision: 3.4.1
+      revision: 3.4.1
+      resources:
+        - kind: Secret
+          name: snipe-it-helm-snipeit
+          group: ""
+          status: Synced
+          message: secret/snipe-it-helm-snipeit configured
+          version: v1
+          hookPhase: Running
+          namespace: snipe-it
+          syncPhase: Sync
+        - kind: PersistentVolumeClaim
+          name: snipe-it-helm-snipeit
+          group: ""
+          status: Synced
+          message: persistentvolumeclaim/snipe-it-helm-snipeit unchanged
+          version: v1
+          hookPhase: Running
+          namespace: snipe-it
+          syncPhase: Sync
+        - kind: Service
+          name: snipe-it-helm-snipeit
+          group: ""
+          status: Synced
+          message: service/snipe-it-helm-snipeit unchanged
+          version: v1
+          hookPhase: Running
+          namespace: snipe-it
+          syncPhase: Sync
+        - kind: Deployment
+          name: snipe-it-helm-snipeit
+          group: apps
+          status: Synced
+          message: deployment.apps/snipe-it-helm-snipeit configured
+          version: v1
+          hookPhase: Running
+          namespace: snipe-it
+          syncPhase: Sync
+        - kind: Ingress
+          name: snipe-it-helm-snipeit
+          group: networking.k8s.io
+          status: Synced
+          message: ingress.networking.k8s.io/snipe-it-helm-snipeit unchanged
+          version: v1
+          hookPhase: Running
+          namespace: snipe-it
+          syncPhase: Sync
+  controllerNamespace: argo-cd

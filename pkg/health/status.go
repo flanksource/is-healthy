@@ -54,17 +54,17 @@ func (s GenericStatus) Int(name string) (int32, bool) {
 	return 0, false
 }
 
-func (s GenericStatus) FindCondition(name string) *metav1.Condition {
+func (s GenericStatus) FindCondition(name string) metav1.Condition {
 	if name == "" || name == NoCondition {
-		return nil
+		return metav1.Condition{}
 	}
 	// FindStatusCondition finds the conditionType in conditions.
 	for i := range s.Conditions {
 		if s.Conditions[i].Type == name {
-			return &s.Conditions[i]
+			return s.Conditions[i]
 		}
 	}
-	return nil
+	return metav1.Condition{}
 }
 
 func GetGenericStatus(obj *unstructured.Unstructured) GenericStatus {
@@ -195,13 +195,16 @@ func GetDefaultHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 		kind = "crossplane.io"
 	}
 
+	if strings.Contains(group, "cnrm.cloud.google.com") {
+		kind = "cnrm.cloud.google.com"
+	}
 	if statusMap, ok := statusByKind[obj.GetAPIVersion()+"/"+obj.GetKind()]; ok {
 		return GetHealthFromStatus(GetGenericStatus(obj), statusMap)
 	} else if statusMap, ok := statusByKind[kind]; ok {
 		return GetHealthFromStatus(GetGenericStatus(obj), statusMap)
+	} else {
+		return GetHealthFromStatus(GetGenericStatus(obj), statusByKind["default"])
 	}
-
-	return &HealthStatus{}, nil
 }
 
 func GetHealth(obj *unstructured.Unstructured, statusMap StatusMap) (*HealthStatus, error) {

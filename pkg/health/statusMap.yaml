@@ -1,3 +1,8 @@
+default:
+  conditions:
+    Ready:
+      ready: true
+      health: healthy
 Issuer:
   conditions:
     Ready:
@@ -55,29 +60,6 @@ CertificateRequest:
         status: 'True'
         type: Ready
 
-Deployment:
-  conditions:
-    ReplicaFailure:
-      health: unhealthy
-      notReady: true
-      message: true
-    Progressing:
-      ready: true
-      status: Running
-      onFalse:
-        status: Rolling Out
-      reasons:
-        ProgressDeadlineExceeded:
-          health: unhealthy
-          notReady: true
-          status: Rollout Failed
-          order: 1
-          message: true
-    Available:
-      health: healthy
-      onFalse:
-        health: unhealthy
-        message: true
 
 Kustomization:
   conditions:
@@ -185,7 +167,27 @@ image.toolkit.fluxcd.io/v1beta2/ImagePolicy: *flux
 image.toolkit.fluxcd.io/v1beta2/ImageRepository: *flux
 image.toolkit.fluxcd.io/v1beta2/ImageUpdateAutomation: *flux
 
-# Not an actual kind.
+cnrm.cloud.google.com:
+  conditions: &cnrmconditions
+    DependencyNotFound:
+        message: true
+        health: unhealthy
+        ready: true
+    DependencyNotReady:
+      message: true
+      health: unknown
+    UpdateFailed:
+      message: true
+      health: unhealthy
+      ready: true
+    UpToDate:
+      message: true
+      ready: true
+      health: healthy
+    Ready:
+      reasons: *cnrmconditions
+
+
 crossplane.io:
   conditions:
     Healthy:
