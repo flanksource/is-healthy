@@ -139,7 +139,14 @@ func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string
 	if !strings.HasPrefix(yamlPath, "./testdata/") && !strings.HasPrefix(yamlPath, "../resource_customizations") {
 		yamlPath = "./testdata/" + yamlPath
 	}
-	yamlBytes, err := os.ReadFile(yamlPath)
+	var yamlBytes []byte
+	var err error
+
+	if strings.Contains(yamlPath, "::") {
+		yamlBytes, err = os.ReadFile(strings.ReplaceAll(yamlPath, "::", "/"))
+	} else {
+		yamlBytes, err = os.ReadFile(yamlPath)
+	}
 	require.NoError(t, err)
 
 	yamlString := string(yamlBytes)
