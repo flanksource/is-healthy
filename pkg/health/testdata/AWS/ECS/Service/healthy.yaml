@@ -1,0 +1,376 @@
+CapacityProviderStrategy: []
+ClusterArn: arn:aws:ecs:eu-west-1:765618022540:cluster/demo-dev-cluster
+CreatedAt: 2024-07-08T12:47:59.027Z
+CreatedBy: arn:aws:iam::765618022540:user/Engineering/AdityaThebe
+DeploymentConfiguration:
+  Alarms:
+    Enable: false
+    Rollback: false
+    AlarmNames: []
+  MaximumPercent: 200
+  MinimumHealthyPercent: 100
+  DeploymentCircuitBreaker:
+    Enable: true
+    Rollback: true
+DeploymentController:
+  Type: ECS
+Deployments:
+  - Id: ecs-svc/4462357315744281090
+    Status: PRIMARY
+    CreatedAt: 2024-07-08T12:47:59.027Z
+    UpdatedAt: 2024-11-01T17:53:00.891Z
+    LaunchType: FARGATE
+    FailedTasks: 0
+    DesiredCount: 1
+    PendingCount: 0
+    RolloutState: COMPLETED
+    RunningCount: 1
+    PlatformFamily: Linux
+    TaskDefinition: arn:aws:ecs:eu-west-1:765618022540:task-definition/demo-httpd-task:1
+    PlatformVersion: 1.4.0
+    RolloutStateReason: ECS deployment ecs-svc/4462357315744281090 completed.
+    NetworkConfiguration:
+      AwsvpcConfiguration:
+        Subnets:
+          - subnet-0aae33c66aa26d2b4
+          - subnet-099e59970db9eeb65
+          - subnet-07aef0e5d67ba44d6
+        AssignPublicIp: ENABLED
+        SecurityGroups:
+          - sg-0125e9b77d363491f
+    VolumeConfigurations: []
+    ServiceConnectResources: []
+    CapacityProviderStrategy: []
+DesiredCount: 1
+EnableECSManagedTags: true
+EnableExecuteCommand: false
+Events:
+  - Id: 657fbf71-4d5c-4be8-94dd-2584878da629
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-17T12:09:18.664Z
+  - Id: 2972ff81-b736-4b7a-b543-118a3750af0b
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-17T06:09:15.02Z
+  - Id: 71fbef37-208c-424c-a340-45e881c3a027
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-17T00:09:13.599Z
+  - Id: 2cc25963-d60f-4909-9dd6-d9cf174b40e5
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-16T18:08:49.313Z
+  - Id: 5fd2af4d-6c9f-49f6-89d4-ec07dae85658
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-16T12:08:20.86Z
+  - Id: fd0849c6-deaa-4751-9af0-90f5555b1a1d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-16T06:08:20.188Z
+  - Id: 4144f1d8-0064-42c4-9bfb-31ed545b018c
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-16T00:08:06.595Z
+  - Id: 771eb6e1-14d2-4951-bb67-78bf57c838f9
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-15T18:07:45.628Z
+  - Id: 7be6115c-883d-4367-a577-6a083a85941a
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-15T12:07:22.605Z
+  - Id: 0c949e17-8603-4c16-883c-2bcd98eaac35
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-15T06:07:16.635Z
+  - Id: 9d747124-4426-4419-ac24-3385f9877fbe
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-15T00:06:59.978Z
+  - Id: 8870ff9d-5c8e-44df-b638-90f9c04f4891
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-14T18:06:34.528Z
+  - Id: 9ac55fb7-3216-410c-b1f1-32c3a4e315b7
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-14T12:06:02.628Z
+  - Id: 2a5afc97-8e1a-46be-9afa-ecd89617f8c3
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-14T06:05:43.114Z
+  - Id: ee3828bb-f2a8-4a48-9406-eebccefe2932
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-14T00:05:27.945Z
+  - Id: 4d2afe39-6e59-4fe9-9228-2913903248dc
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-13T18:05:10.387Z
+  - Id: 742b7418-349a-40c3-8700-71a187dea02c
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-13T12:04:41.06Z
+  - Id: 74357d00-d239-4d76-a5b9-3f1338e57738
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-13T06:04:26.167Z
+  - Id: aa141a11-3094-4989-80e1-8246d833d573
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-13T00:04:12.381Z
+  - Id: c19f9eff-dfe8-40b0-b479-c17837dbf764
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-12T18:04:11.524Z
+  - Id: 63e09c32-3ca4-40c4-a8ee-443c33dfc00e
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-12T12:04:11.268Z
+  - Id: 33463c92-2c4d-471a-bd4e-922eb84d3a42
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-12T06:04:00.812Z
+  - Id: 4deeb1fe-e068-448d-9b88-d440d4b4164d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-12T00:03:32.801Z
+  - Id: e1e7c3c7-76ba-4404-ad93-972063441661
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-11T18:03:24.033Z
+  - Id: bd536fed-ed5f-40b6-b2ee-4b19890e05c8
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-11T12:03:03.54Z
+  - Id: 635925aa-2f8e-47f7-b76f-5abccf5e82f9
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-11T06:02:47.003Z
+  - Id: 6d4dc7cd-28f4-481a-b7e8-dc6d906c48a5
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-11T00:02:38.718Z
+  - Id: b8b1214c-68fb-44e2-888d-c58b3584e872
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-10T18:02:33.838Z
+  - Id: 8766073e-fd7b-4c0c-b32d-0d8e8c056fe0
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-10T12:02:19.274Z
+  - Id: 8a33d0a6-99fa-499f-a829-5021cc159d73
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-10T06:02:02.354Z
+  - Id: 9c853a3b-fb25-44dd-82f8-2b928ad4032d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-10T00:01:36.953Z
+  - Id: 3fbe3463-2cc0-4912-86f7-abfd8731b86d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-09T18:01:16.268Z
+  - Id: 8680132f-7389-41e7-a145-9055eda60a6f
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-09T12:00:51.172Z
+  - Id: bf493cbd-5c67-498d-911a-e2169a6fa851
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-09T06:00:37.513Z
+  - Id: b465bfb6-f852-44c1-b3f0-9f2ec0cc80f4
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-09T00:00:31.442Z
+  - Id: a8f4b6c7-35a3-4f7e-bc26-eb1c25c140e6
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-08T18:00:26.252Z
+  - Id: f7b83cf9-37dd-4cb9-954d-31c257f8a6d1
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-08T11:59:57.392Z
+  - Id: 127837a4-09ec-4477-bb5b-a45541ba693f
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-08T05:59:31.164Z
+  - Id: b99a43be-c3e8-4484-b7d0-0e50c25d1b65
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-07T23:59:20.796Z
+  - Id: 74934105-0f63-4169-b7ee-15c4a03b8b55
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-07T17:59:11.827Z
+  - Id: eb1991bf-9693-45f2-b05b-907e7bf19395
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-07T11:58:59.376Z
+  - Id: 47cb92af-bf36-4fe5-adb0-d9eb08ba2151
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-07T05:58:29.619Z
+  - Id: d6a509a9-db65-4e24-b17f-d24bccdfc6b3
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-06T23:58:19.069Z
+  - Id: 6754f279-95ca-4083-8de0-241f58225010
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-06T17:58:18.894Z
+  - Id: 85eac415-977b-4be0-b8dc-7ff2a41276c1
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-06T11:58:05.962Z
+  - Id: fb975bc9-5485-4606-bf21-d2dfdfe6874b
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-06T05:57:48.804Z
+  - Id: c14438e7-3f19-4782-ba4d-45f053a8eb65
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-05T23:57:25.302Z
+  - Id: a684ad43-4339-4071-b158-6bbcf7fa4110
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-05T17:57:20.465Z
+  - Id: 0238592e-be51-4334-be85-7fd47f0b719a
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-05T11:56:49.722Z
+  - Id: d74dbbdd-348e-491b-8b08-b57cc4abb993
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-05T05:56:27.746Z
+  - Id: e924895b-4bb1-4034-8e09-9d7c46c12522
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-04T23:56:16.322Z
+  - Id: daaa424e-7e60-46ae-ae09-b7b97f715417
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-04T17:56:12.187Z
+  - Id: d73d33f9-1be6-47f5-a26b-4e1d936f8560
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-04T11:55:48.336Z
+  - Id: 976686b7-0a25-4cb4-957b-b944fdc9a304
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-04T05:55:32.489Z
+  - Id: 4c609c24-2664-442f-ba33-513b0cec833f
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-03T23:55:16.165Z
+  - Id: 449ae2b4-5950-4367-9c37-cd5e03cafc9a
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-03T17:55:09.452Z
+  - Id: 73fc698c-fca3-43bc-8cb7-89090e8ab1a2
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-03T11:54:49.903Z
+  - Id: bf37d937-2e66-4802-b46d-876a306070b5
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-03T05:54:29.81Z
+  - Id: 1e8536cc-d44b-4722-9d8a-010231db8530
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-02T23:54:24.207Z
+  - Id: 563bb710-e75a-4e7e-ab11-5f7e9101674d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-02T17:54:00.558Z
+  - Id: d541433f-e28a-4818-ba6f-f3b12006a596
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-02T11:53:43.37Z
+  - Id: eee74091-8646-4237-8928-9377473e71e5
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-02T05:53:28.798Z
+  - Id: 0d08c75b-7a4e-461b-bdfe-78d953d88009
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-01T23:53:01.523Z
+  - Id: 4754b156-e766-467f-b752-2c110a333224
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-01T17:53:00.897Z
+  - Id: d2f2ecf4-c5f9-4923-babc-804f053b4a5b
+    Message: "(service httpd-service) has stopped 1 running tasks: (task
+      9aafa604454947a8810f6791f07cd3b0)."
+    CreatedAt: 2024-11-01T17:51:50.837Z
+  - Id: b464128f-bffa-4616-84bd-1f170f8f6b13
+    Message: "(service httpd-service) has started 1 tasks: (task
+      d8f8db0d67e34774935b2fbbc82961a3)."
+    CreatedAt: 2024-11-01T17:50:27.171Z
+  - Id: 5e854f0c-de80-43a9-b0cb-211365c44206
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-01T15:13:15.01Z
+  - Id: 70ec0ffe-346b-484e-8c73-03d44a25faf8
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-01T09:12:47.637Z
+  - Id: 22d7079d-a5af-438b-b642-d4b8dac1862d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-11-01T03:12:40.841Z
+  - Id: 6d5fff48-ec22-4161-b6e1-a520dfb65731
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-31T21:12:36.15Z
+  - Id: e439bc63-b328-4ae6-a1ef-6d813439d7cd
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-31T15:12:19.535Z
+  - Id: 582c033c-2b58-4565-a023-c3ea68cb811a
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-31T09:11:48.89Z
+  - Id: ff07eca2-bc8a-457b-8b04-7db7d651b9bc
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-31T03:11:18.192Z
+  - Id: bccf4a45-7060-4f2e-933b-7d1fcd115c03
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-30T21:11:00.843Z
+  - Id: 6808232e-f13b-4919-be75-b2bc6085fb8b
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-30T15:10:33.363Z
+  - Id: eecec8c0-aa18-4bb7-8938-02d67ecc2519
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-30T09:10:18.951Z
+  - Id: f4957dc8-7b72-4971-983f-780d1fd5e592
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-30T03:09:55.534Z
+  - Id: 46754b35-2629-4a35-b66c-11a07a03ac8d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-29T21:09:48.266Z
+  - Id: fc86261b-a1ad-4404-b17c-e1e3fecf66d4
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-29T15:09:22.487Z
+  - Id: 7dde9d8c-3cfd-46de-8869-64bbe1aa7e9d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-29T09:09:10.6Z
+  - Id: 42a4220c-45e8-45f0-bbfe-667760ec5e5b
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-29T03:08:57.5Z
+  - Id: 2e4bfa54-c30e-4882-94cb-49efc5123a0c
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-28T21:08:52.854Z
+  - Id: 3a825b1b-ac2a-4f75-98fe-46dc685775eb
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-28T15:08:31.698Z
+  - Id: dab0e976-7b8b-4af1-b00d-85c32ac01f44
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-28T09:08:12.969Z
+  - Id: 823b9950-1036-46c2-ab2d-2d4e188b1af6
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-28T03:07:57.438Z
+  - Id: f2901bfd-dc64-4108-bca4-a457932c28b2
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-27T21:07:56.504Z
+  - Id: b5ef4384-16c0-48b7-ac9c-38207723f996
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-27T15:07:45.869Z
+  - Id: 289da137-562b-4223-8f2a-eee6b5f2543c
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-27T09:07:39.484Z
+  - Id: b84fbace-a638-42ba-89ec-74404ece497f
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-27T03:07:24.402Z
+  - Id: f9f36c3d-859a-4399-9691-0aea37b92dff
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-26T21:06:55.408Z
+  - Id: c0989436-31f8-4731-948a-c1063de3f434
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-26T15:06:34.549Z
+  - Id: 5bfdb77f-d6ce-4a41-800f-46f3cd87353d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-26T09:06:15.829Z
+  - Id: c904b302-fe37-4f4f-b166-8b7b86e091b5
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-26T03:06:12.201Z
+  - Id: 2132ee3d-290e-4bf7-9d1a-f05c6ea206e0
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-25T21:05:48.204Z
+  - Id: e8ef0a08-56a1-4f66-a0aa-85c06dfbc41f
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-25T15:05:20.866Z
+  - Id: 48c7a36b-ea3d-4ea2-a6f0-1985e4136408
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-25T09:04:57.66Z
+  - Id: c0ed1466-e00d-46e5-9513-ce6f6e2c4cdc
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-25T03:04:54.536Z
+  - Id: cc63e08f-a0f5-4afc-85d2-73a98831ed6d
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-24T21:04:25.15Z
+  - Id: cffbd4c1-4029-4e48-820b-01cca03996a7
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-24T15:04:22.849Z
+  - Id: 854afc1b-0bdb-4aee-9391-3258081bf273
+    Message: (service httpd-service) has reached a steady state.
+    CreatedAt: 2024-10-24T09:04:14.97Z
+LaunchType: FARGATE
+LoadBalancers: []
+NetworkConfiguration:
+  AwsvpcConfiguration:
+    Subnets:
+      - subnet-0aae33c66aa26d2b4
+      - subnet-099e59970db9eeb65
+      - subnet-07aef0e5d67ba44d6
+    AssignPublicIp: ENABLED
+    SecurityGroups:
+      - sg-0125e9b77d363491f
+PendingCount: 0
+PlacementConstraints: []
+PlacementStrategy: []
+PlatformFamily: Linux
+PlatformVersion: LATEST
+PropagateTags: NONE
+RoleArn: arn:aws:iam::765618022540:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS
+RunningCount: 1
+SchedulingStrategy: REPLICA
+ServiceArn: arn:aws:ecs:eu-west-1:765618022540:service/demo-dev-cluster/httpd-service
+ServiceName: httpd-service
+ServiceRegistries: []
+Status: ACTIVE
+Tags: []
+TaskDefinition: arn:aws:ecs:eu-west-1:765618022540:task-definition/demo-httpd-task:1
+TaskSets: []

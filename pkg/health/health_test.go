@@ -5,7 +5,9 @@ Package provides functionality that allows assessing the health state of a Kuber
 package health_test
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -16,6 +18,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	goyaml "gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -48,6 +51,32 @@ var (
 	}
 )
 
+func testFixture(t *testing.T, yamlPath string) {
+	t.Run(yamlPath, func(t *testing.T) {
+		hr, obj := getHealthStatus(yamlPath, t, make(map[string]string))
+
+		expectedHealth := health.Health(strings.ReplaceAll(filepath.Base(yamlPath), ".yaml", ""))
+		if health.IsValidHealth(string(expectedHealth)) {
+			assert.Equal(t, expectedHealth, hr.Health)
+		}
+
+		if v, ok := obj.GetAnnotations()["expected-health"]; ok {
+			assert.Equal(t, v, hr.Health)
+		}
+
+		if v, ok := obj.GetAnnotations()["expected-message"]; ok {
+			assert.Equal(t, v, hr.Message)
+		}
+		if v, ok := obj.GetAnnotations()["expected-status"]; ok {
+			assert.Equal(t, health.HealthStatusCode(v), hr.Status)
+		}
+
+		if v, ok := obj.GetAnnotations()["expected-ready"]; ok {
+			assert.Equal(t, v == "true", hr.Ready)
+		}
+	})
+}
+
 func assertAppHealthMsg(
 	t *testing.T,
 	yamlPath string,
@@ -69,7 +98,7 @@ func assertAppHealthMsg(
 		}
 	}
 	t.Run(yamlPath, func(t *testing.T) {
-		health := getHealthStatus(yamlPath, t, m)
+		health, _ := getHealthStatus(yamlPath, t, m)
 		assert.NotNil(t, health)
 		assert.Equal(t, expectedHealth, health.Health)
 		assert.Equal(t, expectedReady, health.Ready)
@@ -96,7 +125,7 @@ func assertAppHealth(
 	for i := 0; i < len(overrides); i += 2 {
 		m[overrides[i]] = overrides[i+1]
 	}
-	health := getHealthStatus(yamlPath, t, m)
+	health, _ := getHealthStatus(yamlPath, t, m)
 	assert.NotNil(t, health)
 	assert.Equal(t, expectedHealth, health.Health)
 	assert.Equal(t, expectedReady, health.Ready)
@@ -112,7 +141,8 @@ func assertAppHealthWithOverwriteMsg(
 	expectedReady bool,
 	expectedMsg string,
 ) {
-	health := getHealthStatus(yamlPath, t, overwrites)
+	health, _ := getHealthStatus(yamlPath, t, overwrites)
+
 	assert.NotNil(t, health)
 	assert.Equal(t, expectedHealth, health.Health)
 	assert.Equal(t, expectedReady, health.Ready)
@@ -128,15 +158,15 @@ func assertAppHealthWithOverwrite(
 	expectedHealth health.Health,
 	expectedReady bool,
 ) {
-	health := getHealthStatus(yamlPath, t, overwrites)
+	health, _ := getHealthStatus(yamlPath, t, overwrites)
 	assert.NotNil(t, health)
 	assert.Equal(t, expectedHealth, health.Health)
 	assert.Equal(t, expectedReady, health.Ready)
 	assert.Equal(t, expectedStatus, health.Status)
 }
 
-func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string) *health.HealthStatus {
-	if !strings.HasPrefix(yamlPath, "./testdata/") && !strings.HasPrefix(yamlPath, "../resource_customizations") {
+func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string) (*health.HealthStatus, unstructured.Unstructured) {
+	if !strings.HasPrefix(yamlPath, "./testdata/") && !strings.HasPrefix(yamlPath, "testdata/") && !strings.HasPrefix(yamlPath, "../resource_customizations") {
 		yamlPath = "./testdata/" + yamlPath
 	}
 	var yamlBytes []byte
@@ -166,21 +196,30 @@ func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string
 		yamlString = strings.ReplaceAll(yamlString, k, v)
 	}
 
-	if strings.Contains(yamlPath, "::") {
-		configType := strings.Split(yamlPath, "/")[2]
-		var obj map[string]any
-		err = yaml.Unmarshal([]byte(yamlString), &obj)
+	var obj unstructured.Unstructured
+	if !strings.Contains(yamlString, "apiVersion:") && !strings.Contains(yamlString, "kind:") {
+		configType := strings.Join(strings.Split(strings.ReplaceAll(filepath.Dir(yamlPath), "testdata/", ""), "/"), "::")
+		var m map[string]any
+		err = goyaml.Unmarshal([]byte(yamlString), &m)
 		require.NoError(t, err)
-		return lo.ToPtr(health.GetHealthByConfigType(configType, obj))
+		obj = unstructured.Unstructured{Object: m}
+		if v, ok := m["annotations"]; ok {
+			var a = make(map[string]string)
+			for k, v := range v.(map[string]any) {
+				a[k] = fmt.Sprintf("%s", v)
+			}
+
+			obj.SetAnnotations(a)
+		}
+		return lo.ToPtr(health.GetHealthByConfigType(configType, m)), obj
 	}
 
-	var obj unstructured.Unstructured
 	err = yaml.Unmarshal([]byte(yamlString), &obj)
 	require.NoError(t, err)
 
 	health, err := health.GetResourceHealth(&obj, health.DefaultOverrides)
 	require.NoError(t, err)
-	return health
+	return health, obj
 }
 
 func TestCrossplane(t *testing.T) {
@@ -732,7 +771,7 @@ func TestFluxResources(t *testing.T) {
 	)
 	assertAppHealth(t, "./testdata/flux-kustomization-unhealthy.yaml", "Progressing", health.HealthUnknown, false)
 	assertAppHealth(t, "./testdata/flux-kustomization-failed.yaml", "BuildFailed", health.HealthUnhealthy, false)
-	status := getHealthStatus("./testdata/flux-kustomization-failed.yaml", t, nil)
+	status, _ := getHealthStatus("./testdata/flux-kustomization-failed.yaml", t, nil)
 	assert.Contains(t, status.Message, "err='accumulating resources from 'kubernetes_resource_ingress_fail.yaml'")
 
 	assertAppHealth(
@@ -744,7 +783,7 @@ func TestFluxResources(t *testing.T) {
 	)
 	assertAppHealth(t, "./testdata/flux-helmrelease-unhealthy.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
 	assertAppHealth(t, "./testdata/flux-helmrelease-upgradefailed.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
-	helmreleaseStatus := getHealthStatus("./testdata/flux-helmrelease-upgradefailed.yaml", t, nil)
+	helmreleaseStatus, _ := getHealthStatus("./testdata/flux-helmrelease-upgradefailed.yaml", t, nil)
 	assert.Contains(
 		t,
 		helmreleaseStatus.Message,

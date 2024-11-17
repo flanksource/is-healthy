@@ -1,3 +1,6 @@
+annotations:
+  expected-status: CannotPullContainerError
+  expected-message: 'pull image manifest has been retried 5 time(s): failed to resolve ref docker.com/iiab-processing-fargate:dev: failed to do request: Head "https://docker.com/v2/iiab-processing-fargate/manifests/dev": dial tcp 10.0.0.1:443: connect: connection refused'
 Attachments:
   - Id: 8a9b2c3d-1e2f-4a5b-6c7d-8e9f0a1b2c3d
     Type: ElasticNetworkInterface

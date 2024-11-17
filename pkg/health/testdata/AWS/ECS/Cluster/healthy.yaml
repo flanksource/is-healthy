@@ -1,0 +1,13 @@
+ActiveServicesCount: 1
+Attachments: []
+CapacityProviders: []
+ClusterArn: arn:aws:ecs:eu-west-1:765618022540:cluster/demo-dev-cluster
+ClusterName: demo-dev-cluster
+DefaultCapacityProviderStrategy: []
+PendingTasksCount: 0
+RegisteredContainerInstancesCount: 0
+RunningTasksCount: 1
+Settings: []
+Statistics: []
+Status: ACTIVE
+Tags: []

@@ -22,6 +22,10 @@ const (
 	HealthWarning   Health = "warning"
 )
 
+func IsValidHealth(s string) bool {
+	return s == string(HealthHealthy) || s == string(HealthUnhealthy) || s == string(HealthUnknown) || s == string(HealthWarning)
+}
+
 // Represents resource health status
 type HealthStatusCode string
 
@@ -132,6 +136,15 @@ func GetHealthByConfigType(configType string, obj map[string]any, states ...stri
 
 	if len(states) > 0 {
 		return GetHealthFromStatusName(states[0])
+	} else {
+		for k, v := range obj {
+			_k := strings.ToLower(k)
+			_v := fmt.Sprintf("%s", v)
+			if _k == "status" || _k == "state" ||
+				strings.HasSuffix(_k, "status") {
+				return GetHealthFromStatusName(_v)
+			}
+		}
 	}
 	return HealthStatus{
 		Health: HealthUnknown,

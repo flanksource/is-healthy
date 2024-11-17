@@ -1,0 +1,10 @@
+annotations:
+  message: 'The following resource(s) failed to create: [ECSCluster].'
+CreationTime: 2024-06-27T14:23:12.654Z
+DriftInformation:
+  StackDriftStatus: NOT_CHECKED
+StackId: arn:aws:cloudformation:eu-west-1:765618022540:stack/Infra-ECS-Cluster-test-aditya-d2231163/c91bc4f0-3490-11ef-ba04-0267adf9bc1d
+StackName: Infra-ECS-Cluster-test-aditya-d2231163
+StackStatus: CREATE_FAILED
+StackStatusReason: "The following resource(s) failed to create: [ECSCluster]. "
+TemplateDescription: The template used to create an ECS Cluster from the ECS Console.

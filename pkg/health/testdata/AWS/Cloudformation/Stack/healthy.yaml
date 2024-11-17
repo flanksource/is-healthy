@@ -1,0 +1,8 @@
+CreationTime: "2023-05-09T03:59:08.629Z"
+DriftInformation:
+  StackDriftStatus: NOT_CHECKED
+StackId: arn:aws:cloudformation:eu-west-1:765618022540:stack/eksctl-mission-control-demo-cluster-addon-iamserviceaccount-kube-system-cluster-autoscaler/d94c1e20-ee1d-11ed-857e-0a810473a089
+StackName: eksctl-mission-control-demo-cluster-addon-iamserviceaccount-kube-system-cluster-autoscaler
+StackStatus: CREATE_COMPLETE
+TemplateDescription: IAM role for serviceaccount
+  "kube-system/cluster-autoscaler" [created and managed by eksctl]

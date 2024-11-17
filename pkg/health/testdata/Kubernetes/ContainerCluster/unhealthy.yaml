@@ -14,6 +14,9 @@ metadata:
     cnrm.cloud.google.com/project-id: workload-prod-eu-02
     cnrm.cloud.google.com/state-into-spec: merge
     cnrm.cloud.google.com/management-conflict-prevention-policy: none
+    expected-status: UpdateFailed
+    expected-ready: "true"
+    expected-message: "Update call failed: error applying desired state: summary: googleapi: Error 403: Google Compute Engine: Required 'compute.networks.get' permission for 'projects/flanksource-prod/global/networks/flanksource-workload'.\nDetails:\n[\n  {\n    \"@type\": \"type.googleapis.com/google.rpc.RequestInfo\",\n    \"requestId\": \"0xf1e9e3ca2797eb18\"\n  },\n  {\n    \"@type\": \"type.googleapis.com/google.rpc.ErrorInfo\",\n    \"domain\": \"container.googleapis.com\",\n    \"reason\": \"GCE_PERMISSION_DENIED\"\n  }\n]\n, forbidden"
   creationTimestamp: 2024-11-13T09:26:00Z
 spec:
   location: europe-west1
