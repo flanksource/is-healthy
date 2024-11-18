@@ -2,7 +2,6 @@ package health
 
 import (
 	"fmt"
-	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,79 +17,39 @@ func getReplicaSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) 
 		if err != nil {
 			return nil, err
 		}
-		return getAppsv1ReplicaSetHealth(&replicaSet)
+		return getAppsv1ReplicaSetHealth(&replicaSet, obj)
 	default:
 		return nil, fmt.Errorf("unsupported ReplicaSet GVK: %s", gvk)
 	}
 }
 
-func getAppsv1ReplicaSetHealth(rs *appsv1.ReplicaSet) (*HealthStatus, error) {
+func getAppsv1ReplicaSetHealth(rs *appsv1.ReplicaSet, obj *unstructured.Unstructured) (*HealthStatus, error) {
 	replicas := int32(0)
 	if rs.Spec.Replicas != nil {
 		replicas = *rs.Spec.Replicas
 	}
-	startDeadline := GetStartDeadline(rs.Spec.Template.Spec.Containers...)
-	age := time.Since(rs.CreationTimestamp.Time).Truncate(time.Minute).Abs()
 
-	health := HealthHealthy
-	if rs.Status.ReadyReplicas == 0 {
-		if rs.Status.Replicas > 0 && age < startDeadline {
-			health = HealthUnknown
-		} else {
-			health = HealthUnhealthy
-		}
-	} else if rs.Status.ReadyReplicas < replicas {
-		health = HealthWarning
-	} else if rs.Status.ReadyReplicas >= replicas {
-		health = HealthHealthy
-	}
+	hr := getReplicaHealth(ReplicaStatus{
+		Object:     obj,
+		Containers: rs.Spec.Template.Spec.Containers,
+		Desired:    int(replicas),
+		Replicas:   int(rs.Status.Replicas),
+		Ready:      int(rs.Status.ReadyReplicas),
+		Updated:    int(rs.Status.FullyLabeledReplicas),
+	})
 
-	if replicas == 0 && rs.Status.Replicas == 0 {
-		return &HealthStatus{
-			Ready:  true,
-			Status: HealthStatusScaledToZero,
-			Health: health,
-		}, nil
-	}
-
-	if rs.Generation == rs.Status.ObservedGeneration &&
-		rs.Status.ReadyReplicas == *rs.Spec.Replicas {
-		return &HealthStatus{
-			Health: health,
-			Status: HealthStatusRunning,
-			Ready:  true,
-		}, nil
+	if rs.Generation != rs.Status.ObservedGeneration {
+		hr.Status = HealthStatusUpdating
+		hr.Ready = false
 	}
 
 	failCondition := getAppsv1ReplicaSetCondition(rs.Status, appsv1.ReplicaSetReplicaFailure)
-	if failCondition != nil && failCondition.Status == corev1.ConditionTrue {
-		return &HealthStatus{
-			Health:  health,
-			Status:  HealthStatusError,
-			Message: failCondition.Message,
-		}, nil
+	if hr.Health != HealthUnhealthy && failCondition != nil && failCondition.Status == corev1.ConditionTrue {
+		hr.Ready = true
+		hr.Health = HealthUnhealthy
+		hr.Message = failCondition.Message
 	}
-
-	if rs.Status.ReadyReplicas < *rs.Spec.Replicas {
-		return &HealthStatus{
-			Health:  health,
-			Status:  HealthStatusScalingUp,
-			Message: fmt.Sprintf("%d of %d pods ready", rs.Status.ReadyReplicas, *rs.Spec.Replicas),
-		}, nil
-	}
-
-	if rs.Status.ReadyReplicas > *rs.Spec.Replicas {
-		return &HealthStatus{
-			Health:  health,
-			Status:  HealthStatusScalingDown,
-			Message: fmt.Sprintf("%d pods terminating", rs.Status.ReadyReplicas-*rs.Spec.Replicas),
-		}, nil
-	}
-
-	return &HealthStatus{
-		Status: HealthStatusUnknown,
-		Health: health,
-	}, nil
+	return hr, nil
 }
 
 func getAppsv1ReplicaSetCondition(

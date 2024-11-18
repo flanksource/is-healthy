@@ -545,11 +545,11 @@ func TestHPA(t *testing.T) {
 func TestReplicaSet(t *testing.T) {
 	assertAppHealthWithOverwrite(t, "./testdata/replicaset-ittools.yml", map[string]string{
 		"2024-08-03T06:06:18Z": time.Now().Add(-time.Minute * 2).UTC().Format("2006-01-02T15:04:05Z"),
-	}, health.HealthStatusRunning, health.HealthHealthy, true)
+	}, health.HealthStatusRunning, health.HealthHealthy, false)
 
 	assertAppHealthWithOverwrite(t, "./testdata/replicaset-unhealthy-pods.yaml", map[string]string{
 		"2024-10-21T11:20:19Z": time.Now().Add(-time.Minute * 2).UTC().Format("2006-01-02T15:04:05Z"),
-	}, health.HealthStatusScalingUp, health.HealthUnknown, false)
+	}, health.HealthStatusStarting, health.HealthUnknown, false)
 }
 
 func TestPod(t *testing.T) {

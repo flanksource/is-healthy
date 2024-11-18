@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  uid: 5164138b-dc4a-4192-9107-1e6341eafc29
+  name: incident-manager-ui-66cfd695c
+  labels:
+    pod-template-hash: 66cfd695c
+    app.kubernetes.io/name: incident-manager-ui
+    app.kubernetes.io/instance: mission-control
+  namespace: mission-control
+  annotations:
+    expected-status: Scaled to Zero
+    expected-ready: "true"
+    meta.helm.sh/release-name: mission-control
+    meta.helm.sh/release-namespace: mission-control
+    deployment.kubernetes.io/revision: "109"
+    deployment.kubernetes.io/max-replicas: "2"
+    deployment.kubernetes.io/desired-replicas: "1"
+  ownerReferences:
+    - uid: f40af5c4-d2d3-4478-8a97-a6125083dfcf
+      kind: Deployment
+      name: incident-manager-ui
+      apiVersion: apps/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-11-11T19:03:49Z
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      pod-template-hash: 66cfd695c
+      app.kubernetes.io/name: incident-manager-ui
+      app.kubernetes.io/instance: mission-control
+  template:
+    spec:
+      dnsPolicy: ClusterFirst
+      containers:
+        - env:
+            - name: HOSTNAME
+              value: 0.0.0.0
+            - name: ORY_KRATOS_URL
+              value: https://incident-commander.demo.aws.flanksource.com/api/.ory
+            - name: BACKEND_URL
+              value: http://mission-control:8080
+          name: flanksource-ui
+          image: public.ecr.aws/flanksource/incident-manager-ui:v1.0.822
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 3000
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          livenessProbe:
+            httpGet:
+              path: /api/_health
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /api/_health
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
+          imagePullPolicy: IfNotPresent
+          securityContext: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+    metadata:
+      labels:
+        pod-template-hash: 66cfd695c
+        app.kubernetes.io/name: incident-manager-ui
+        app.kubernetes.io/instance: mission-control
+status:
+  replicas: 0
