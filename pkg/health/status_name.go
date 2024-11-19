@@ -2,29 +2,18 @@ package health
 
 import (
 	"strings"
-
-	"github.com/samber/lo"
 )
 
-func GetHealthFromStatusName(status string) (health HealthStatus) {
+func GetHealthFromStatusName(status string, reasons ...string) (health HealthStatus) {
 	if status == "" {
 		return HealthStatus{}
 	}
 
-	status = strings.ReplaceAll(status, "_", " ")
-	status = strings.ReplaceAll(status, "-", " ")
-
-	words := lo.Words(status)
-	for i, word := range words {
-		words[i] = lo.Capitalize(word)
-	}
 	hr := HealthStatus{
-		Status: HealthStatusCode(strings.Join(words, " ")),
+		Status: HealthStatusCode(HumanCase(status)),
 	}
 
-	status = strings.ToLower(status)
-
-	switch status {
+	switch strings.ToLower(string(hr.Status)) {
 	case "update complete cleanup in progress",
 		"update in progress",
 		"updating",
@@ -69,6 +58,13 @@ func GetHealthFromStatusName(status string) (health HealthStatus) {
 			hr.Ready = true
 		case strings.HasPrefix(status, "configuring"):
 			hr.Health = HealthHealthy
+		}
+	}
+
+	for _, v := range reasons {
+		if v != "" {
+			hr.Message = v
+			break
 		}
 	}
 

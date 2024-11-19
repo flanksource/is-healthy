@@ -44,23 +44,6 @@ CertificateRequest:
           status: Issuing
         Failed:
           ready: true
-  status:
-    acme:
-      order:
-        url: https://acme-v02.api.letsencrypt.org/acme/order/45250083/316944902
-    conditions:
-      - lastTransitionTime: '2019-02-15T18:21:10Z'
-        message: Order validated
-        reason: OrderValidated
-        status: 'False'
-        type: ValidateFailed
-      - lastTransitionTime: null
-        message: Certificate issued successfully
-        reason: CertIssued
-        status: 'True'
-        type: Ready
-
-
 Kustomization:
   conditions:
     Ready:

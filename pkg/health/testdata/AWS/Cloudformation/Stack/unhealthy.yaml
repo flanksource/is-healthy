@@ -1,5 +1,6 @@
 annotations:
-  message: 'The following resource(s) failed to create: [ECSCluster].'
+  expected-message: 'The following resource(s) failed to create: [ECSCluster].'
+  expected-status: Create Failed
 CreationTime: 2024-06-27T14:23:12.654Z
 DriftInformation:
   StackDriftStatus: NOT_CHECKED

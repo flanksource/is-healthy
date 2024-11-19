@@ -1,0 +1,58 @@
+annotations:
+  expected-status: Active
+AccessConfig:
+  AuthenticationMode: API_AND_CONFIG_MAP
+Arn: arn:aws:eks:eu-west-1:123456789012:cluster/mission-control-demo-cluster
+CertificateAuthority:
+
+CreatedAt: 2023-05-09T03:48:10.68Z
+EncryptionConfig: []
+Endpoint: https://5E144B931E5FDA8DC41D80BC8F05AC7B.sk1.eu-west-1.eks.amazonaws.com
+Health:
+  Issues: []
+Identity:
+  Oidc:
+    Issuer: https://oidc.eks.eu-west-1.amazonaws.com/id/5E144B931E5FDA8DC41D80BC8F05AC7B
+KubernetesNetworkConfig:
+  IpFamily: ipv4
+  ServiceIpv4Cidr: 172.20.0.0/16
+Logging:
+  ClusterLogging:
+    - Types:
+        - api
+        - audit
+        - authenticator
+        - controllerManager
+        - scheduler
+      Enabled: false
+Name: mission-control-demo-cluster
+PlatformVersion: eks.8
+ResourcesVpcConfig:
+  VpcId: vpc-09c963a9231399689
+  SubnetIds:
+    - subnet-0e33965610ced8995
+    - subnet-017dfefe7e6f269f2
+    - subnet-09cba264d3549e8c0
+    - subnet-0ae3c610ed5155c39
+    - subnet-02a8a8128859f04ad
+    - subnet-03977c8ae22ce460a
+  SecurityGroupIds:
+    - sg-08cc59940602df0fe
+  PublicAccessCidrs:
+    - 0.0.0.0/0
+  EndpointPublicAccess: true
+  EndpointPrivateAccess: false
+  ClusterSecurityGroupId: sg-0fef3b0123b019c30
+RoleArn: arn:aws:iam::123456789012:role/eksctl-mission-control-demo-cluster-cl-ServiceRole-JFHLKKM3MPEE
+Status: ACTIVE
+Tags:
+  region: eu-west-1
+  account: "123456789012"
+  aws:cloudformation:stack-id: arn:aws:cloudformation:eu-west-1:123456789012:stack/eksctl-mission-control-demo-cluster-cluster/42e51dc0-ee1c-11ed-a71f-0a5f2673308f
+  alpha.eksctl.io/cluster-name: mission-control-demo-cluster
+  aws:cloudformation:logical-id: ControlPlane
+  aws:cloudformation:stack-name: eksctl-mission-control-demo-cluster-cluster
+  alpha.eksctl.io/eksctl-version: 0.140.0
+  alpha.eksctl.io/cluster-oidc-enabled: "true"
+  eksctl.cluster.k8s.io/v1alpha1/cluster-name: mission-control-demo-cluster
+Version: "1.30"

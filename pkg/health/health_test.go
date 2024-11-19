@@ -83,9 +83,15 @@ func assertAppHealthMsg(
 	expectedStatus health.HealthStatusCode,
 	expectedHealth health.Health,
 	expectedReady bool,
-	expectedMsg string,
 	overrides ...string,
 ) {
+
+	var expectedMsg *string
+	if len(overrides) > 0 {
+		expectedMsg = lo.ToPtr(overrides[0])
+		overrides = overrides[1:]
+	}
+
 	m := make(map[string]string)
 	for k, v := range defaultOverrides {
 		m[k] = v
@@ -103,33 +109,10 @@ func assertAppHealthMsg(
 		assert.Equal(t, expectedHealth, health.Health)
 		assert.Equal(t, expectedReady, health.Ready)
 		assert.Equal(t, expectedStatus, health.Status)
-		assert.Equal(t, expectedMsg, health.Message)
+		if expectedMsg != nil {
+			assert.Equal(t, *expectedMsg, health.Message)
+		}
 	})
-}
-
-func assertAppHealth(
-	t *testing.T,
-	yamlPath string,
-	expectedStatus health.HealthStatusCode,
-	expectedHealth health.Health,
-	expectedReady bool,
-	overrides ...string,
-) {
-	m := make(map[string]string)
-	for k, v := range defaultOverrides {
-		m[k] = v
-	}
-	if len(overrides)%2 == 1 {
-		assert.FailNow(t, "even number of overrides")
-	}
-	for i := 0; i < len(overrides); i += 2 {
-		m[overrides[i]] = overrides[i+1]
-	}
-	health, _ := getHealthStatus(yamlPath, t, m)
-	assert.NotNil(t, health)
-	assert.Equal(t, expectedHealth, health.Health)
-	assert.Equal(t, expectedReady, health.Ready)
-	assert.Equal(t, expectedStatus, health.Status)
 }
 
 func assertAppHealthWithOverwriteMsg(
@@ -238,7 +221,7 @@ func TestCrossplane(t *testing.T) {
 		"ActivePackageRevision",
 		health.HealthHealthy,
 		true,
-		"",
+		"ActivePackageRevision HealthyPackageRevision",
 	)
 	assertAppHealthMsg(
 		t,
@@ -259,8 +242,8 @@ func TestCrossplane(t *testing.T) {
 }
 
 func TestNamespace(t *testing.T) {
-	assertAppHealth(t, "./testdata/namespace.yaml", health.HealthStatusHealthy, health.HealthUnknown, true)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/namespace.yaml", health.HealthStatusHealthy, health.HealthUnknown, true)
+	assertAppHealthMsg(
 		t,
 		"./testdata/namespace-terminating.yaml",
 		health.HealthStatusTerminating,
@@ -271,7 +254,7 @@ func TestNamespace(t *testing.T) {
 
 func TestCertificateRequest(t *testing.T) {
 	// approved but not issued in 1h
-	assertAppHealth(t, "./testdata/certificate-request-approved.yaml", "Approved", health.HealthUnhealthy, false)
+	assertAppHealthMsg(t, "./testdata/certificate-request-approved.yaml", "Approved", health.HealthUnhealthy, false)
 
 	// approved in the last 1h
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-request-approved.yaml", map[string]string{
@@ -288,23 +271,23 @@ func TestCertificate(t *testing.T) {
 	// 	"2024-10-28T08:05:00Z": time.Now().Add(-time.Hour * 2).Format(time.RFC3339),
 	// }, "IncorrectIssuer", health.HealthUnhealthy, false, `Issuing certificate as Secret was previously issued by "Issuer.cert-manager.io/"`)
 
-	// assertAppHealth(t, "./testdata/certificate-expired.yaml", "Expired", health.HealthUnhealthy, true)
+	// assertAppHealthMsg(t, "./testdata/certificate-expired.yaml", "Expired", health.HealthUnhealthy, true)
 
 	// assertAppHealthWithOverwrite(t, "./testdata/about-to-expire.yaml", map[string]string{
 	// 	"2024-06-26T12:25:46Z": time.Now().Add(time.Hour).UTC().Format("2006-01-02T15:04:05Z"),
 	// }, health.HealthStatusWarning, health.HealthWarning, true)
 
-	assertAppHealth(t, "./testdata/certificate-healthy.yaml", "Issued", health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/certificate-healthy.yaml", "Issued", health.HealthHealthy, true)
 	b := "../resource_customizations/cert-manager.io/Certificate/testdata/"
-	assertAppHealth(t, b+"degraded_configError.yaml", "ConfigError", health.HealthUnhealthy, true)
-	assertAppHealth(t, b+"progressing_issuing.yaml", "Issuing", health.HealthUnknown, false)
+	assertAppHealthMsg(t, b+"degraded_configError.yaml", "ConfigError", health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, b+"progressing_issuing.yaml", "Issuing", health.HealthUnknown, false)
 }
 
 func TestExternalSecrets(t *testing.T) {
 	b := "../resource_customizations/external-secrets.io/ExternalSecret/testdata/"
-	assertAppHealth(t, b+"degraded.yaml", "SecretSyncedError", health.HealthUnhealthy, false)
-	assertAppHealth(t, b+"progressing.yaml", "", health.HealthUnknown, false)
-	assertAppHealth(t, b+"healthy.yaml", "SecretSynced", health.HealthHealthy, true)
+	assertAppHealthMsg(t, b+"degraded.yaml", "SecretSyncedError", health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, b+"progressing.yaml", "Progressing", health.HealthUnknown, false)
+	assertAppHealthMsg(t, b+"healthy.yaml", "SecretSynced", health.HealthHealthy, true)
 }
 
 func TestDeploymentHealth(t *testing.T) {
@@ -443,25 +426,25 @@ func TestStatefulSetOnDeleteHealth(t *testing.T) {
 }
 
 func TestDaemonSetOnDeleteHealth(t *testing.T) {
-	assertAppHealth(t, "./testdata/daemonset-ondelete.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/daemonset-ondelete.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
 }
 
 func TestPVCHealth(t *testing.T) {
-	assertAppHealth(t, "./testdata/pvc-bound.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/pvc-pending.yaml", health.HealthStatusProgressing, health.HealthHealthy, false)
+	assertAppHealthMsg(t, "./testdata/pvc-bound.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/pvc-pending.yaml", health.HealthStatusProgressing, health.HealthHealthy, false)
 }
 
 func TestServiceHealth(t *testing.T) {
-	assertAppHealth(t, "./testdata/svc-clusterip.yaml", health.HealthStatusUnknown, health.HealthUnknown, true)
-	assertAppHealth(t, "./testdata/svc-loadbalancer.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/svc-clusterip.yaml", health.HealthStatusUnknown, health.HealthUnknown, true)
+	assertAppHealthMsg(t, "./testdata/svc-loadbalancer.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
+	assertAppHealthMsg(
 		t,
 		"./testdata/svc-loadbalancer-unassigned.yaml",
 		health.HealthStatusCreating,
 		health.HealthUnknown,
 		false,
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/svc-loadbalancer-nonemptylist.yaml",
 		health.HealthStatusRunning,
@@ -471,69 +454,69 @@ func TestServiceHealth(t *testing.T) {
 }
 
 func TestIngressHealth(t *testing.T) {
-	assertAppHealth(t, "./testdata/ingress.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/ingress-unassigned.yaml", health.HealthStatusPending, health.HealthHealthy, false)
-	assertAppHealth(t, "./testdata/ingress-nonemptylist.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/ingress.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/ingress-unassigned.yaml", health.HealthStatusPending, health.HealthHealthy, false)
+	assertAppHealthMsg(t, "./testdata/ingress-nonemptylist.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
 }
 
 func TestCRD(t *testing.T) {
 	b := "../resource_customizations/serving.knative.dev/Service/testdata/"
 
-	assertAppHealth(t, "./testdata/knative-service.yaml", "", health.HealthUnknown, false)
-	assertAppHealth(t, b+"degraded.yaml", "RevisionFailed", health.HealthUnhealthy, false)
-	assertAppHealth(t, b+"healthy.yaml", "", health.HealthHealthy, true)
-	assertAppHealth(t, b+"progressing.yaml", "", health.HealthUnknown, false)
+	assertAppHealthMsg(t, "./testdata/knative-service.yaml", "Progressing", health.HealthUnknown, false)
+	assertAppHealthMsg(t, b+"degraded.yaml", "RevisionFailed", health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, b+"healthy.yaml", "", health.HealthHealthy, true)
+	assertAppHealthMsg(t, b+"progressing.yaml", "Progressing", health.HealthUnknown, false)
 }
 
 func TestCnrmPubSub(t *testing.T) {
 	b := "../resource_customizations/pubsub.cnrm.cloud.google.com/PubSubTopic/testdata/"
 
-	assertAppHealth(t, b+"dependency_not_found.yaml", "DependencyNotFound", health.HealthUnhealthy, true)
-	assertAppHealth(t, b+"dependency_not_ready.yaml", "DependencyNotReady", health.HealthUnknown, false)
-	assertAppHealth(t, b+"up_to_date.yaml", "UpToDate", health.HealthHealthy, true)
-	assertAppHealth(t, b+"update_failed.yaml", "UpdateFailed", health.HealthUnhealthy, true)
-	assertAppHealth(t, b+"update_in_progress.yaml", "", health.HealthUnknown, false)
+	assertAppHealthMsg(t, b+"dependency_not_found.yaml", "DependencyNotFound", health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, b+"dependency_not_ready.yaml", "DependencyNotReady", health.HealthUnknown, false)
+	assertAppHealthMsg(t, b+"up_to_date.yaml", "UpToDate", health.HealthHealthy, true)
+	assertAppHealthMsg(t, b+"update_failed.yaml", "UpdateFailed", health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, b+"update_in_progress.yaml", "Progressing", health.HealthUnknown, false)
 }
 
 func TestJob(t *testing.T) {
-	assertAppHealth(t, "./testdata/job-running.yaml", health.HealthStatusRunning, health.HealthHealthy, false)
-	assertAppHealth(t, "./testdata/job-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
-	assertAppHealth(t, "./testdata/job-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/job-suspended.yaml", health.HealthStatusSuspended, health.HealthUnknown, false)
+	assertAppHealthMsg(t, "./testdata/job-running.yaml", health.HealthStatusRunning, health.HealthHealthy, false)
+	assertAppHealthMsg(t, "./testdata/job-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, "./testdata/job-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/job-suspended.yaml", health.HealthStatusSuspended, health.HealthUnknown, false)
 }
 
 func TestHPA(t *testing.T) {
-	assertAppHealth(t, "./testdata/hpa-v2-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/hpa-v2-degraded.yaml", health.HealthStatusDegraded, health.HealthUnhealthy, false)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/hpa-v2-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/hpa-v2-degraded.yaml", health.HealthStatusDegraded, health.HealthUnhealthy, false)
+	assertAppHealthMsg(
 		t,
 		"./testdata/hpa-v2-progressing.yaml",
 		health.HealthStatusProgressing,
 		health.HealthHealthy,
 		false,
 	)
-	assertAppHealth(t, "./testdata/hpa-v2beta2-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/hpa-v2beta2-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(
 		t,
 		"./testdata/hpa-v2beta1-healthy-disabled.yaml",
 		health.HealthStatusHealthy,
 		health.HealthHealthy,
 		true,
 	)
-	assertAppHealth(t, "./testdata/hpa-v2beta1-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/hpa-v1-degraded.yaml", health.HealthStatusDegraded, health.HealthUnhealthy, false)
-	assertAppHealth(t, "./testdata/hpa-v2-degraded.yaml", health.HealthStatusDegraded, health.HealthUnhealthy, false)
+	assertAppHealthMsg(t, "./testdata/hpa-v2beta1-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/hpa-v1-degraded.yaml", health.HealthStatusDegraded, health.HealthUnhealthy, false)
+	assertAppHealthMsg(t, "./testdata/hpa-v2-degraded.yaml", health.HealthStatusDegraded, health.HealthUnhealthy, false)
 
-	assertAppHealth(t, "./testdata/hpa-v1-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/hpa-v1-healthy-toofew.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/hpa-v1-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/hpa-v1-healthy-toofew.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(
 		t,
 		"./testdata/hpa-v1-progressing.yaml",
 		health.HealthStatusProgressing,
 		health.HealthHealthy,
 		false,
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/hpa-v1-progressing-with-no-annotations.yaml",
 		health.HealthStatusProgressing,
@@ -553,8 +536,8 @@ func TestReplicaSet(t *testing.T) {
 }
 
 func TestPod(t *testing.T) {
-	assertAppHealth(t, "./testdata/terminating-stuck.yaml", "TerminatingStalled", health.HealthWarning, false)
-	assertAppHealth(t, "./testdata/terminating-namespace.yaml", "TerminatingStalled", health.HealthWarning, false)
+	assertAppHealthMsg(t, "./testdata/terminating-stuck.yaml", "TerminatingStalled", health.HealthWarning, false)
+	assertAppHealthMsg(t, "./testdata/terminating-namespace.yaml", "TerminatingStalled", health.HealthWarning, false)
 
 	assertAppHealthWithOverwrite(t, "./testdata/pod-terminating.yaml", map[string]string{
 		"2024-07-01T06:52:22Z": time.Now().Add(-time.Minute * 20).UTC().Format("2006-01-02T15:04:05Z"),
@@ -569,7 +552,7 @@ func TestPod(t *testing.T) {
 	}, health.HealthStatusStarting, health.HealthUnknown, false, "Container nginx is waiting for readiness probe")
 
 	// Pod not ready
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-not-ready-but-container-ready.yaml",
 		health.HealthStatusRunning,
@@ -578,7 +561,7 @@ func TestPod(t *testing.T) {
 	)
 
 	// Restart Loop
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-ready-container-terminated.yaml",
 		health.HealthStatusRunning,
@@ -611,56 +594,56 @@ func TestPod(t *testing.T) {
 		"2024-07-17T14:29:51Z": "2024-06-17T14:29:51Z",
 	}, health.HealthStatusRunning, health.HealthHealthy, true)
 
-	assertAppHealth(t, "./testdata/pod-old-restarts.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/pod-old-restarts.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
 
-	assertAppHealth(t, "./testdata/pod-pending.yaml", health.HealthStatusPending, health.HealthUnknown, false)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/pod-pending.yaml", health.HealthStatusPending, health.HealthUnknown, false)
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-running-not-ready.yaml",
 		health.HealthStatusStarting,
 		health.HealthUnknown,
 		false,
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-crashloop.yaml",
 		health.HealthStatusCrashLoopBackoff,
 		health.HealthUnhealthy,
 		false,
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-crashloop-pending.yaml",
 		health.HealthStatusCrashLoopBackoff,
 		health.HealthUnhealthy,
 		false,
 	)
-	assertAppHealth(t, "./testdata/pod-imagepullbackoff.yaml", "ImagePullBackOff", health.HealthUnhealthy, false)
-	assertAppHealth(t, "./testdata/pod-error.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/pod-imagepullbackoff.yaml", "ImagePullBackOff", health.HealthUnhealthy, false)
+	assertAppHealthMsg(t, "./testdata/pod-error.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-running-restart-always.yaml",
 		health.HealthStatusRunning,
 		health.HealthHealthy,
 		true,
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-running-restart-never.yaml",
 		health.HealthStatusRunning,
 		health.HealthHealthy,
 		false,
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-running-restart-onfailure.yaml",
 		health.HealthStatusRunning,
 		health.HealthUnhealthy,
 		false,
 	)
-	assertAppHealth(t, "./testdata/pod-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
-	assertAppHealth(t, "./testdata/pod-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/pod-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, "./testdata/pod-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
+	assertAppHealthMsg(
 		t,
 		"./testdata/pod-init-container-fail.yaml",
 		health.HealthStatusCrashLoopBackoff,
@@ -670,10 +653,10 @@ func TestPod(t *testing.T) {
 }
 
 // func TestAPIService(t *testing.T) {
-// 	assertAppHealth(t, "./testdata/apiservice-v1-true.yaml", HealthStatusHealthy, health.HealthHealthy, true)
-// 	assertAppHealth(t, "./testdata/apiservice-v1-false.yaml", HealthStatusProgressing, health.HealthHealthy, true)
-// 	assertAppHealth(t, "./testdata/apiservice-v1beta1-true.yaml", HealthStatusHealthy, health.HealthHealthy, true)
-// 	assertAppHealth(t, "./testdata/apiservice-v1beta1-false.yaml", HealthStatusProgressing, health.HealthHealthy, true)
+// 	assertAppHealthMsg(t, "./testdata/apiservice-v1-true.yaml", HealthStatusHealthy, health.HealthHealthy, true)
+// 	assertAppHealthMsg(t, "./testdata/apiservice-v1-false.yaml", HealthStatusProgressing, health.HealthHealthy, true)
+// 	assertAppHealthMsg(t, "./testdata/apiservice-v1beta1-true.yaml", HealthStatusHealthy, health.HealthHealthy, true)
+// 	assertAppHealthMsg(t, "./testdata/apiservice-v1beta1-false.yaml", HealthStatusProgressing, health.HealthHealthy, true)
 // }
 
 func TestGetArgoWorkflowHealth(t *testing.T) {
@@ -729,14 +712,14 @@ func TestGetArgoWorkflowHealth(t *testing.T) {
 }
 
 func TestArgoApplication(t *testing.T) {
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/argo-application-healthy.yaml",
 		health.HealthStatusHealthy,
 		health.HealthHealthy,
 		true,
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/argo-application-missing.yaml",
 		health.HealthStatusMissing,
@@ -762,27 +745,27 @@ func TestFluxResources(t *testing.T) {
 		false,
 		"HelmRelease/mission-control-agent/atlas-topology dry-run failed: failed to create typed patch object (mission-control-agent/atlas-topology; helm.toolkit.fluxcd.io/v2, Kind=HelmRelease): .spec.chart.spec.targetNamespace: field not declared in schema\n",
 	)
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/flux-kustomization-healthy.yaml",
 		"ReconciliationSucceeded",
 		health.HealthHealthy,
 		true,
 	)
-	assertAppHealth(t, "./testdata/flux-kustomization-unhealthy.yaml", "Progressing", health.HealthUnknown, false)
-	assertAppHealth(t, "./testdata/flux-kustomization-failed.yaml", "BuildFailed", health.HealthUnhealthy, false)
+	assertAppHealthMsg(t, "./testdata/flux-kustomization-unhealthy.yaml", "Progressing", health.HealthUnknown, false)
+	assertAppHealthMsg(t, "./testdata/flux-kustomization-failed.yaml", "BuildFailed", health.HealthUnhealthy, false)
 	status, _ := getHealthStatus("./testdata/flux-kustomization-failed.yaml", t, nil)
 	assert.Contains(t, status.Message, "err='accumulating resources from 'kubernetes_resource_ingress_fail.yaml'")
 
-	assertAppHealth(
+	assertAppHealthMsg(
 		t,
 		"./testdata/flux-helmrelease-healthy.yaml",
 		"ReconciliationSucceeded",
 		health.HealthHealthy,
 		true,
 	)
-	assertAppHealth(t, "./testdata/flux-helmrelease-unhealthy.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
-	assertAppHealth(t, "./testdata/flux-helmrelease-upgradefailed.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, "./testdata/flux-helmrelease-unhealthy.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
+	assertAppHealthMsg(t, "./testdata/flux-helmrelease-upgradefailed.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
 	helmreleaseStatus, _ := getHealthStatus("./testdata/flux-helmrelease-upgradefailed.yaml", t, nil)
 	assert.Contains(
 		t,
@@ -791,11 +774,11 @@ func TestFluxResources(t *testing.T) {
 	)
 	assert.Equal(t, helmreleaseStatus.Status, health.HealthStatusUpgradeFailed)
 
-	assertAppHealth(t, "./testdata/flux-helmrepository-healthy.yaml", "Succeeded", health.HealthHealthy, true)
-	assertAppHealth(t, "./testdata/flux-helmrepository-unhealthy.yaml", "Failed", health.HealthUnhealthy, false)
+	assertAppHealthMsg(t, "./testdata/flux-helmrepository-healthy.yaml", "Succeeded", health.HealthHealthy, true)
+	assertAppHealthMsg(t, "./testdata/flux-helmrepository-unhealthy.yaml", "Failed", health.HealthUnhealthy, false)
 
-	assertAppHealth(t, "./testdata/flux-gitrepository-healthy.yaml", "Succeeded", health.HealthHealthy, true)
-	assertAppHealth(
+	assertAppHealthMsg(t, "./testdata/flux-gitrepository-healthy.yaml", "Succeeded", health.HealthHealthy, true)
+	assertAppHealthMsg(
 		t,
 		"./testdata/flux-gitrepository-unhealthy.yaml",
 		"GitOperationFailed",

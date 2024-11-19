@@ -1,3 +1,5 @@
+annotations:
+  expected-status: Create Complete
 CreationTime: "2023-05-09T03:59:08.629Z"
 DriftInformation:
   StackDriftStatus: NOT_CHECKED

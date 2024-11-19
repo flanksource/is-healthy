@@ -2,8 +2,10 @@ package health
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/util/json"
 
 	corev1 "k8s.io/api/core/v1"
@@ -159,4 +161,15 @@ func GetStartDeadline(containers ...corev1.Container) time.Duration {
 
 func IsContainerStarting(creation time.Time, containers ...corev1.Container) bool {
 	return time.Since(creation) < GetStartDeadline(containers...)
+}
+
+func HumanCase(s string) string {
+	s = strings.ReplaceAll(s, "_", " ")
+	s = strings.ReplaceAll(s, "-", " ")
+	s = strings.ReplaceAll(s, "([A-Z])", " $1")
+	items := strings.Split(strings.TrimSpace(strings.ToLower(s)), " ")
+	for i := range items {
+		items[i] = lo.Capitalize(items[i])
+	}
+	return strings.Join(items, " ")
 }

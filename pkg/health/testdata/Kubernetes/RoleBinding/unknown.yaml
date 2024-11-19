@@ -1,0 +1,28 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  uid: ec37ec40-9121-477d-8e90-88ea0bf99d1d
+  name: argo-argocd-notifications-controller
+  labels:
+    helm.sh/chart: argo-cd-7.7.3
+    app.kubernetes.io/name: argocd-notifications-controller
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/version: v2.13.0
+    app.kubernetes.io/instance: argo
+    app.kubernetes.io/component: notifications-controller
+    helm.toolkit.fluxcd.io/name: argo
+    app.kubernetes.io/managed-by: Helm
+    helm.toolkit.fluxcd.io/namespace: argo
+  namespace: argo
+  annotations:
+    meta.helm.sh/release-name: argo
+    meta.helm.sh/release-namespace: argo
+  creationTimestamp: 2023-10-19T13:44:27Z
+roleRef:
+  kind: Role
+  name: argo-argocd-notifications-controller
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: argocd-notifications-controller
+    namespace: argo

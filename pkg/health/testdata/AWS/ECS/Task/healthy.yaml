@@ -1,0 +1,74 @@
+annotations:
+  expected-status: Running
+Attachments:
+  - Id: beb2fa58-3e15-4877-b097-b8e0a4c91f04
+    Type: ElasticNetworkInterface
+    Status: ATTACHED
+    Details:
+      - Name: subnetId
+        Value: subnet-099e59970db9eeb65
+      - Name: networkInterfaceId
+        Value: eni-099e55471b484321b
+      - Name: macAddress
+        Value: 0a:f5:69:ba:ad:53
+      - Name: privateDnsName
+        Value: ip-172-31-44-167.eu-west-1.compute.internal
+      - Name: privateIPv4Address
+        Value: 172.31.44.167
+Attributes:
+  - Name: ecs.cpu-architecture
+    Value: x86_64
+    TargetType: ""
+AvailabilityZone: eu-west-1b
+ClusterArn: arn:aws:ecs:eu-west-1:123456789023:cluster/demo-dev-cluster
+Connectivity: CONNECTED
+ConnectivityAt: 2024-11-01T17:50:30.827Z
+Containers:
+  - Cpu: "0"
+    Name: demo-another-container
+    Image: httpd:latest
+    GpuIds: []
+    TaskArn: arn:aws:ecs:eu-west-1:123456789023:task/demo-dev-cluster/d8f8db0d67e34774935b2fbbc82961a3
+    RuntimeId: d8f8db0d67e34774935b2fbbc82961a3-1560160490
+    LastStatus: RUNNING
+    ImageDigest: sha256:bbea29057f25d9543e6a96a8e3cc7c7c937206d20eab2323f478fdb2469d536d
+    ContainerArn: arn:aws:ecs:eu-west-1:123456789023:container/demo-dev-cluster/d8f8db0d67e34774935b2fbbc82961a3/edf9b73b-b387-480e-954f-2f8dcd531a70
+    HealthStatus: UNKNOWN
+    ManagedAgents: []
+    NetworkBindings: []
+    NetworkInterfaces:
+      - AttachmentId: beb2fa58-3e15-4877-b097-b8e0a4c91f04
+        PrivateIpv4Address: 172.31.44.167
+Cpu: "512"
+CreatedAt: 2024-11-01T17:50:27.075Z
+DesiredStatus: RUNNING
+EnableExecuteCommand: false
+EphemeralStorage:
+  SizeInGiB: 20
+FargateEphemeralStorage:
+  SizeInGiB: 20
+Group: service:httpd-service
+HealthStatus: RUNNING
+InferenceAccelerators: []
+LastStatus: RUNNING
+LaunchType: FARGATE
+Memory: "1024"
+Overrides:
+  ContainerOverrides:
+    - Name: demo-another-container
+      Command: []
+      Environment: []
+      EnvironmentFiles: []
+      ResourceRequirements: []
+  InferenceAcceleratorOverrides: []
+PlatformFamily: Linux
+PlatformVersion: 1.4.0
+PullStartedAt: 2024-11-01T17:50:37.967Z
+PullStoppedAt: 2024-11-01T17:50:44.584Z
+StartedAt: 2024-11-01T17:50:44.935Z
+StartedBy: ecs-svc/4462357315744281090
+StopCode: ""
+Tags: []
+TaskArn: arn:aws:ecs:eu-west-1:123456789023:task/demo-dev-cluster/d8f8db0d67e34774935b2fbbc82961a3
+TaskDefinitionArn: arn:aws:ecs:eu-west-1:123456789023:task-definition/demo-httpd-task:1
+Version: 4

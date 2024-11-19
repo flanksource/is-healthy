@@ -110,15 +110,21 @@ func IsWorse(current, new HealthStatusCode) bool {
 	return newIndex > currentIndex
 }
 
-func GetHealthByConfigType(configType string, obj map[string]any, states ...string) HealthStatus {
-	switch configType {
-	case "AWS::ECS::Task":
-		return GetECSTaskHealth(obj)
-	}
+func get(obj map[string]any, keys ...string) string {
+	v, _, _ := unstructured.NestedString(obj, keys...)
+	return strings.TrimSpace(v)
+}
 
+func isArgoHealth(s HealthStatusCode) bool {
+	return s == "Suspended" || s == "Degraded" || s == "Progressing"
+}
+
+func GetHealthByConfigType(configType string, obj map[string]any, states ...string) HealthStatus {
 	configClass := strings.Split(configType, "::")[0]
 
 	switch strings.ToLower(configClass) {
+	case "aws":
+		return getAWSHealthByConfigType(configType, obj, states...)
 	case "mongo":
 		return GetMongoHealth(obj)
 	case "kubernetes", "crossplane", "missioncontrol", "flux", "argo":
@@ -172,37 +178,56 @@ func GetResourceHealth(
 				Status:  HealthStatusUnknown,
 				Message: err.Error(),
 			}
-		} else {
-			return health, nil
 		}
 	}
 
-	if healthOverride != nil {
-		health, err := healthOverride.GetResourceHealth(obj)
+	if health == nil && healthOverride != nil {
+		health, err = healthOverride.GetResourceHealth(obj)
 		if err != nil {
-			health = &HealthStatus{
+			return &HealthStatus{
 				Status:  HealthStatusUnknown,
 				Message: err.Error(),
-			}
-			return health, err
-		}
-		if health != nil {
-			return health, nil
+			}, err
 		}
 	}
 
-	if obj.GetDeletionTimestamp() != nil {
-		return &HealthStatus{
-			Status: HealthStatusTerminating,
-		}, nil
+	if health == nil ||
+		health.Status == "" ||
+		isArgoHealth(health.Status) {
+		// try and get a better status from conditions
+		defaultHealth, err := GetDefaultHealth(obj)
+		if err != nil {
+			return &HealthStatus{
+				Status:  "HealthParseError",
+				Message: lo.Elipse(err.Error(), 500),
+			}, nil
+		}
+		if health == nil {
+			health = defaultHealth
+		}
+		if health.Status == "" {
+			health.Status = defaultHealth.Status
+		}
+
+		if defaultHealth.Status != "" && isArgoHealth(health.Status) && !isArgoHealth(defaultHealth.Status) {
+			health.Status = defaultHealth.Status
+		}
+		if health.Message == "" {
+			health.Message = defaultHealth.Message
+		}
 	}
 
 	if health == nil {
-		return &HealthStatus{
+		health = &HealthStatus{
 			Status: HealthStatusUnknown,
 			Ready:  true,
-		}, nil
+		}
 	}
+	if obj.GetDeletionTimestamp() != nil {
+		health.Status = HealthStatusTerminating
+		health.Ready = false
+	}
+
 	return health, err
 }
 
@@ -274,5 +299,5 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 			return getHPAHealth
 		}
 	}
-	return GetDefaultHealth
+	return nil
 }

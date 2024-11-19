@@ -1,0 +1,91 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  uid: c41090c9-10dd-4a56-8a37-182d20e6ccac
+  name: kube-prometheus-stack-prometheus
+  labels:
+    app: kube-prometheus-stack-prometheus
+    chart: kube-prometheus-stack-44.3.0
+    release: kube-prometheus-stack
+    heritage: Helm
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 44.3.0
+    app.kubernetes.io/instance: kube-prometheus-stack
+    helm.toolkit.fluxcd.io/name: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.toolkit.fluxcd.io/namespace: monitoring
+  namespace: monitoring
+  annotations:
+    meta.helm.sh/release-name: kube-prometheus-stack
+    meta.helm.sh/release-namespace: monitoring
+  creationTimestamp: 2023-05-22T13:13:39Z
+spec:
+  image: quay.io/prometheus/prometheus:v2.41.0
+  paused: false
+  shards: 1
+  thanos:
+    objectStorageConfig:
+      key: config.yaml
+      name: thanos-config
+      optional: false
+  storage:
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 60Gi
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: gp2
+  version: v2.41.0
+  alerting:
+    alertmanagers:
+      - name: kube-prometheus-stack-alertmanager
+        port: http-web
+        namespace: monitoring
+        apiVersion: v2
+        pathPrefix: /
+  logLevel: info
+  portName: http-web
+  replicas: 1
+  logFormat: logfmt
+  retention: 30d
+  externalUrl: http://prometheus.demo.aws.flanksource.com/
+  hostNetwork: false
+  listenLocal: false
+  routePrefix: /
+  ruleSelector: {}
+  probeSelector: {}
+  enableAdminAPI: false
+  scrapeInterval: 30s
+  walCompression: true
+  securityContext:
+    fsGroup: 2000
+    runAsUser: 1000
+    runAsGroup: 2000
+    runAsNonRoot: true
+  evaluationInterval: 30s
+  podMonitorSelector: {}
+  serviceAccountName: kube-prometheus-stack-prometheus
+  ruleNamespaceSelector: {}
+  probeNamespaceSelector: {}
+  serviceMonitorSelector: {}
+  podMonitorNamespaceSelector: {}
+  serviceMonitorNamespaceSelector: {}
+status:
+  paused: false
+  replicas: 1
+  conditions:
+    - type: Available
+      status: "True"
+    - type: Reconciled
+      status: "True"
+  shardStatuses:
+    - shardID: "0"
+      replicas: 1
+      updatedReplicas: 1
+      availableReplicas: 1
+      unavailableReplicas: 0
+  updatedReplicas: 1
+  availableReplicas: 1
+  unavailableReplicas: 0
