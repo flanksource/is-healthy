@@ -46,5 +46,4 @@ func getAWSHealthByConfigType(configType string, obj map[string]any, states ...s
 	return HealthStatus{
 		Health: HealthUnknown,
 	}
-
 }

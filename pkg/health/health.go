@@ -23,7 +23,8 @@ const (
 )
 
 func IsValidHealth(s string) bool {
-	return s == string(HealthHealthy) || s == string(HealthUnhealthy) || s == string(HealthUnknown) || s == string(HealthWarning)
+	return s == string(HealthHealthy) || s == string(HealthUnhealthy) || s == string(HealthUnknown) ||
+		s == string(HealthWarning)
 }
 
 // Represents resource health status

@@ -85,7 +85,6 @@ func assertAppHealthMsg(
 	expectedReady bool,
 	overrides ...string,
 ) {
-
 	var expectedMsg *string
 	if len(overrides) > 0 {
 		expectedMsg = lo.ToPtr(overrides[0])
@@ -148,8 +147,13 @@ func assertAppHealthWithOverwrite(
 	assert.Equal(t, expectedStatus, health.Status)
 }
 
-func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string) (*health.HealthStatus, unstructured.Unstructured) {
-	if !strings.HasPrefix(yamlPath, "./testdata/") && !strings.HasPrefix(yamlPath, "testdata/") && !strings.HasPrefix(yamlPath, "../resource_customizations") {
+func getHealthStatus(
+	yamlPath string,
+	t *testing.T,
+	overwrites map[string]string,
+) (*health.HealthStatus, unstructured.Unstructured) {
+	if !strings.HasPrefix(yamlPath, "./testdata/") && !strings.HasPrefix(yamlPath, "testdata/") &&
+		!strings.HasPrefix(yamlPath, "../resource_customizations") {
 		yamlPath = "./testdata/" + yamlPath
 	}
 	var yamlBytes []byte
@@ -181,13 +185,16 @@ func getHealthStatus(yamlPath string, t *testing.T, overwrites map[string]string
 
 	var obj unstructured.Unstructured
 	if !strings.Contains(yamlString, "apiVersion:") && !strings.Contains(yamlString, "kind:") {
-		configType := strings.Join(strings.Split(strings.ReplaceAll(filepath.Dir(yamlPath), "testdata/", ""), "/"), "::")
+		configType := strings.Join(
+			strings.Split(strings.ReplaceAll(filepath.Dir(yamlPath), "testdata/", ""), "/"),
+			"::",
+		)
 		var m map[string]any
 		err = goyaml.Unmarshal([]byte(yamlString), &m)
 		require.NoError(t, err)
 		obj = unstructured.Unstructured{Object: m}
 		if v, ok := m["annotations"]; ok {
-			var a = make(map[string]string)
+			a := make(map[string]string)
 			for k, v := range v.(map[string]any) {
 				a[k] = fmt.Sprintf("%s", v)
 			}
@@ -456,7 +463,13 @@ func TestServiceHealth(t *testing.T) {
 func TestIngressHealth(t *testing.T) {
 	assertAppHealthMsg(t, "./testdata/ingress.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
 	assertAppHealthMsg(t, "./testdata/ingress-unassigned.yaml", health.HealthStatusPending, health.HealthHealthy, false)
-	assertAppHealthMsg(t, "./testdata/ingress-nonemptylist.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(
+		t,
+		"./testdata/ingress-nonemptylist.yaml",
+		health.HealthStatusHealthy,
+		health.HealthHealthy,
+		true,
+	)
 }
 
 func TestCRD(t *testing.T) {
@@ -508,7 +521,13 @@ func TestHPA(t *testing.T) {
 	assertAppHealthMsg(t, "./testdata/hpa-v2-degraded.yaml", health.HealthStatusDegraded, health.HealthUnhealthy, false)
 
 	assertAppHealthMsg(t, "./testdata/hpa-v1-healthy.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
-	assertAppHealthMsg(t, "./testdata/hpa-v1-healthy-toofew.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
+	assertAppHealthMsg(
+		t,
+		"./testdata/hpa-v1-healthy-toofew.yaml",
+		health.HealthStatusHealthy,
+		health.HealthHealthy,
+		true,
+	)
 	assertAppHealthMsg(
 		t,
 		"./testdata/hpa-v1-progressing.yaml",
@@ -765,7 +784,13 @@ func TestFluxResources(t *testing.T) {
 		true,
 	)
 	assertAppHealthMsg(t, "./testdata/flux-helmrelease-unhealthy.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
-	assertAppHealthMsg(t, "./testdata/flux-helmrelease-upgradefailed.yaml", "UpgradeFailed", health.HealthUnhealthy, true)
+	assertAppHealthMsg(
+		t,
+		"./testdata/flux-helmrelease-upgradefailed.yaml",
+		"UpgradeFailed",
+		health.HealthUnhealthy,
+		true,
+	)
 	helmreleaseStatus, _ := getHealthStatus("./testdata/flux-helmrelease-upgradefailed.yaml", t, nil)
 	assert.Contains(
 		t,
