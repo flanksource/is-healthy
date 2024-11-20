@@ -158,11 +158,16 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 		hr.Health = hr.Health.Worst(lo.Ternary(isReady, HealthHealthy, HealthUnhealthy))
 	}
 
-	if isStarting && hr.Health.IsWorseThan(HealthWarning) &&
-		(terminated != nil && terminated.Status != HealthStatusOOMKilled) {
+	if isStarting && hr.Health.IsWorseThan(HealthWarning) {
 		hr.Health = HealthUnknown
-		hr.Message = fmt.Sprintf("%s %s", string(hr.Status), hr.Message)
+		hr.Message = strings.TrimSpace(fmt.Sprintf("%s %s", string(hr.Status), hr.Message))
 		hr.Status = HealthStatusStarting
+
+		if terminated != nil && terminated.Status == HealthStatusOOMKilled {
+			// an OOMKilled on startup is likely not going to resolve after some time
+			hr.Health = HealthUnhealthy
+			hr.Status = "Starting OOMKilled"
+		}
 	}
 
 	return &hr, nil

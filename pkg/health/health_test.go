@@ -409,7 +409,7 @@ func TestStatefulSetHealth(t *testing.T) {
 	assertAppHealthMsg(
 		t,
 		"./testdata/statefulset-starting.yaml",
-		health.HealthStatusCrashLoop,
+		health.HealthStatusCrashLoopBackoff,
 		health.HealthUnhealthy,
 		true,
 		"0/1 ready",
@@ -419,7 +419,7 @@ func TestStatefulSetHealth(t *testing.T) {
 	assertAppHealthMsg(
 		t,
 		"./testdata/statefulset-starting.yaml",
-		health.HealthStatusCrashLoop,
+		health.HealthStatusCrashLoopBackoff,
 		health.HealthUnhealthy,
 		true,
 		"0/1 ready",

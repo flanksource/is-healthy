@@ -80,7 +80,7 @@ func getReplicaHealth(s ReplicaStatus) *HealthStatus {
 		hs.Status = HealthStatusStarting
 	} else if s.Ready == 0 && !isStarting {
 		hs.Health = HealthUnhealthy
-		hs.Status = HealthStatusCrashLoop
+		hs.Status = HealthStatusCrashLoopBackoff
 	} else if s.Desired == 0 && s.Replicas > 0 {
 		hs.Status = HealthStatusScalingDown
 		hs.Health = lo.Ternary(isProgressDeadlineExceeded, HealthWarning, HealthHealthy)

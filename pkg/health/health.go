@@ -91,7 +91,6 @@ const (
 	HealthStatusEvicted          HealthStatusCode = "Evicted"
 	HealthStatusCompleted        HealthStatusCode = "Completed"
 	HealthStatusCrashLoopBackoff HealthStatusCode = "CrashLoopBackOff"
-	HealthStatusCrashLoop        HealthStatusCode = "CrashLoop"
 	HealthStatusCrashed          HealthStatusCode = "Crashed"
 	HealthStatusCreating         HealthStatusCode = "Creating"
 	HealthStatusDeleted          HealthStatusCode = "Deleted"

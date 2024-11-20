@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  creationTimestamp: 2018-12-02T10:16:04Z
+  creationTimestamp: "@now-5m"
   name: image-pull-backoff
   namespace: argocd
   annotations:
-    expected-status: PodInitializing
-    expected-health: unhealthy
+    expected-status: Starting
+    expected-health: unknown
   resourceVersion: "155333"
   selfLink: /api/v1/namespaces/argocd/pods/image-pull-backoff
   uid: 46c1e8de-f61b-11e8-a057-fe5f49266390
@@ -66,11 +66,11 @@ status:
     lastState: {}
     name: main
     ready: false
-    started: true
+    started: false
     restartCount: 0
     state:
       waiting:
-        reason: PodInitializing
+        reason: ContainerCreating
   hostIP: 192.168.64.41
   phase: Pending
   podIP: 172.17.0.9
