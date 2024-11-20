@@ -47,6 +47,7 @@ func getAppsv1ReplicaSetHealth(rs *appsv1.ReplicaSet, obj *unstructured.Unstruct
 	if hr.Health != HealthUnhealthy && failCondition != nil && failCondition.Status == corev1.ConditionTrue {
 		hr.Ready = true
 		hr.Health = HealthUnhealthy
+		hr.Status = HealthStatusCode(HumanCase(failCondition.Reason))
 		hr.Message = failCondition.Message
 	}
 	return hr, nil
