@@ -83,6 +83,8 @@ status:
   qosClass: Burstable
   startTime: 2024-11-20T06:57:31Z
   conditions:
+    - type: ContainersReady
+      status: "True"
     - type: Initialized
       status: "True"
     - type: PodReadyToStartContainers
@@ -90,9 +92,7 @@ status:
     - type: PodScheduled
       status: "True"
     - type: Ready
-      reason: ContainersNotReady
       status: "True"
-      message: "containers with unready status: [oomkilled]"
   containerStatuses:
     - name: oomkilled
       image: docker.io/polinux/stress:latest

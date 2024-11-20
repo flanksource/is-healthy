@@ -6,6 +6,7 @@ metadata:
   namespace: mission-control
   annotations:
     expected-status: OOMKilled
+    expected-health: warning
   creationTimestamp: 2024-11-20T06:57:31Z
 spec:
   volumes:
@@ -82,10 +83,6 @@ status:
   qosClass: Burstable
   startTime: 2024-11-20T06:57:31Z
   conditions:
-    - type: ContainersReady
-      reason: ContainersNotReady
-      status: "False"
-      message: "containers with unready status: [oomkilled]"
     - type: Initialized
       status: "True"
     - type: PodReadyToStartContainers
@@ -93,18 +90,15 @@ status:
     - type: PodScheduled
       status: "True"
     - type: Ready
-      reason: ContainersNotReady
-      status: "False"
-      message: "containers with unready status: [oomkilled]"
+      reason: ContainersReady
+      status: "True"
   containerStatuses:
     - name: oomkilled
       image: docker.io/polinux/stress:latest
       ready: false
       state:
-        waiting:
-          reason: CrashLoopBackOff
-          message: back-off 5m0s restarting failed container=oomkilled
-            pod=oomkilled-pod_mission-control(def4df27-ade6-4ba1-b2dc-57d07e12bfe6)
+        running:
+          startedAt: "@now-5m"
       imageID: docker.io/polinux/stress@sha256:b6144f84f9c15dac80deb48d3a646b55c7043ab1d83ea0a697c09097aaad21aa
       started: false
       lastState:
@@ -112,7 +106,7 @@ status:
           reason: OOMKilled
           exitCode: 1
           startedAt: 2024-11-20T07:18:53Z
-          finishedAt: "@now-5m"
+          finishedAt: "@now-2h"
           containerID: containerd://21377c37d28bbac13cb6d41d4bac8de3f3bb57ffdf62523594464198157bb4e9
       containerID: containerd://21377c37d28bbac13cb6d41d4bac8de3f3bb57ffdf62523594464198157bb4e9
       restartCount: 9

@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  uid: 6b1db17e-f7ff-4141-a435-b4fd96296505
+  name: always-failing-28868400
+  labels: {}
+  namespace: canaries
+  annotations:
+    batch.kubernetes.io/cronjob-scheduled-timestamp: 2024-11-20T12:00:00Z
+    expected-status: BackoffLimitExceeded
+  ownerReferences:
+    - uid: d0ae28d6-8ea2-49c9-8d37-f0147d7afa5f
+      kind: CronJob
+      name: always-failing
+      apiVersion: batch/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-11-20T12:00:00Z
+spec:
+  suspend: false
+  selector:
+    matchLabels:
+      batch.kubernetes.io/controller-uid: 6b1db17e-f7ff-4141-a435-b4fd96296505
+  template:
+    spec:
+      dnsPolicy: ClusterFirst
+      containers:
+        - name: fail
+          image: busybox:1.28
+          command:
+            - /bin/sh
+            - -c
+            - exit 1
+          resources: {}
+          imagePullPolicy: IfNotPresent
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      restartPolicy: OnFailure
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+    metadata:
+      labels:
+        job-name: always-failing-28868400
+        controller-uid: 6b1db17e-f7ff-4141-a435-b4fd96296505
+        batch.kubernetes.io/job-name: always-failing-28868400
+        batch.kubernetes.io/controller-uid: 6b1db17e-f7ff-4141-a435-b4fd96296505
+  completions: 1
+  parallelism: 1
+  backoffLimit: 1
+  completionMode: NonIndexed
+  manualSelector: false
+  podReplacementPolicy: TerminatingOrFailed
+status:
+  ready: 0
+  failed: 1
+  startTime: 2024-11-20T12:00:00Z
+  conditions:
+    - type: Failed
+      reason: BackoffLimitExceeded
+      status: "True"
+      message: Job has reached the specified backoff limit
+      lastProbeTime: 2024-11-20T12:00:02Z
+  terminating: 0
+  uncountedTerminatedPods: {}

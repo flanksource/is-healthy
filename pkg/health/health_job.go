@@ -31,7 +31,7 @@ func getBatchv1JobHealth(job *batchv1.Job) (*HealthStatus, error) {
 			return &HealthStatus{
 				Ready:   true,
 				Health:  HealthUnhealthy,
-				Status:  HealthStatusError,
+				Status:  HealthStatusCode(condition.Reason),
 				Message: condition.Message,
 			}, nil
 		case batchv1.JobComplete:

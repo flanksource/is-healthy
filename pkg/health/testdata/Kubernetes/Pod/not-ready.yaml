@@ -3,6 +3,10 @@ kind: Pod
 metadata:
   uid: d21e1521-5a3f-4120-a446-bd7426199a20
   name: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-0
+  annotations:
+    expected-status: Running
+    expected-health: unhealthy
+
   labels:
     app: postgresql
     controller-revision-hash: postgresql-01902bbe-eb40-47d4-a0f7-0afb993645dc-988f9fc65

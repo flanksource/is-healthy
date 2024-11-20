@@ -1,0 +1,30 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta2
+kind: Alert
+metadata:
+  uid: e9a7544d-5407-4ce1-9f01-31ba6a9bf4b0
+  name: hub-cluster
+  labels:
+    kustomize.toolkit.fluxcd.io/name: sre-infra-hub-entry
+    kustomize.toolkit.fluxcd.io/namespace: flux
+  namespace: flux-system
+  finalizers:
+    - finalizers.fluxcd.io
+  creationTimestamp: 2022-12-01T11:44:15Z
+spec:
+  summary: bcb group hub cluster
+  providerRef:
+    name: slack
+  eventSources:
+    - kind: GitRepository
+      name: "*"
+    - kind: Kustomization
+      name: "*"
+    - kind: HelmRelease
+      name: "*"
+  eventSeverity: info
+status:
+  conditions:
+    - type: Ready
+      reason: Succeeded
+      status: "True"
+      message: Initialized

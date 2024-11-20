@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Node
+metadata:
+
+  name: gk3-infra-cluster-pool-2-be3fcd50-lzd5
+  annotations:
+    expected-message: ""
+spec:
+  podCIDR: 10.208.16.192/26
+  podCIDRs:
+    - 10.208.16.192/26
+  providerID: gce://acme-group-sandbox/europe-west2-c/gk3-infra-cluster-pool-2-be3fcd50-lzd5
+status:
+  capacity:
+    cpu: "4"
+    pods: "32"
+    memory: 16385492Ki
+    hugepages-1Gi: "0"
+    hugepages-2Mi: "0"
+    ephemeral-storage: 98831908Ki
+  nodeInfo:
+    bootID: 10eb92aa-06a0-4a15-b695-29a0a4646092
+    osImage: Container-Optimized OS from Google
+    machineID: 9a32cef28ddf5373317cb120d79e6dd0
+    systemUUID: 9a32cef2-8ddf-5373-317c-b120d79e6dd0
+    architecture: amd64
+    kernelVersion: 6.1.100+
+    kubeletVersion: v1.30.5-gke.1443001
+    operatingSystem: linux
+    kubeProxyVersion: v1.30.5-gke.1443001
+    containerRuntimeVersion: containerd://1.7.22
+  addresses:
+    - type: InternalIP
+      address: 10.208.7.195
+  conditions:
+    - type: CorruptDockerOverlay2
+      reason: NoCorruptDockerOverlay2
+      status: "False"
+      message: docker overlay2 is functioning properly
+    - type: DeprecatedAuthsFieldInContainerdConfiguration
+      reason: DeprecatedAuthsFieldInContainerdConfigurationNotDetected
+      status: "False"
+      message: "No deprecation risk: did not find any deprecated 'auths' field in
+        containerd's config"
+    - type: DeprecatedConfigsFieldInContainerdConfiguration
+      reason: DeprecatedConfigsFieldInContainerdConfigurationNotDetected
+      status: "False"
+      message: "No deprecation risk: did not find any deprecated 'configs' field in
+        containerd's config"
+    - type: DeprecatedMirrorsFieldInContainerdConfiguration
+      reason: DeprecatedMirrorsFieldInContainerdConfigurationNotDetected
+      status: "False"
+      message: "No deprecation risk: did not find any deprecated 'mirrors' field in
+        containerd's config"
+    - type: DeprecatedOtherContainerdFeatures
+      reason: DeprecatedOtherContainerdFeaturesNotDetected
+      status: "False"
+      message: "No deprecation risk: did not find any deprecations other than 3
+        configs fields (auths/configs/mirrors), pulling schema v1 images and
+        using v1alpha2 CRI."
+    - type: DeprecatedPullingSchemaV1Image
+      reason: DeprecatedPullingSchemaV1ImageDetected
+      status: "False"
+      message: "No deprecation risk: did not pull any schema v1 images"
+    - type: DeprecatedUsingV1Alpha2Cri
+      reason: DeprecatedUsingV1Alpha2CriNotDetected
+      status: "False"
+      message: "No deprecation risk: did not use v1alpha2 CRI"
+    - type: DiskPressure
+      reason: KubeletHasNoDiskPressure
+      status: "False"
+      message: kubelet has no disk pressure
+    - type: FrequentContainerdRestart
+      reason: NoFrequentContainerdRestart
+      status: "False"
+      message: containerd is functioning properly
+    - type: FrequentDockerRestart
+      reason: NoFrequentDockerRestart
+      status: "False"
+      message: docker is functioning properly
+    - type: FrequentGcfsSnapshotterRestart
+      reason: NoFrequentGcfsSnapshotterRestart
+      status: "False"
+      message: GcfsSnapshotter is functioning properly
+    - type: FrequentGcfsdRestart
+      reason: NoFrequentGcfsdRestart
+      status: "False"
+      message: Gcfsd is functioning properly
+    - type: FrequentKubeletRestart
+      reason: NoFrequentKubeletRestart
+      status: "False"
+      message: kubelet is functioning properly
+    - type: FrequentUnregisterNetDevice
+      reason: NoFrequentUnregisterNetDevice
+      status: "False"
+      message: node is functioning properly
+    - type: GcfsSnapshotterMissingLayer
+      reason: GcfsSnapshotterHasNoMissingLayer
+      status: "False"
+      message: GCFS Snapshotter has no missing layer
+    - type: GcfsSnapshotterUnhealthy
+      reason: GcfsSnapshotterIsHealthy
+      status: "False"
+      message: GcfsSnapshotter on the node is functioning properly
+    - type: GcfsdUnhealthy
+      reason: GcfsdIsHealthy
+      status: "False"
+      message: Gcfsd on the node is functioning properly
+    - type: KernelDeadlock
+      reason: KernelHasNoDeadlock
+      status: "False"
+      message: kernel has no deadlock
+    - type: MemoryPressure
+      reason: KubeletHasSufficientMemory
+      status: "False"
+      message: kubelet has sufficient memory available
+    - type: NetworkUnavailable
+      reason: RouteCreated
+      status: "False"
+      message: NodeController create implicit route
+    - type: PIDPressure
+      reason: KubeletHasSufficientPID
+      status: "False"
+      message: kubelet has sufficient PID available
+    - type: ReadonlyFilesystem
+      reason: FilesystemIsNotReadOnly
+      status: "False"
+      message: Filesystem is not read-only
+    - type: Ready
+      reason: KubeletReady
+      status: "True"
+      message: kubelet is posting ready status
+    - type: SecondaryBootDiskMissingLayer
+      reason: SecondaryBootDiskNoMissingLayer
+      status: "False"
+      message: Secondary boot disk has no missing layer
+    - type: SysctlChanged
+      reason: NodeSysctlChange
+      status: "False"
+  allocatable:
+    cpu: 3920m
+    pods: "32"
+    memory: 13490644Ki
+    hugepages-1Gi: "0"
+    hugepages-2Mi: "0"
+    ephemeral-storage: "47060071478"
+  daemonEndpoints:
+    kubeletEndpoint:
+      Port: 10250

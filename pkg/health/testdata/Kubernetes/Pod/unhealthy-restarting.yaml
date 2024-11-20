@@ -1,0 +1,175 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2024-11-20T14:25:03Z"
+  generateName: test-unhealthy-69688db7d5-
+  annotations:
+    expected-status: CrashLoopBackOff
+    expected-health: unhealthy
+  labels:
+    app.kubernetes.io/name: test-unhealthy
+    pod-template-hash: 69688db7d5
+  name: test-unhealthy-69688db7d5-lhxn5
+  namespace: flux-182432
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: test-unhealthy-69688db7d5
+    uid: b8d6bfc8-f051-4c45-b621-2f82b9941ecd
+  resourceVersion: "370201046"
+  uid: a21aa43f-a397-4328-9060-9549e0ba02d0
+spec:
+  containers:
+  - command:
+    - ./podinfo
+    - --port=9898
+    - --cert-path=/data/cert
+    - --port-metrics=9797
+    - --grpc-port=9999
+    - --grpc-service-name=podinfo
+    - --level=info
+    - --random-delay=false
+    - --random-error=false
+    - --unhealthy
+    env:
+    - name: PODINFO_UI_COLOR
+      value: '#34577c'
+    image: stefanprodan/podinfo
+    imagePullPolicy: Always
+    livenessProbe:
+      exec:
+        command:
+        - podcli
+        - check
+        - http
+        - localhost:9898/healthz
+      failureThreshold: 3
+      initialDelaySeconds: 1
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    name: test
+    ports:
+    - containerPort: 9898
+      name: http
+      protocol: TCP
+    - containerPort: 9797
+      name: http-metrics
+      protocol: TCP
+    - containerPort: 9999
+      name: grpc
+      protocol: TCP
+    readinessProbe:
+      exec:
+        command:
+        - podcli
+        - check
+        - http
+        - localhost:9898/readyz
+      failureThreshold: 3
+      initialDelaySeconds: 1
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-47j8b
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: ip-10-0-4-167.eu-west-1.compute.internal
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-47j8b
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-20T14:25:05Z"
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-20T14:25:03Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-20T14:30:39Z"
+    message: 'containers with unready status: [test]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-20T14:30:39Z"
+    message: 'containers with unready status: [test]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-20T14:25:03Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://4f5a955c5e04ad5da84ae0b52e3f5f8e034029ad490294fe5fe6eeecc0be9580
+    image: docker.io/stefanprodan/podinfo:latest
+    imageID: docker.io/stefanprodan/podinfo@sha256:862ca45e61b32392f7941a1bdfdbe5ff8b6899070135f1bdca1c287d0057fc94
+    lastState:
+      terminated:
+        containerID: containerd://4f5a955c5e04ad5da84ae0b52e3f5f8e034029ad490294fe5fe6eeecc0be9580
+        exitCode: 0
+        finishedAt: "@now-5m"
+        reason: Completed
+        startedAt: "2024-11-20T14:30:13Z"
+    name: test
+    ready: false
+    restartCount: 6
+    started: false
+    state:
+      waiting:
+        message: back-off 2m40s restarting failed container=test pod=test-unhealthy-69688db7d5-lhxn5_flux-182432(a21aa43f-a397-4328-9060-9549e0ba02d0)
+        reason: CrashLoopBackOff
+  hostIP: 10.0.4.167
+  hostIPs:
+  - ip: 10.0.4.167
+  phase: Running
+  podIP: 10.0.4.210
+  podIPs:
+  - ip: 10.0.4.210
+  qosClass: BestEffort
+  startTime: "2024-11-20T14:25:03Z"

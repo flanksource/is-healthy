@@ -6,7 +6,8 @@ metadata:
   namespace: mission-control
   annotations:
     expected-status: OOMKilled
-    expected-health: warning
+    expected-health: unhealthy
+    expected-message:  system has run out of memory
   creationTimestamp: 2024-11-20T06:57:31Z
 spec:
   volumes:
@@ -111,6 +112,7 @@ status:
           reason: OOMKilled
           exitCode: 1
           startedAt: 2024-11-20T07:18:53Z
+          message: system has run out of memory
           finishedAt: "@now-2h"
           containerID: containerd://21377c37d28bbac13cb6d41d4bac8de3f3bb57ffdf62523594464198157bb4e9
       containerID: containerd://21377c37d28bbac13cb6d41d4bac8de3f3bb57ffdf62523594464198157bb4e9

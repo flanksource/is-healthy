@@ -1,34 +1,34 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  uid: c36a1534-25dd-4502-84ef-614771d2eec3
-  name: acc-history-preprod-f5c7fdbf-qs42k
+  uid: 4a584606-88f2-47bb-9559-d20c0ec3a48e
+  name: coredns-7448775847-fswg4
   labels:
-    app: acc-history-preprod
-    pod-template-hash: f5c7fdbf
-  namespace: sandbox
-  generateName: acc-history-preprod-f5c7fdbf-
+    k8s-app: kube-dns
+    pod-template-hash: "7448775847"
+    eks.amazonaws.com/component: coredns
+  namespace: kube-system
+  annotations:
+    eks.amazonaws.com/compute-type: ec2
+  generateName: coredns-7448775847-
   ownerReferences:
-    - uid: 204a2f0a-013f-4f90-8daa-3dfc6cfb94c2
+    - uid: 3b4888e3-9330-4148-b0f4-559ceb4c6463
       kind: ReplicaSet
-      name: acc-history-preprod-f5c7fdbf
+      name: coredns-7448775847
       apiVersion: apps/v1
       controller: true
       blockOwnerDeletion: true
-  creationTimestamp: 2024-11-13T07:48:25Z
+  creationTimestamp: 2024-07-25T09:59:41Z
 spec:
   volumes:
-    - name: files
-      secret:
-        optional: true
-        secretName: acc-history-preprod-files
-        defaultMode: 420
-    - name: cm-files
+    - name: config-volume
       configMap:
-        name: acc-history-preprod-cm-files
-        optional: true
+        name: coredns
+        items:
+          - key: Corefile
+            path: Corefile
         defaultMode: 420
-    - name: kube-api-access-m69vn
+    - name: kube-api-access-2jl46
       projected:
         sources:
           - serviceAccountToken:
@@ -46,77 +46,98 @@ spec:
                     fieldPath: metadata.namespace
                     apiVersion: v1
         defaultMode: 420
-  nodeName: gke-sandbox-private-pool-containerd-s-c8d2b7ad-fs6l
-  priority: 0
-  dnsPolicy: ClusterFirst
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/os
+                values:
+                  - linux
+                operator: In
+              - key: kubernetes.io/arch
+                values:
+                  - amd64
+                  - arm64
+                operator: In
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchExpressions:
+                - key: k8s-app
+                  values:
+                    - kube-dns
+                  operator: In
+  nodeName: ip-10-0-5-138.eu-west-1.compute.internal
+  priority: 2000000000
+  dnsPolicy: Default
   containers:
-    - env:
-        - name: database.username
-          value: acc-history-preprod
-        - name: database.prefix
-      name: acc-history-preprod
-      image: europe-west2-docker.pkg.dev/acme-group-sdlc-infra/docker/acc-history-aggregator:f0fe7c26
+    - args:
+        - -conf
+        - /etc/coredns/Corefile
+      name: coredns
+      image: 602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/coredns:v1.11.1-eksbuild.9
       ports:
-        - name: http
+        - name: dns
+          protocol: UDP
+          containerPort: 53
+        - name: dns-tcp
           protocol: TCP
-          containerPort: 8080
-        - name: monitoring
+          containerPort: 53
+        - name: metrics
           protocol: TCP
-          containerPort: 9090
-      envFrom:
-        - secretRef:
-            name: defaults
-            optional: true
-        - configMapRef:
-            name: defaults
-            optional: true
-        - secretRef:
-            name: acc-history-preprod
-            optional: true
-        - secretRef:
-            name: acc-history-preprod-extra
-            optional: true
-        - secretRef:
-            name: acc-history-preprod-sql
-            optional: true
-        - configMapRef:
-            name: acc-history-preprod
-            optional: true
+          containerPort: 9153
       resources:
         limits:
-          cpu: 200m
-          memory: 512Mi
+          memory: 170Mi
         requests:
-          cpu: 10m
-          memory: 256Mi
+          cpu: 100m
+          memory: 70Mi
       volumeMounts:
-        - name: files
-          mountPath: /var/secret/files
-        - name: cm-files
-          mountPath: /var/secret/cm-files
-        - name: kube-api-access-m69vn
+        - name: config-volume
+          readOnly: true
+          mountPath: /etc/coredns
+        - name: kube-api-access-2jl46
           readOnly: true
           mountPath: /var/run/secrets/kubernetes.io/serviceaccount
       livenessProbe:
-        exec:
-          command:
-            - /bin/true
+        httpGet:
+          path: /health
+          port: 8080
+          scheme: HTTP
         periodSeconds: 10
-        timeoutSeconds: 1
-        failureThreshold: 3
+        timeoutSeconds: 5
+        failureThreshold: 5
         successThreshold: 1
+        initialDelaySeconds: 60
       readinessProbe:
-        exec:
-          command:
-            - /bin/true
+        httpGet:
+          path: /ready
+          port: 8181
+          scheme: HTTP
         periodSeconds: 10
         timeoutSeconds: 1
         failureThreshold: 3
         successThreshold: 1
       imagePullPolicy: IfNotPresent
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+          drop:
+            - ALL
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
       terminationMessagePath: /dev/termination-log
       terminationMessagePolicy: File
   tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      effect: NoSchedule
+    - key: CriticalAddonsOnly
+      operator: Exists
     - key: node.kubernetes.io/not-ready
       effect: NoExecute
       operator: Exists
@@ -127,22 +148,30 @@ spec:
       tolerationSeconds: 300
   restartPolicy: Always
   schedulerName: default-scheduler
-  serviceAccount: acc-history-preprod
+  serviceAccount: coredns
   securityContext: {}
   preemptionPolicy: PreemptLowerPriority
+  priorityClassName: system-cluster-critical
   enableServiceLinks: true
-  serviceAccountName: acc-history-preprod
+  serviceAccountName: coredns
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      labelSelector:
+        matchLabels:
+          k8s-app: kube-dns
+      whenUnsatisfiable: ScheduleAnyway
   terminationGracePeriodSeconds: 30
 status:
   phase: Running
-  podIP: 10.72.2.72
-  hostIP: 10.64.0.17
+  podIP: 10.0.5.98
+  hostIP: 10.0.5.138
   podIPs:
-    - ip: 10.72.2.72
+    - ip: 10.0.5.98
   hostIPs:
-    - ip: 10.64.0.17
+    - ip: 10.0.5.138
   qosClass: Burstable
-  startTime: 2024-11-13T07:48:25Z
+  startTime: 2024-07-25T09:59:41Z
   conditions:
     - type: ContainersReady
       status: "True"
@@ -155,14 +184,14 @@ status:
     - type: Ready
       status: "True"
   containerStatuses:
-    - name: acc-history-preprod
-      image: europe-west2-docker.pkg.dev/acme-group-sdlc-infra/docker/acc-history-aggregator:f0fe7c26
+    - name: coredns
+      image: 602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/coredns:v1.11.1-eksbuild.9
       ready: true
       state:
         running:
-          startedAt: 2024-11-13T07:49:20Z
-      imageID: europe-west2-docker.pkg.dev/acme-group-sdlc-infra/docker/acc-history-aggregator@sha256:65f2d47fa6df644cfbd0336a49e5d3d76eaffb0aa9f3e5037bf6c2f3f4e3bc62
+          startedAt: 2024-07-25T09:59:43Z
+      imageID: 602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/coredns@sha256:9bd83563b3843c9cb02c29b7935b4fdbc93bd74c4c96bc2688b87fb4f761f040
       started: true
       lastState: {}
-      containerID: containerd://e59a6dfc0b03b062236f23ad622b1baf8e405f30cabf841cb8c15846ed52368a
+      containerID: containerd://86a46915f1b2eff37e8a636c59f1c7df428632c8a034006d7b15d00439f7d491
       restartCount: 0

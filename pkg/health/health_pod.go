@@ -34,41 +34,46 @@ func getPodStatus(containers ...corev1.ContainerStatus) (waiting *HealthStatus, 
 			} else if _waiting.Health.IsWorseThan(waiting.Health) {
 				waiting = _waiting
 			}
-			if _terminated != nil {
-				if terminated == nil {
-					terminated = _terminated
-				} else if _terminated.Health.IsWorseThan(terminated.Health) {
-					terminated = _terminated
-				}
+		}
+		if _terminated != nil {
+			if terminated == nil {
+				terminated = _terminated
+			} else if _terminated.Health.IsWorseThan(terminated.Health) {
+				terminated = _terminated
 			}
 		}
 	}
 	return waiting, terminated
 }
 
+func isErrorStatus(s string) bool {
+	return strings.HasPrefix(s, "Err") ||
+		strings.HasSuffix(s, "Error") ||
+		strings.HasSuffix(s, "BackOff")
+}
+
 func getContainerStatus(containerStatus corev1.ContainerStatus) (waiting *HealthStatus, terminated *HealthStatus) {
-	if state := containerStatus.State.Waiting; state != nil &&
-		(strings.HasPrefix(state.Reason, "Err") ||
-			strings.HasSuffix(state.Reason, "Error") ||
-			strings.HasSuffix(state.Reason, "BackOff")) {
+	if state := containerStatus.State.Waiting; state != nil {
 		waiting = &HealthStatus{
 			Status:  HealthStatusCode(state.Reason),
-			Health:  HealthUnhealthy,
+			Health:  lo.Ternary(isErrorStatus(state.Reason) || containerStatus.RestartCount > 0, HealthUnhealthy, HealthUnknown),
 			Message: state.Message,
 		}
 	}
 
 	if state := containerStatus.LastTerminationState.Terminated; state != nil {
 		age := time.Since(state.FinishedAt.Time)
-		terminated = &HealthStatus{
-			Status:  HealthStatusCode(state.Reason),
-			Health:  HealthUnhealthy,
-			Message: state.Message,
-		}
-		if age >= time.Hour*24 {
-			terminated.Health = HealthUnknown
-		} else if age >= time.Hour {
-			terminated.Health = HealthWarning
+		// ignore old terminate statuses
+		if age < time.Hour*24 {
+			terminated = &HealthStatus{
+				Status:  HealthStatusCode(state.Reason),
+				Health:  lo.Ternary(age < time.Hour, HealthUnhealthy, HealthWarning),
+				Message: state.Message,
+			}
+			if state.Reason == string(HealthStatusCompleted) && state.ExitCode == 0 {
+				// completed successfully
+				terminated.Health = HealthHealthy
+			}
 		}
 	}
 	return waiting, terminated
@@ -81,7 +86,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	age := time.Since(pod.CreationTimestamp.Time).Truncate(time.Minute).Abs()
 	isStarting := age < deadline
 	var hr = HealthStatus{
-		Health: HealthUnknown,
+		Health: lo.Ternary(isReady, HealthHealthy, HealthUnhealthy),
 	}
 
 	if pod.ObjectMeta.DeletionTimestamp != nil && !pod.ObjectMeta.DeletionTimestamp.IsZero() {

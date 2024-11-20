@@ -7,6 +7,9 @@ metadata:
     app: crashloop
     pod-template-hash: 6bf9b7b858
   namespace: default
+    annotations:
+    expected-status: CrashloopBackoff
+    expected-health: unhealthy
   generateName: crashloop-deployment-6bf9b7b858-
   ownerReferences:
     - uid: fa555eeb-bb03-4d84-b02f-756de909ed92

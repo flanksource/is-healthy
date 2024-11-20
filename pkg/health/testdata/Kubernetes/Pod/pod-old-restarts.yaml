@@ -12,6 +12,8 @@ metadata:
     app.kubernetes.io/component: webhook
   namespace: cert-manager
   annotations:
+    expected-status: Running
+    expected-health: healthy
     cni.projectcalico.org/podIP: 10.244.3.109/32
     cni.projectcalico.org/podIPs: 10.244.3.109/32
     cni.projectcalico.org/containerID: 7d6b2c09ed44e337c4b01c3ba909f92c59e3ed1dda58f8205e59fc300b16cf8c

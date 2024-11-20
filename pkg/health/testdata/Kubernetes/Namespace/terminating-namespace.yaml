@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stuck-namespace
+  annotations:
+    expected-status: TerminatingStalled
+    expected-health: warning
+    expected-message: terminating for 1h
+  creationTimestamp: 2024-08-09T02:00:00Z
+  deletionTimestamp: "@now-1h"

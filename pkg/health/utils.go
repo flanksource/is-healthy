@@ -53,12 +53,15 @@ func (hs HealthStatus) Merge(others ...*HealthStatus) HealthStatus {
 		if other == nil {
 			continue
 		}
-		hs = HealthStatus{
-			Ready:   hs.Ready && other.Ready,
-			Health:  hs.Health.Worst(other.Health),
-			Status:  HealthStatusCode(lo.CoalesceOrEmpty(string(hs.Status), string(other.Status))),
-			Message: strings.Join(lo.Compact([]string{hs.Message, other.Message}), ", "),
+		hs.Status = HealthStatusCode(lo.CoalesceOrEmpty(string(hs.Status), string(other.Status)))
+		hs.Health = hs.Health.Worst(other.Health)
+		if other.Health.IsWorseThan(hs.Health) {
+			hs.Health = other.Health
+			hs.Status = other.Status
 		}
+		hs.Ready = hs.Ready && other.Ready
+		hs.Message = strings.Join(lo.Compact([]string{hs.Message, other.Message}), ", ")
+
 	}
 	return hs
 }
@@ -183,10 +186,16 @@ func IsContainerStarting(creation time.Time, containers ...corev1.Container) boo
 }
 
 func HumanCase(s string) string {
+	// Add space before capital letters
+	for i := len(s) - 2; i >= 0; i-- {
+		if s[i] >= 'a' && s[i] <= 'z' && s[i+1] >= 'A' && s[i+1] <= 'Z' {
+			s = s[:i+1] + " " + s[i+1:]
+		}
+	}
+
 	s = strings.ReplaceAll(s, "_", " ")
 	s = strings.ReplaceAll(s, "-", " ")
-	s = strings.ReplaceAll(s, "([A-Z])", " $1")
-	items := strings.Split(strings.TrimSpace(strings.ToLower(s)), " ")
+	items := strings.Split(strings.TrimSpace(s), " ")
 	for i := range items {
 		items[i] = lo.Capitalize(items[i])
 	}

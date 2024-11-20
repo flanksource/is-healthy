@@ -6,6 +6,9 @@ metadata:
   labels: {}
   namespace: management
   generateName: alert-manager-
+  annotations:
+    expected-status: TerminatingStalled
+    expected-health: warning
   ownerReferences:
     - uid: 9939fcbb-8ffd-4c51-b01b-bff8092db71d
       kind: Job
