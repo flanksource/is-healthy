@@ -1,0 +1,11 @@
+annotations:
+  expected-status: Available
+GroupName: eu-west-1
+Messages: []
+NetworkBorderGroup: eu-west-1
+RegionName: eu-west-1
+State: available
+ZoneId: euw1-az2
+ZoneName: eu-west-1a
+ZoneType: availability-zone
+OptInStatus: opt-in-not-required

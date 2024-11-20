@@ -3,6 +3,8 @@ package health
 import (
 	"fmt"
 	"strings"
+
+	"github.com/samber/lo"
 )
 
 func GetAWSResourceHealth(_, status string) (health HealthStatus) {
@@ -11,12 +13,14 @@ func GetAWSResourceHealth(_, status string) (health HealthStatus) {
 
 func getAWSHealthByConfigType(configType string, obj map[string]any, states ...string) HealthStatus {
 	switch strings.ToLower(configType) {
+	case "aws::availabilityzone":
+		return GetHealthFromStatusName(get(obj, "State"))
 	case "aws::ecs::task":
 		return GetECSTaskHealth(obj)
 	case "aws::cloudformation::stack":
 		return GetHealthFromStatusName(get(obj, "StackStatus"), get(obj, "StackStatusReason"))
 	case "aws::ec2::instance":
-		return GetHealthFromStatusName(get(obj, "State"))
+		return GetHealthFromStatusName(lo.CoalesceOrEmpty(get(obj, "State"), get(obj, "state")))
 	case "aws::rds::dbinstance":
 		return GetHealthFromStatusName(get(obj, "DBInstanceStatus"))
 	case "aws::elasticloadbalancing::loadbalancer":
