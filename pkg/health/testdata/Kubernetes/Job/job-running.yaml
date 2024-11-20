@@ -7,6 +7,10 @@ metadata:
     job-name: succeed
   name: succeed
   namespace: argoci-workflows
+  annotations:
+    expected-status: Running
+    expected-health: healthy
+    expected-ready: "false"
   resourceVersion: "46535911"
   selfLink: /apis/batch/v1/namespaces/argoci-workflows/jobs/succeed
   uid: f3fe3a46-f60a-11e8-aa53-42010a80021b

@@ -7,6 +7,9 @@ metadata:
     job-name: fail
   name: fail
   namespace: argoci-workflows
+  annotations:
+    expected-status: BackoffLimitExceeded
+    expected-health: unhealthy
   resourceVersion: "46534173"
   selfLink: /apis/batch/v1/namespaces/argoci-workflows/jobs/fail
   uid: 95052288-f609-11e8-aa53-42010a80021b

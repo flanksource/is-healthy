@@ -55,8 +55,12 @@ func isErrorStatus(s string) bool {
 func getContainerStatus(containerStatus corev1.ContainerStatus) (waiting *HealthStatus, terminated *HealthStatus) {
 	if state := containerStatus.State.Waiting; state != nil {
 		waiting = &HealthStatus{
-			Status:  HealthStatusCode(state.Reason),
-			Health:  lo.Ternary(isErrorStatus(state.Reason) || containerStatus.RestartCount > 0, HealthUnhealthy, HealthUnknown),
+			Status: HealthStatusCode(state.Reason),
+			Health: lo.Ternary(
+				isErrorStatus(state.Reason) || containerStatus.RestartCount > 0,
+				HealthUnhealthy,
+				HealthUnknown,
+			),
 			Message: state.Message,
 		}
 	}
@@ -85,7 +89,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	deadline := GetStartDeadline(append(pod.Spec.InitContainers, pod.Spec.Containers...)...)
 	age := time.Since(pod.CreationTimestamp.Time).Truncate(time.Minute).Abs()
 	isStarting := age < deadline
-	var hr = HealthStatus{
+	hr := HealthStatus{
 		Health: lo.Ternary(isReady, HealthHealthy, HealthUnhealthy),
 	}
 
@@ -145,7 +149,8 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 
 	case corev1.PodRunning, corev1.PodPending:
 		hr = hr.Merge(terminated, waiting)
-		if terminated != nil && terminated.Health.IsWorseThan(HealthWarning) && hr.Status == HealthStatusCrashLoopBackoff {
+		if terminated != nil && terminated.Health.IsWorseThan(HealthWarning) &&
+			hr.Status == HealthStatusCrashLoopBackoff {
 			hr.Status = terminated.Status
 			hr.Health = hr.Health.Worst(terminated.Health)
 		}

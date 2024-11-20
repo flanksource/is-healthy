@@ -81,7 +81,6 @@ func TestHealthCompare(t *testing.T) {
 	assert.True(t, health.HealthUnhealthy.IsWorseThan(health.HealthWarning))
 	assert.Equal(t, health.HealthHealthy, health.HealthHealthy.Worst(health.HealthUnknown))
 	assert.Equal(t, health.HealthUnhealthy, health.HealthHealthy.Worst(health.HealthUnhealthy))
-
 }
 
 func assertAppHealthMsg(
@@ -500,13 +499,6 @@ func TestCnrmPubSub(t *testing.T) {
 	assertAppHealthMsg(t, b+"up_to_date.yaml", "UpToDate", health.HealthHealthy, true)
 	assertAppHealthMsg(t, b+"update_failed.yaml", "UpdateFailed", health.HealthUnhealthy, true)
 	assertAppHealthMsg(t, b+"update_in_progress.yaml", "Progressing", health.HealthUnknown, false)
-}
-
-func TestJob(t *testing.T) {
-	assertAppHealthMsg(t, "./testdata/job-running.yaml", health.HealthStatusRunning, health.HealthHealthy, false)
-	assertAppHealthMsg(t, "./testdata/job-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
-	assertAppHealthMsg(t, "./testdata/job-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
-	assertAppHealthMsg(t, "./testdata/job-suspended.yaml", health.HealthStatusSuspended, health.HealthUnknown, false)
 }
 
 func TestHPA(t *testing.T) {
