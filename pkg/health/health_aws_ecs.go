@@ -2,18 +2,16 @@ package health
 
 import (
 	"strings"
-
-	"github.com/samber/lo"
 )
 
 func GetECSTaskHealth(obj map[string]any) (health HealthStatus) {
 	hr := HealthStatus{
-		Status: HealthStatusCode(lo.CamelCase(obj["LastStatus"].(string))),
+		Status: HealthStatusCode(HumanCase(obj["LastStatus"].(string))),
 		Health: HealthUnknown,
 		Ready:  false,
 	}
 
-	if v, ok := obj["HealthStatus"].(string); ok {
+	if v, ok := obj["HealthStatus"].(string); ok && v != "UNKNOWN" {
 		hr.Status = HealthStatusCode(HumanCase(v))
 	}
 

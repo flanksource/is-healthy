@@ -61,7 +61,7 @@ func testFixture(t *testing.T, yamlPath string) {
 		}
 
 		if v, ok := obj.GetAnnotations()["expected-health"]; ok {
-			assert.Equal(t, v, hr.Health)
+			assert.Equal(t, health.Health(v), hr.Health)
 		}
 
 		if v, ok := obj.GetAnnotations()["expected-message"]; ok {

@@ -10,24 +10,24 @@ func GetAWSResourceHealth(_, status string) (health HealthStatus) {
 }
 
 func getAWSHealthByConfigType(configType string, obj map[string]any, states ...string) HealthStatus {
-	switch configType {
-	case "AWS::ECS::Task":
+	switch strings.ToLower(configType) {
+	case "aws::ecs::task":
 		return GetECSTaskHealth(obj)
-	case "AWS::Cloudformation::Stack":
+	case "aws::cloudformation::stack":
 		return GetHealthFromStatusName(get(obj, "StackStatus"), get(obj, "StackStatusReason"))
-	case "AWS::EC2::Instance":
+	case "aws::ec2::instance":
 		return GetHealthFromStatusName(get(obj, "State"))
-	case "AWS::RDS::DBInstance":
+	case "aws::rds::dbinstance":
 		return GetHealthFromStatusName(get(obj, "DBInstanceStatus"))
-	case "AWS::ElasticLoadBalancing::LoadBalancer":
+	case "aws::elasticloadbalancing::loadbalancer":
 		return GetHealthFromStatusName(get(obj, "State", "Code"))
-	case "AWS::AutoScaling::AutoScalingGroup":
+	case "aws::autoscaling::autoscalinggroup":
 		return GetHealthFromStatusName(get(obj, "Status"))
-	case "AWS::Lambda::Function":
+	case "aws::lambda::function":
 		return GetHealthFromStatusName(get(obj, "State"), get(obj, "StateReasonCode"))
-	case "AWS::DynamoDB::Table":
+	case "aws::dynamodb::table":
 		return GetHealthFromStatusName(get(obj, "TableStatus"))
-	case "AWS::ElastiCache::CacheCluster":
+	case "aws::elasticache::cachecluster":
 		return GetHealthFromStatusName(get(obj, "CacheClusterStatus"))
 	}
 
