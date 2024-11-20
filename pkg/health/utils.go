@@ -44,6 +44,25 @@ type HealthStatus struct {
 	order int `json:"-" yaml:"-"`
 }
 
+func (hs HealthStatus) String() string {
+	return fmt.Sprintf("%s (%s): %s", hs.Status, hs.Health, hs.Message)
+}
+
+func (hs HealthStatus) Merge(others ...*HealthStatus) HealthStatus {
+	for _, other := range others {
+		if other == nil {
+			continue
+		}
+		hs = HealthStatus{
+			Ready:   hs.Ready && other.Ready,
+			Health:  hs.Health.Worst(other.Health),
+			Status:  HealthStatusCode(lo.CoalesceOrEmpty(string(hs.Status), string(other.Status))),
+			Message: strings.Join(lo.Compact([]string{hs.Message, other.Message}), ", "),
+		}
+	}
+	return hs
+}
+
 func (hs *HealthStatus) AppendMessage(msg string, args ...interface{}) {
 	if msg == "" {
 		return

@@ -1,0 +1,168 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  uid: c36a1534-25dd-4502-84ef-614771d2eec3
+  name: acc-history-preprod-f5c7fdbf-qs42k
+  labels:
+    app: acc-history-preprod
+    pod-template-hash: f5c7fdbf
+  namespace: sandbox
+  generateName: acc-history-preprod-f5c7fdbf-
+  ownerReferences:
+    - uid: 204a2f0a-013f-4f90-8daa-3dfc6cfb94c2
+      kind: ReplicaSet
+      name: acc-history-preprod-f5c7fdbf
+      apiVersion: apps/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-11-13T07:48:25Z
+spec:
+  volumes:
+    - name: files
+      secret:
+        optional: true
+        secretName: acc-history-preprod-files
+        defaultMode: 420
+    - name: cm-files
+      configMap:
+        name: acc-history-preprod-cm-files
+        optional: true
+        defaultMode: 420
+    - name: kube-api-access-m69vn
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3607
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+          - downwardAPI:
+              items:
+                - path: namespace
+                  fieldRef:
+                    fieldPath: metadata.namespace
+                    apiVersion: v1
+        defaultMode: 420
+  nodeName: gke-sandbox-private-pool-containerd-s-c8d2b7ad-fs6l
+  priority: 0
+  dnsPolicy: ClusterFirst
+  containers:
+    - env:
+        - name: database.username
+          value: acc-history-preprod
+        - name: database.prefix
+      name: acc-history-preprod
+      image: europe-west2-docker.pkg.dev/acme-group-sdlc-infra/docker/acc-history-aggregator:f0fe7c26
+      ports:
+        - name: http
+          protocol: TCP
+          containerPort: 8080
+        - name: monitoring
+          protocol: TCP
+          containerPort: 9090
+      envFrom:
+        - secretRef:
+            name: defaults
+            optional: true
+        - configMapRef:
+            name: defaults
+            optional: true
+        - secretRef:
+            name: acc-history-preprod
+            optional: true
+        - secretRef:
+            name: acc-history-preprod-extra
+            optional: true
+        - secretRef:
+            name: acc-history-preprod-sql
+            optional: true
+        - configMapRef:
+            name: acc-history-preprod
+            optional: true
+      resources:
+        limits:
+          cpu: 200m
+          memory: 512Mi
+        requests:
+          cpu: 10m
+          memory: 256Mi
+      volumeMounts:
+        - name: files
+          mountPath: /var/secret/files
+        - name: cm-files
+          mountPath: /var/secret/cm-files
+        - name: kube-api-access-m69vn
+          readOnly: true
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      livenessProbe:
+        exec:
+          command:
+            - /bin/true
+        periodSeconds: 10
+        timeoutSeconds: 1
+        failureThreshold: 3
+        successThreshold: 1
+      readinessProbe:
+        exec:
+          command:
+            - /bin/true
+        periodSeconds: 10
+        timeoutSeconds: 1
+        failureThreshold: 3
+        successThreshold: 1
+      imagePullPolicy: IfNotPresent
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+  tolerations:
+    - key: node.kubernetes.io/not-ready
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+    - key: node.kubernetes.io/unreachable
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  serviceAccount: acc-history-preprod
+  securityContext: {}
+  preemptionPolicy: PreemptLowerPriority
+  enableServiceLinks: true
+  serviceAccountName: acc-history-preprod
+  terminationGracePeriodSeconds: 30
+status:
+  phase: Running
+  podIP: 10.72.2.72
+  hostIP: 10.64.0.17
+  podIPs:
+    - ip: 10.72.2.72
+  hostIPs:
+    - ip: 10.64.0.17
+  qosClass: Burstable
+  startTime: 2024-11-13T07:48:25Z
+  conditions:
+    - type: ContainersReady
+      status: "True"
+    - type: Initialized
+      status: "True"
+    - type: PodReadyToStartContainers
+      status: "True"
+    - type: PodScheduled
+      status: "True"
+    - type: Ready
+      status: "True"
+  containerStatuses:
+    - name: acc-history-preprod
+      image: europe-west2-docker.pkg.dev/acme-group-sdlc-infra/docker/acc-history-aggregator:f0fe7c26
+      ready: true
+      state:
+        running:
+          startedAt: 2024-11-13T07:49:20Z
+      imageID: europe-west2-docker.pkg.dev/acme-group-sdlc-infra/docker/acc-history-aggregator@sha256:65f2d47fa6df644cfbd0336a49e5d3d76eaffb0aa9f3e5037bf6c2f3f4e3bc62
+      started: true
+      lastState: {}
+      containerID: containerd://e59a6dfc0b03b062236f23ad622b1baf8e405f30cabf841cb8c15846ed52368a
+      restartCount: 0

@@ -31,9 +31,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s: %s\n", _health.Status, _health.Message)
+	fmt.Printf("%s\n", *_health)
 
-	if health.IsWorse(health.HealthStatusHealthy, _health.Status) {
+	if _health.Health.IsWorseThan(health.HealthWarning) {
 		os.Exit(1)
 	}
 }

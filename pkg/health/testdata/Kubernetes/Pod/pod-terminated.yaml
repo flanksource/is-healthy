@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  uid: b18e39d3-1301-4ac9-afb9-da3295261aa0
+  name: config-test-q9kfv
+  labels: {}
+  namespace: flux-system
+  annotations:
+    expected-status: Terminating
+    expected-health: unknown
+  finalizers:
+    - batch.kubernetes.io/job-tracking
+  generateName: config-test-
+  ownerReferences:
+    - uid: c9f2c95e-3564-4631-959c-921ac410c030
+      kind: Job
+      name: config-test
+      apiVersion: batch/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-11-14T12:40:17Z
+spec:
+  volumes:
+    - name: kube-api-access-7hdzn
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3607
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+          - downwardAPI:
+              items:
+                - path: namespace
+                  fieldRef:
+                    fieldPath: metadata.namespace
+                    apiVersion: v1
+        defaultMode: 420
+  nodeName: gke-hub-cluster-private-pool-containe-bf9b9895-9gpx
+  priority: 0
+  dnsPolicy: ClusterFirst
+  containers:
+    - name: kubeconfig-updater
+      image: flanksource/base-image:latest
+      command:
+        - /bin/bash
+        - -c
+        - >
+          while read -r NAME NAMESPACE; do
+              CLUSTER=$(kubectl get containercluster $NAME -n $NAMESPACE -o yaml)
+              LOCATION=$(echo "$CLUSTER" | yq '.spec.location')
+              PROJECT=$(echo "$CLUSTER" | yq '.metadata.annotations."cnrm.cloud.google.com/project-id"')
+              export KUBECONFIG="$NAME-$LOCATION-$PROJECT"
+              export TOKEN=$(gcloud auth print-access-token)
+              gcloud container clusters get-credentials $NAME --location $LOCATION --project $PROJECT
+              yq -i '.users[].user.token = strenv(TOKEN) | del(.users[].user.exec)' $KUBECONFIG
+              kubectl create secret generic $NAME-kubeconfig -n $NAMESPACE --from-file=kubeconfig=$KUBECONFIG --dry-run=client -o yaml | kubectl apply -f -
+          done < <(kubectl get containercluster -A -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace | grep -v NAME)
+      resources: {}
+      volumeMounts:
+        - name: kube-api-access-7hdzn
+          readOnly: true
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      imagePullPolicy: Always
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+  tolerations:
+    - key: node.kubernetes.io/not-ready
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+    - key: node.kubernetes.io/unreachable
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+  restartPolicy: OnFailure
+  schedulerName: default-scheduler
+  serviceAccount: kustomize-controller
+  securityContext: {}
+  preemptionPolicy: PreemptLowerPriority
+  enableServiceLinks: true
+  serviceAccountName: kustomize-controller
+  terminationGracePeriodSeconds: 30
+status:
+  phase: Running
+  podIP: 10.1.115.11
+  hostIP: 10.1.238.8
+  podIPs:
+    - ip: 10.1.115.11
+  hostIPs:
+    - ip: 10.1.238.8
+  qosClass: BestEffort
+  startTime: 2024-11-14T12:40:17Z
+  conditions:
+    - type: ContainersReady
+      reason: ContainersNotReady
+      status: "False"
+      message: "containers with unready status: [kubeconfig-updater]"
+    - type: Initialized
+      status: "True"
+    - type: PodReadyToStartContainers
+      status: "True"
+    - type: PodScheduled
+      status: "True"
+    - type: Ready
+      reason: ContainersNotReady
+      status: "False"
+      message: "containers with unready status: [kubeconfig-updater]"
+  containerStatuses:
+    - name: kubeconfig-updater
+      image: docker.io/flanksource/base-image:latest
+      ready: false
+      state:
+        terminated:
+          reason: Error
+          exitCode: 1
+          startedAt: 2024-11-14T12:40:22Z
+          finishedAt: 2024-11-14T12:40:24Z
+          containerID: containerd://3743fce5828cad78b261d52d2b5c27bfb4436a2ce55f454962fc5669d1c0dff1
+      imageID: docker.io/flanksource/base-image@sha256:8d3fe5816e10e0eb0e74ef30dbbc66d54402dcbdab80b72c7461811a05825dbc
+      started: false
+      lastState:
+        terminated:
+          reason: Error
+          exitCode: 1
+          startedAt: 2024-11-14T12:40:18Z
+          finishedAt: 2024-11-14T12:40:21Z
+          containerID: containerd://b4c3b97a5495e10d80202c1879b5aee7d6720c13dde573163f832a3231d35886
+      containerID: containerd://3743fce5828cad78b261d52d2b5c27bfb4436a2ce55f454962fc5669d1c0dff1
+      restartCount: 1

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/duration"
@@ -25,6 +26,47 @@ const (
 func IsValidHealth(s string) bool {
 	return s == string(HealthHealthy) || s == string(HealthUnhealthy) || s == string(HealthUnknown) ||
 		s == string(HealthWarning)
+}
+
+var healthOrder = []Health{
+	HealthUnknown,
+	HealthHealthy,
+	HealthWarning,
+	HealthUnhealthy,
+}
+
+func (h Health) Worst(others ...Health) Health {
+	all := append(others, h)
+	slices.SortFunc(all, CompareHealth)
+	return all[len(all)-1]
+}
+
+func (h Health) IsWorseThan(other Health) bool {
+	return h.CompareTo(other) >= 0
+}
+
+func CompareHealth(a, b Health) int {
+	return a.CompareTo(b)
+}
+
+func (h Health) CompareTo(other Health) int {
+	currentIndex := 0
+	newIndex := 0
+	for i, code := range healthOrder {
+		if h == code {
+			currentIndex = i
+		}
+		if other == code {
+			newIndex = i
+		}
+	}
+	if newIndex == currentIndex {
+		return 0
+	}
+	if currentIndex > newIndex {
+		return 1
+	}
+	return -1
 }
 
 // Represents resource health status
@@ -64,51 +106,25 @@ const (
 	HealthStatusScaling          HealthStatusCode = "Scaling"
 	HealthStatusRestart          HealthStatusCode = "Restarting"
 	HealthStatusStarting         HealthStatusCode = "Starting"
+	HealthStatusFailed           HealthStatusCode = "Failed"
 	HealthStatusUnschedulable    HealthStatusCode = "Unschedulable"
 	HealthStatusUpgradeFailed    HealthStatusCode = "UpgradeFailed"
-
-	HealthStatusScalingUp    HealthStatusCode = "Scaling Up"
-	HealthStatusScaledToZero HealthStatusCode = "Scaled to Zero"
-	HealthStatusScalingDown  HealthStatusCode = "Scaling Down"
-	HealthStatusRunning      HealthStatusCode = "Running"
-
-	HealthStatusRollingOut HealthStatusCode = "Rolling Out"
-
-	HealthStatusUnhealthy HealthStatusCode = "Unhealthy"
-	HealthStatusUpdating  HealthStatusCode = "Updating"
-	HealthStatusWarning   HealthStatusCode = "Warning"
-	HealthStatusStopped   HealthStatusCode = "Stopped"
-	HealthStatusStopping  HealthStatusCode = "Stopping"
+	HealthStatusOOMKilled        HealthStatusCode = "OOMKilled"
+	HealthStatusScalingUp        HealthStatusCode = "Scaling Up"
+	HealthStatusScaledToZero     HealthStatusCode = "Scaled to Zero"
+	HealthStatusScalingDown      HealthStatusCode = "Scaling Down"
+	HealthStatusRunning          HealthStatusCode = "Running"
+	HealthStatusRollingOut       HealthStatusCode = "Rolling Out"
+	HealthStatusUnhealthy        HealthStatusCode = "Unhealthy"
+	HealthStatusUpdating         HealthStatusCode = "Updating"
+	HealthStatusWarning          HealthStatusCode = "Warning"
+	HealthStatusStopped          HealthStatusCode = "Stopped"
+	HealthStatusStopping         HealthStatusCode = "Stopping"
 )
 
 // Implements custom health assessment that overrides built-in assessment
 type HealthOverride interface {
 	GetResourceHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
-}
-
-// healthOrder is a list of health codes in order of most healthy to least healthy
-var healthOrder = []HealthStatusCode{
-	HealthStatusHealthy,
-	HealthStatusSuspended,
-	HealthStatusProgressing,
-	HealthStatusMissing,
-	HealthStatusDegraded,
-	HealthStatusUnknown,
-}
-
-// IsWorse returns whether or not the new health status code is a worse condition than the current
-func IsWorse(current, new HealthStatusCode) bool {
-	currentIndex := 0
-	newIndex := 0
-	for i, code := range healthOrder {
-		if current == code {
-			currentIndex = i
-		}
-		if new == code {
-			newIndex = i
-		}
-	}
-	return newIndex > currentIndex
 }
 
 func get(obj map[string]any, keys ...string) string {

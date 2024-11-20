@@ -32,13 +32,13 @@ var (
 		"@now-1m":  _now.Add(-time.Minute * 1).Format(RFC3339Micro),
 		"@now-10m": _now.Add(-time.Minute * 5).Format(RFC3339Micro),
 		"@now-15m": _now.Add(-time.Minute * 15).Format(RFC3339Micro),
-
 		"@now-5m":  _now.Add(-time.Minute * 5).Format(RFC3339Micro),
 		"@now-1h":  _now.Add(-time.Hour).Format(RFC3339Micro),
 		"@now-2h":  _now.Add(-time.Hour * 2).Format(RFC3339Micro),
 		"@now-4h":  _now.Add(-time.Hour * 4).Format(RFC3339Micro),
 		"@now-8h":  _now.Add(-time.Hour * 8).Format(RFC3339Micro),
 		"@now-1d":  _now.Add(-time.Hour * 24).Format(RFC3339Micro),
+		"@now-5d":  _now.Add(-time.Hour * 24).Format(RFC3339Micro),
 		"@now+10m": _now.Add(time.Minute * 10).Format(RFC3339Micro),
 		"@now+5m":  _now.Add(time.Minute * 5).Format(RFC3339Micro),
 		"@now+15m": _now.Add(time.Minute * 15).Format(RFC3339Micro),
@@ -77,6 +77,13 @@ func testFixture(t *testing.T, yamlPath string) {
 	})
 }
 
+func TestHealthCompare(t *testing.T) {
+	assert.True(t, health.HealthUnhealthy.IsWorseThan(health.HealthWarning))
+	assert.Equal(t, health.HealthHealthy, health.HealthHealthy.Worst(health.HealthUnknown))
+	assert.Equal(t, health.HealthUnhealthy, health.HealthHealthy.Worst(health.HealthUnhealthy))
+
+}
+
 func assertAppHealthMsg(
 	t *testing.T,
 	yamlPath string,
@@ -92,9 +99,6 @@ func assertAppHealthMsg(
 	}
 
 	m := make(map[string]string)
-	for k, v := range defaultOverrides {
-		m[k] = v
-	}
 	for i := 0; i < len(overrides); i += 2 {
 		if v, ok := defaultOverrides[overrides[i+1]]; ok {
 			m[overrides[i]] = v
@@ -150,11 +154,18 @@ func assertAppHealthWithOverwrite(
 func getHealthStatus(
 	yamlPath string,
 	t *testing.T,
-	overwrites map[string]string,
+	overrides map[string]string,
 ) (*health.HealthStatus, unstructured.Unstructured) {
 	if !strings.HasPrefix(yamlPath, "./testdata/") && !strings.HasPrefix(yamlPath, "testdata/") &&
 		!strings.HasPrefix(yamlPath, "../resource_customizations") {
 		yamlPath = "./testdata/" + yamlPath
+	}
+	m := make(map[string]string)
+	for k, v := range defaultOverrides {
+		m[k] = v
+	}
+	for k, v := range overrides {
+		m[k] = v
 	}
 	var yamlBytes []byte
 	var err error
@@ -167,19 +178,19 @@ func getHealthStatus(
 	require.NoError(t, err)
 
 	yamlString := string(yamlBytes)
-	keys := lo.Keys(overwrites)
+	keys := lo.Keys(m)
 	sort.Slice(keys, func(i, j int) bool {
 		return len(keys[i]) > len(keys[j])
 	})
 
 	for _, k := range keys {
-		v := overwrites[k]
+		v := m[k]
 		yamlString = strings.ReplaceAll(yamlString, k, v)
 	}
 
-	// 2nd iteration
+	// 2nd iteration, sometimes @now is replaced with @now-5m
 	for _, k := range keys {
-		v := overwrites[k]
+		v := m[k]
 		yamlString = strings.ReplaceAll(yamlString, k, v)
 	}
 
@@ -637,8 +648,6 @@ func TestPod(t *testing.T) {
 		health.HealthUnhealthy,
 		false,
 	)
-	assertAppHealthMsg(t, "./testdata/pod-imagepullbackoff.yaml", "ImagePullBackOff", health.HealthUnhealthy, false)
-	assertAppHealthMsg(t, "./testdata/pod-error.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
 	assertAppHealthMsg(
 		t,
 		"./testdata/pod-running-restart-always.yaml",
@@ -660,8 +669,6 @@ func TestPod(t *testing.T) {
 		health.HealthUnhealthy,
 		false,
 	)
-	assertAppHealthMsg(t, "./testdata/pod-failed.yaml", health.HealthStatusError, health.HealthUnhealthy, true)
-	assertAppHealthMsg(t, "./testdata/pod-succeeded.yaml", health.HealthStatusCompleted, health.HealthHealthy, true)
 	assertAppHealthMsg(
 		t,
 		"./testdata/pod-init-container-fail.yaml",

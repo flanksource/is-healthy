@@ -4,6 +4,9 @@ metadata:
   creationTimestamp: 2018-12-02T09:17:56Z
   name: my-pod
   namespace: argocd
+  annotations:
+    expected-status: Failed
+    expected-health: unhealthy
   resourceVersion: "151243"
   selfLink: /api/v1/namespaces/argocd/pods/my-pod
   uid: 27c0fdf5-f613-11e8-a057-fe5f49266390

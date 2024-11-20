@@ -6,6 +6,9 @@ metadata:
   namespace: argocd
   resourceVersion: "151066"
   selfLink: /api/v1/namespaces/argocd/pods/my-pod
+  annotations:
+    expected-status: Completed
+    expected-health: healthy
   uid: c86e909c-f612-11e8-a057-fe5f49266390
 spec:
   containers:

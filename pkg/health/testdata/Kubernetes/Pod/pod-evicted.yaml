@@ -5,6 +5,8 @@ metadata:
   namespace: default
   annotations:
     kubernetes.io/eviction: 'true'
+    expected-status: Evicted
+    expected-health: warning
 spec:
   containers:
     - name: busybox

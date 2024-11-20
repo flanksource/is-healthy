@@ -7,6 +7,9 @@ metadata:
     app: guestbook-ui
     pod-template-hash: "2279996225"
   name: guestbook-ui-errimagepullbackoff-66cfffb669-45w2j
+  annotations:
+    expected-status: ImagePullBackOff
+    expected-health: unhealthy
   namespace: default
   ownerReferences:
     - apiVersion: extensions/v1beta1
