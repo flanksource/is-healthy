@@ -185,7 +185,7 @@ type Filter struct {
 	Match map[string]string `yaml:"match,omitempty" json:"match,omitempty"`
 }
 type StatusMap struct {
-	Filters             []Filter             `yaml:"filters"  json:"filters"`
+	Filters             []Filter             `yaml:"filters"             json:"filters"`
 	Conditions          map[string]Condition `yaml:"conditions"          json:"conditions"`
 	UnhealthyIsNotReady bool                 `yaml:"unhealthyIsNotReady" json:"unhealthyIsNotReady"`
 }

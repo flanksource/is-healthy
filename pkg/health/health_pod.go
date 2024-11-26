@@ -103,10 +103,8 @@ func getContainerStatus(containerStatus corev1.ContainerStatus) (waiting *Health
 			} else if state.Reason == string(HealthStatusCompleted) {
 				// completed with restart
 				terminated.Status = "RestartLoop"
-
 			} else {
 				terminated.Status = HealthStatusCode(state.Reason)
-
 			}
 		}
 	}
@@ -180,7 +178,6 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	case corev1.PodRunning, corev1.PodPending:
 		hr = hr.Merge(terminated, waiting)
 		if terminated != nil && terminated.Health.IsWorseThan(HealthWarning) {
-
 			if hr.Status == HealthStatusCrashLoopBackoff {
 				hr.Status = terminated.Status
 				hr.Health = hr.Health.Worst(terminated.Health)
