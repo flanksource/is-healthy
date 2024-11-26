@@ -52,6 +52,13 @@ func isErrorStatus(s string) bool {
 		strings.HasSuffix(s, "BackOff")
 }
 
+func pluralize(s string, i int) string {
+	if i == 1 {
+		return s
+	}
+	return s + "s"
+}
+
 func getContainerStatus(containerStatus corev1.ContainerStatus) (waiting *HealthStatus, terminated *HealthStatus) {
 	if state := containerStatus.State.Waiting; state != nil {
 		waiting = &HealthStatus{
@@ -67,16 +74,39 @@ func getContainerStatus(containerStatus corev1.ContainerStatus) (waiting *Health
 
 	if state := containerStatus.LastTerminationState.Terminated; state != nil {
 		age := time.Since(state.FinishedAt.Time)
-		// ignore old terminate statuses
-		if age < time.Hour*24 {
+		// ignore old terminated statuses
+
+		if containerStatus.RestartCount == 0 && state.ExitCode == 0 {
 			terminated = &HealthStatus{
-				Status:  HealthStatusCode(state.Reason),
+				Status: HealthStatusCompleted,
+				Health: HealthHealthy,
+			}
+		} else if age < time.Hour*24 {
+			terminated = &HealthStatus{
 				Health:  lo.Ternary(age < time.Hour, HealthUnhealthy, HealthWarning),
 				Message: state.Message,
 			}
-			if state.Reason == string(HealthStatusCompleted) && state.ExitCode == 0 {
-				// completed successfully
-				terminated.Health = HealthHealthy
+
+			if containerStatus.RestartCount > 0 {
+				terminated.AppendMessage("restarted %d %s", containerStatus.RestartCount, pluralize("time", int(containerStatus.RestartCount)))
+			}
+			if state.Reason == string(HealthStatusError) {
+				if age < 15*time.Minute {
+					terminated.Status = HealthStatusCrashLoopBackoff
+				} else if age < time.Hour {
+					terminated.Status = "Restarted"
+				}
+			} else if state.Reason == string(HealthStatusCompleted) && state.ExitCode != 0 {
+				// completed with error
+				terminated.Status = HealthStatusCode(state.Reason)
+				terminated.AppendMessage("exit=%d", state.ExitCode)
+			} else if state.Reason == string(HealthStatusCompleted) {
+				// completed with restart
+				terminated.Status = "RestartLoop"
+
+			} else {
+				terminated.Status = HealthStatusCode(state.Reason)
+
 			}
 		}
 	}
@@ -149,10 +179,12 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 
 	case corev1.PodRunning, corev1.PodPending:
 		hr = hr.Merge(terminated, waiting)
-		if terminated != nil && terminated.Health.IsWorseThan(HealthWarning) &&
-			hr.Status == HealthStatusCrashLoopBackoff {
-			hr.Status = terminated.Status
-			hr.Health = hr.Health.Worst(terminated.Health)
+		if terminated != nil && terminated.Health.IsWorseThan(HealthWarning) {
+
+			if hr.Status == HealthStatusCrashLoopBackoff {
+				hr.Status = terminated.Status
+				hr.Health = hr.Health.Worst(terminated.Health)
+			}
 		}
 		hr.Status, _ = lo.Coalesce(hr.Status, HealthStatusRunning)
 		hr.Health = hr.Health.Worst(lo.Ternary(isReady, HealthHealthy, HealthUnhealthy))

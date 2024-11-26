@@ -45,7 +45,22 @@ type HealthStatus struct {
 }
 
 func (hs HealthStatus) String() string {
-	return fmt.Sprintf("%s (%s): %s", hs.Status, hs.Health, hs.Message)
+	m := string(hs.Status)
+
+	if hs.Health != HealthUnknown {
+		if m != "" {
+			m += " "
+		}
+		m += fmt.Sprintf("(%s)", hs.Health)
+	}
+
+	if len(hs.Message) > 0 {
+		if m != "" {
+			m += ": "
+		}
+		m += hs.Message
+	}
+	return m
 }
 
 func (hs HealthStatus) Merge(others ...*HealthStatus) HealthStatus {

@@ -106,6 +106,12 @@ HelmRelease: &flux
           order: 1
 
 HelmRepository: &flux
+  filters:
+    # OCI HelmRepositories do not have status info
+    - match:
+        spec.type: oci
+      ready: true
+      health: unknown
   conditions:
     Reconciling:
       status: Reconciling

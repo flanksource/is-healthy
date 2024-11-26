@@ -1,0 +1,44 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  annotations:
+    expected-ready: true
+    expected-status: Succeeded
+  creationTimestamp: "2024-07-12T10:41:33Z"
+  finalizers:
+  - finalizers.fluxcd.io
+  generation: 1
+  labels:
+    kustomize.toolkit.fluxcd.io/name: aws-demo-infra
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  name: argo
+  namespace: argo
+  resourceVersion: "371712638"
+  uid: 1925e5d0-37b1-412f-a33c-9411c51d4236
+spec:
+  interval: 1m
+  provider: generic
+  url: https://argoproj.github.io/argo-helm
+status:
+  artifact:
+    digest: sha256:52fc912eed981927098a128e32ec31db642af7a8cc21341b120d7284d62eea47
+    lastUpdateTime: "2024-11-22T15:21:35Z"
+    path: helmrepository/argo/argo/index-3bda2a43c97097788abae208248537a2a08dc73f175821dfb4415509db222c43.yaml
+    revision: sha256:3bda2a43c97097788abae208248537a2a08dc73f175821dfb4415509db222c43
+    size: 1639422
+    url: http://source-controller.flux-system.svc.cluster.local./helmrepository/argo/argo/index-3bda2a43c97097788abae208248537a2a08dc73f175821dfb4415509db222c43.yaml
+  conditions:
+  - lastTransitionTime: "2024-11-22T15:21:35Z"
+    message: 'stored artifact: revision ''sha256:3bda2a43c97097788abae208248537a2a08dc73f175821dfb4415509db222c43'''
+    observedGeneration: 1
+    reason: Succeeded
+    status: "True"
+    type: Ready
+  - lastTransitionTime: "2024-11-22T15:21:35Z"
+    message: 'stored artifact: revision ''sha256:3bda2a43c97097788abae208248537a2a08dc73f175821dfb4415509db222c43'''
+    observedGeneration: 1
+    reason: Succeeded
+    status: "True"
+    type: ArtifactInStorage
+  observedGeneration: 1
+  url: http://source-controller.flux-system.svc.cluster.local./helmrepository/argo/argo/index.yaml

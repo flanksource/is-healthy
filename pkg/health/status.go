@@ -179,7 +179,13 @@ func (mapped *Condition) Apply(health *HealthStatus, c *metav1.Condition) {
 	}
 }
 
+type Filter struct {
+	OnCondition `yaml:",inline" json:",inline,omitempty"`
+
+	Match map[string]string `yaml:"match,omitempty" json:"match,omitempty"`
+}
 type StatusMap struct {
+	Filters             []Filter             `yaml:"filters"  json:"filters"`
 	Conditions          map[string]Condition `yaml:"conditions"          json:"conditions"`
 	UnhealthyIsNotReady bool                 `yaml:"unhealthyIsNotReady" json:"unhealthyIsNotReady"`
 }
@@ -199,15 +205,34 @@ func GetDefaultHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 		kind = "cnrm.cloud.google.com"
 	}
 	if statusMap, ok := statusByKind[obj.GetAPIVersion()+"/"+obj.GetKind()]; ok {
-		return GetHealthFromStatus(GetGenericStatus(obj), statusMap)
+		return GetHealth(obj, statusMap)
 	} else if statusMap, ok := statusByKind[kind]; ok {
-		return GetHealthFromStatus(GetGenericStatus(obj), statusMap)
+		return GetHealth(obj, statusMap)
 	} else {
-		return GetHealthFromStatus(GetGenericStatus(obj), statusByKind["default"])
+		return GetHealth(obj, statusByKind["default"])
 	}
 }
 
 func GetHealth(obj *unstructured.Unstructured, statusMap StatusMap) (*HealthStatus, error) {
+	if len(statusMap.Filters) > 0 {
+		for _, f := range statusMap.Filters {
+			allGot := true
+			for k, v := range f.Match {
+				got, _, _ := unstructured.NestedString(obj.Object, strings.Split(k, ".")...)
+				if got != v {
+					allGot = false
+					continue
+				}
+			}
+			if allGot {
+				health := &HealthStatus{
+					Health: HealthUnknown,
+				}
+				f.OnCondition.Apply(health, &metav1.Condition{})
+				return health, nil
+			}
+		}
+	}
 	return GetHealthFromStatus(GetGenericStatus(obj), statusMap)
 }
 
