@@ -1,0 +1,180 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  uid: 26361045-4fc3-4c59-8f7c-8f06a79b53d2
+  name: canary-checker-6985458cf7-45l8t
+  labels:
+    control-plane: canary-checker
+    pod-template-hash: 6985458cf7
+    app.kubernetes.io/name: canary-checker
+    app.kubernetes.io/instance: mission-control
+  annotations:
+    expected-status: Running
+    expected-health: warning
+    expected-message: restarted 2 times
+  namespace: mission-control
+  generateName: canary-checker-6985458cf7-
+  ownerReferences:
+    - uid: 0ce8f26a-5092-411e-a8b9-7a60a24ed6a5
+      kind: ReplicaSet
+      name: canary-checker-6985458cf7
+      apiVersion: apps/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: "@now-4h"
+spec:
+  volumes:
+    - name: podinfo
+      downwardAPI:
+        items:
+          - path: labels
+            fieldRef:
+              fieldPath: metadata.labels
+              apiVersion: v1
+        defaultMode: 420
+    - name: config
+      configMap:
+        name: canary-checker
+        defaultMode: 420
+    - name: kube-api-access-dwgfj
+      projected:
+        sources:
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3607
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+                - key: ca.crt
+                  path: ca.crt
+          - downwardAPI:
+              items:
+                - path: namespace
+                  fieldRef:
+                    fieldPath: metadata.namespace
+                    apiVersion: v1
+        defaultMode: 420
+  nodeName: ip-10-0-6-119.eu-west-1.compute.internal
+  priority: 0
+  dnsPolicy: ClusterFirst
+  containers:
+    - env:
+        - name: PING_MODE
+          value: unprivileged
+        - name: DEBUG
+          value: "true"
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              key: DB_URL
+              name: incident-commander-postgres
+      args:
+        - operator
+        - --httpPort
+        - "8080"
+        - --disable-postgrest=true
+        - --db-migrations=false
+        - --json-logs
+        - --prometheus=http://prometheus.monitoring.svc:9090
+        - --otel-collector-url=grafana-alloy.monitoring:4317
+        - --otel-service-name=canary-checker
+      name: canary-checker
+      image: public.ecr.aws/flanksource/canary-checker-full:v1.1.0-beta.82
+      command:
+        - /app/canary-checker
+      resources:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 200m
+          memory: 200Mi
+      volumeMounts:
+        - name: podinfo
+          mountPath: /etc/podinfo
+        - name: config
+          subPath: canary-checker.properties
+          mountPath: /app/canary-checker.properties
+        - name: kube-api-access-dwgfj
+          readOnly: true
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+          scheme: HTTP
+        periodSeconds: 10
+        timeoutSeconds: 1
+        failureThreshold: 3
+        successThreshold: 1
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+          scheme: HTTP
+        periodSeconds: 10
+        timeoutSeconds: 1
+        failureThreshold: 3
+        successThreshold: 1
+      imagePullPolicy: IfNotPresent
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+  tolerations:
+    - key: node.kubernetes.io/not-ready
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+    - key: node.kubernetes.io/unreachable
+      effect: NoExecute
+      operator: Exists
+      tolerationSeconds: 300
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  serviceAccount: canary-checker-sa
+  securityContext:
+    fsGroup: 1000
+    sysctls:
+      - name: net.ipv4.ping_group_range
+        value: 0 2147483647
+  preemptionPolicy: PreemptLowerPriority
+  enableServiceLinks: true
+  serviceAccountName: canary-checker-sa
+  terminationGracePeriodSeconds: 30
+status:
+  phase: Running
+  podIP: 10.0.6.105
+  hostIP: 10.0.6.119
+  podIPs:
+    - ip: 10.0.6.105
+  hostIPs:
+    - ip: 10.0.6.119
+  qosClass: Burstable
+  startTime: 2024-11-25T11:38:52Z
+  conditions:
+    - type: ContainersReady
+      status: "True"
+    - type: Initialized
+      status: "True"
+    - type: PodReadyToStartContainers
+      status: "True"
+    - type: PodScheduled
+      status: "True"
+    - type: Ready
+      status: "True"
+  containerStatuses:
+    - name: canary-checker
+      image: public.ecr.aws/flanksource/canary-checker-full:v1.1.0-beta.82
+      ready: true
+      state:
+        running:
+          startedAt: "@now-4h"
+      imageID: public.ecr.aws/flanksource/canary-checker-full@sha256:4ab67ba4b7645095b0f82decb31dc55c9bcbec124132df8e64b076893cc917a3
+      started: true
+      lastState:
+        terminated:
+          reason: Error
+          exitCode: 2
+          startedAt: 2024-11-25T11:39:03Z
+          finishedAt: "@now-4h"
+          containerID: containerd://a7dc7e988a145518b89aac1a7a8147a6504bb7c8dd2ba1ccb325839fa5a7ffcb
+      containerID: containerd://ef58d4532a35546dd5d47de2846b5ef08efb0bcc834c8d448ec45fbb321d9073
+      restartCount: 2

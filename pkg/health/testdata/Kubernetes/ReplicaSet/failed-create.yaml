@@ -10,6 +10,8 @@ metadata:
   annotations:
     expected-status:  Failed Create
     expected-health: unhealthy
+    expected-message:  'pods "karina-c7585bd87-" is forbidden: error looking up service
+        account platform-system/karina: serviceaccount "karina" not found'
     deployment.kubernetes.io/revision: "1"
     deployment.kubernetes.io/max-replicas: "2"
     deployment.kubernetes.io/desired-replicas: "1"

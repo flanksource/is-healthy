@@ -1,0 +1,21 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  annotations:
+    expected-ready: "true"
+  creationTimestamp: "2024-11-25T10:53:37Z"
+  generation: 1
+  labels:
+    canaries.flanksource.com/canary-id: ""
+    canaries.flanksource.com/check-id: ""
+    canaries.flanksource.com/is-static: "true"
+  name: bitnami
+  namespace: control-plane-tests
+  resourceVersion: "373756700"
+  uid: 9197ff09-cd5c-42b5-a6d6-321132aeaf43
+spec:
+  interval: 1h
+  provider: generic
+  type: oci
+  url: oci://registry-1.docker.io/bitnamicharts
+status: {}

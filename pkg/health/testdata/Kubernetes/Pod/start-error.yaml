@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    expected-status: Failed
+    CapacityProvisioned: 0.25vCPU 0.5GB
+    Logging: LoggingEnabled
+    fargate.amazonaws.com/pod-sg: sg-05bdc775ee984dbe3,sg-00aaf57d13764c9ab
+    oneagent.dynatrace.com/inject: "false"
+  creationTimestamp: "2024-11-22T11:54:17Z"
+  generateName: run-migrations-
+  labels:
+    batch.kubernetes.io/controller-uid: 618cf7f3-e982-4087-b385-f6f224709d75
+    batch.kubernetes.io/job-name: run-migrations
+    controller-uid: 618cf7f3-e982-4087-b385-f6f224709d75
+    dev: "true"
+    eks.amazonaws.com/fargate-profile: default
+    env: dev
+    job-name: run-migrations
+  name: run-migrations-jn647
+  namespace: hf-qa-malawi
+  ownerReferences:
+  - apiVersion: batch/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Job
+    name: run-migrations
+    uid: 618cf7f3-e982-4087-b385-f6f224709d75
+  resourceVersion: "1761910116"
+  uid: e62563fa-7f61-4103-8211-1d63f247064b
+spec:
+  containers:
+  - command:
+    - bash
+    - -c
+    - |
+      set -e
+      export LIQUIBASE_COMMAND_URL="$LIQUIBASE_COMMAND_URL;trustServerCertificate=true"
+      echo $LIQUIBASE_COMMAND_URL
+      tar zxvf /scripts.tgz
+      liquibase update   --changelog-file pre.xml  --show-summary=verbose
+      liquibase update   --changelog-file liquibase.xml  --show-summary=verbose
+    env:
+    - name: LIQUIBASE_SQL_LOG_LEVEL
+      value: FINE
+    - name: LIQUIBASE_COMMAND_USERNAME
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: db
+    - name: LIQUIBASE_COMMAND_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: db
+    - name: LIQUIBASE_COMMAND_URL
+      valueFrom:
+        secretKeyRef:
+          key: jdbc
+          name: db
+    - name: AWS_STS_REGIONAL_ENDPOINTS
+      value: regional
+    - name: AWS_DEFAULT_REGION
+      value: eu-west-1
+    - name: AWS_REGION
+      value: eu-west-1
+    - name: AWS_ROLE_ARN
+      value: arn:aws:iam::842942462684:role/customer-eks-api-pod-role
+    - name: AWS_WEB_IDENTITY_TOKEN_FILE
+      value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
+    image: public.ecr.aws/liquibase/liquibase:4.30
+    imagePullPolicy: IfNotPresent
+    name: migrations
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /
+      name: migrations
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-8hmxt
+      readOnly: true
+    - mountPath: /var/run/secrets/eks.amazonaws.com/serviceaccount
+      name: aws-iam-token
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: fargate-ip-10-142-26-168.eu-west-1.compute.internal
+  preemptionPolicy: PreemptLowerPriority
+  priority: 2000001000
+  priorityClassName: system-node-critical
+  restartPolicy: Never
+  schedulerName: fargate-scheduler
+  securityContext: {}
+  serviceAccount: api
+  serviceAccountName: api
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: aws-iam-token
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          audience: sts.amazonaws.com
+          expirationSeconds: 86400
+          path: token
+  - name: migrations
+    secret:
+      defaultMode: 493
+      secretName: migration-scripts
+  - name: kube-api-access-8hmxt
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-22T11:55:22Z"
+    status: "False"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-22T11:55:07Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-22T11:55:07Z"
+    reason: PodFailed
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-22T11:55:07Z"
+    reason: PodFailed
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2024-11-22T11:55:06Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://c252c1fcf058bf99efe9a0970ae04adec6fa615f198606e4c9a65f93eb39857f
+    image: public.ecr.aws/liquibase/liquibase:4.30
+    imageID: public.ecr.aws/liquibase/liquibase@sha256:488147049b0a23ad04940c80b88385af1e0d9e67ce5dc7b3fbdb76281d620401
+    lastState: {}
+    name: migrations
+    ready: false
+    restartCount: 0
+    started: false
+    state:
+      terminated:
+        containerID: containerd://c252c1fcf058bf99efe9a0970ae04adec6fa615f198606e4c9a65f93eb39857f
+        exitCode: 128
+        finishedAt: "2024-11-22T11:55:21Z"
+        message: 'failed to create containerd task: failed to create shim task: OCI
+          runtime create failed: runc create failed: unable to start container process:
+          error during container init: error mounting "/var/lib/kubelet/pods/e62563fa-7f61-4103-8211-1d63f247064b/etc-hosts"
+          to rootfs at "/etc/hosts": create mount destination for /etc/hosts mount:
+          make parent dir of file bind-mount: mkdirat /run/containerd/io.containerd.runtime.v2.task/k8s.io/c252c1fcf058bf99efe9a0970ae04adec6fa615f198606e4c9a65f93eb39857f/rootfs/etc:
+          read-only file system: unknown'
+        reason: StartError
+        startedAt: "1970-01-01T00:00:00Z"
+  hostIP: 10.142.26.168
+  hostIPs:
+  - ip: 10.142.26.168
+  phase: Failed
+  podIP: 10.142.26.168
+  podIPs:
+  - ip: 10.142.26.168
+  qosClass: BestEffort
+  startTime: "2024-11-22T11:55:07Z"
