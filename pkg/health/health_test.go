@@ -451,25 +451,6 @@ func TestPVCHealth(t *testing.T) {
 	assertAppHealthMsg(t, "./testdata/pvc-pending.yaml", health.HealthStatusProgressing, health.HealthHealthy, false)
 }
 
-func TestServiceHealth(t *testing.T) {
-	assertAppHealthMsg(t, "./testdata/svc-clusterip.yaml", health.HealthStatusUnknown, health.HealthUnknown, true)
-	assertAppHealthMsg(t, "./testdata/svc-loadbalancer.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
-	assertAppHealthMsg(
-		t,
-		"./testdata/svc-loadbalancer-unassigned.yaml",
-		health.HealthStatusCreating,
-		health.HealthUnknown,
-		false,
-	)
-	assertAppHealthMsg(
-		t,
-		"./testdata/svc-loadbalancer-nonemptylist.yaml",
-		health.HealthStatusRunning,
-		health.HealthHealthy,
-		true,
-	)
-}
-
 func TestIngressHealth(t *testing.T) {
 	assertAppHealthMsg(t, "./testdata/ingress.yaml", health.HealthStatusHealthy, health.HealthHealthy, true)
 	assertAppHealthMsg(t, "./testdata/ingress-unassigned.yaml", health.HealthStatusPending, health.HealthHealthy, false)

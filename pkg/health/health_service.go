@@ -2,7 +2,9 @@ package health
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -30,8 +32,9 @@ func getCorev1ServiceHealth(service *corev1.Service) (*HealthStatus, error) {
 			health.Health = HealthHealthy
 			health.Ready = true
 		} else {
+			age := time.Since(service.CreationTimestamp.Time)
 			health.Status = HealthStatusCreating
-			health.Health = HealthUnknown
+			health.Health = lo.Ternary(age < time.Hour, HealthUnknown, HealthUnhealthy)
 		}
 	} else {
 		health.Ready = true
