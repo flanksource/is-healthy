@@ -101,8 +101,13 @@ func getContainerStatus(containerStatus corev1.ContainerStatus) (waiting *Health
 				terminated.Status = HealthStatusCode(state.Reason)
 				terminated.AppendMessage("exit=%d", state.ExitCode)
 			} else if state.Reason == string(HealthStatusCompleted) {
-				// completed with restart
-				terminated.Status = "RestartLoop"
+				if waiting != nil && waiting.Status == HealthStatusCrashLoopBackoff {
+					// completed with crash loop backoff
+					terminated.Status = "RestartLoopBackOff"
+				} else {
+					// completed with restart
+					terminated.Status = "RestartLoop"
+				}
 			} else {
 				terminated.Status = HealthStatusCode(state.Reason)
 			}
@@ -119,6 +124,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	isStarting := age < deadline
 	hr := HealthStatus{
 		Health: lo.Ternary(isReady, HealthHealthy, HealthUnhealthy),
+		Ready:  isReady,
 	}
 
 	if pod.ObjectMeta.DeletionTimestamp != nil && !pod.ObjectMeta.DeletionTimestamp.IsZero() {

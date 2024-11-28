@@ -10,6 +10,7 @@ metadata:
   namespace: kube-system
   annotations:
     eks.amazonaws.com/compute-type: ec2
+    expected-ready: "true"
   generateName: coredns-7448775847-
   ownerReferences:
     - uid: 3b4888e3-9330-4148-b0f4-559ceb4c6463
