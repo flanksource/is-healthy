@@ -4,7 +4,7 @@ metadata:
   creationTimestamp: "2024-11-20T14:25:03Z"
   generateName: test-unhealthy-69688db7d5-
   annotations:
-    expected-status: RestartLoop
+    expected-status: RestartLoopBackOff
     expected-health: unhealthy
   labels:
     app.kubernetes.io/name: test-unhealthy
