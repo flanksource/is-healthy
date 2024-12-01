@@ -42,7 +42,7 @@ func getBatchv1CronJobHealth(job *batchv1.CronJob) (*HealthStatus, error) {
 		return &HealthStatus{
 			Health:  HealthHealthy,
 			Status:  HealthStatusRunning,
-			Message: "Running since" + job.Status.LastScheduleTime.Format("2006-01-02 15:04:05 -0700"),
+			Message: "Running since " + job.Status.LastScheduleTime.Format("2006-01-02 15:04:05 -0700"),
 		}, nil
 	}
 
@@ -51,7 +51,7 @@ func getBatchv1CronJobHealth(job *batchv1.CronJob) (*HealthStatus, error) {
 			Ready:  true, // The cronjob did in fact run
 			Health: HealthUnhealthy,
 			Status: HealthStatusError,
-			Message: "Last run failed, last successful run was" + job.Status.LastSuccessfulTime.Format(
+			Message: "Last run failed, last successful run was " + job.Status.LastSuccessfulTime.Format(
 				"2006-01-02 15:04:05 -0700",
 			),
 		}, nil
@@ -62,7 +62,7 @@ func getBatchv1CronJobHealth(job *batchv1.CronJob) (*HealthStatus, error) {
 		Health: HealthHealthy,
 		Status: HealthStatusCompleted,
 		Message: fmt.Sprintf(
-			"Last run at %s in %s",
+			"Last run at %s for %s",
 			job.Status.LastScheduleTime.Format("2006-01-02 15:04:05 -0700"),
 			job.Status.LastSuccessfulTime.Sub(job.Status.LastScheduleTime.Time),
 		),
