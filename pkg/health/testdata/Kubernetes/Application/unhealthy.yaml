@@ -5,6 +5,7 @@ metadata:
   name: snipe-it-helm
   namespace: argo-apps
   annotations:
+    expected-last-update: 2024-10-08T13:50:17Z
     argocd.argoproj.io/refresh: normal
     argocd.argoproj.io/sync-wave: "-5"
     argocd.argoproj.io/tracking-id: argo-apps_snipe-it-wrapper:argoproj.io/Application:argo-apps/snipe-it-helm

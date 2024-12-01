@@ -7,6 +7,7 @@ metadata:
   annotations:
     expected-status: OOMKilled
     expected-health: unhealthy
+    expected-last-update: "@now-5m"
     expected-message:  system has run out of memory, restarted 9 times
   creationTimestamp: 2024-11-20T06:57:31Z
 spec:

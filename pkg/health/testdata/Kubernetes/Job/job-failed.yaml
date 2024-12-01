@@ -10,6 +10,7 @@ metadata:
   annotations:
     expected-status: BackoffLimitExceeded
     expected-health: unhealthy
+    expected-last-update: 2018-12-02T08:09:27Z
   resourceVersion: "46534173"
   selfLink: /apis/batch/v1/namespaces/argoci-workflows/jobs/fail
   uid: 95052288-f609-11e8-aa53-42010a80021b

@@ -7,6 +7,7 @@ metadata:
   annotations:
     expected-status: CrashLoopBackOff
     expected-health: unhealthy
+    expected-last-update: 2018-12-02T09:20:25Z
   resourceVersion: "151454"
   selfLink: /api/v1/namespaces/argocd/pods/my-pod
   uid: 63674389-f613-11e8-a057-fe5f49266390

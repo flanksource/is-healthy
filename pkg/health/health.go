@@ -173,6 +173,96 @@ func GetHealthByConfigType(configType string, obj map[string]any, states ...stri
 	}
 }
 
+func max(a, b time.Time) time.Time {
+	if a.After(b) {
+		return a
+	}
+	return b
+}
+
+func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
+
+	lastUpdated := obj.GetCreationTimestamp().Time
+
+	// Check annotations
+	if annotations := obj.GetAnnotations(); annotations != nil {
+		if lastApplied, ok := annotations["kubectl.kubernetes.io/last-applied-configuration"]; ok {
+			if t, err := time.Parse(time.RFC3339, lastApplied); err == nil {
+				lastUpdated = max(lastUpdated, t)
+			}
+		}
+	}
+
+	possibleStatus := [][]string{
+		{"lastUpdateTime"},
+		{"startTime"},
+		{"lastSyncTime"},
+		{"reconciledAt"},
+		{"startedAt"},
+		{"deployedAt"},
+		{"finishedAt"},
+		{"lastTransitionTime"},
+		{"observedAt"},
+		{"operationState", "startedAt"},
+		{"operationState", "finishedAt"},
+	}
+
+	if status, ok := obj.Object["status"].(map[string]interface{}); ok {
+		for _, key := range possibleStatus {
+			if value, ok, _ := unstructured.NestedString(status, key...); ok {
+				if t, err := time.Parse(time.RFC3339, value); err == nil {
+					lastUpdated = max(lastUpdated, t)
+				}
+			}
+		}
+
+		// Check conditions
+		if conditions, found, _ := unstructured.NestedSlice(status, "conditions"); found {
+			for _, c := range conditions {
+				condition, ok := c.(map[string]interface{})
+				if !ok {
+					continue
+				}
+
+				for _, k := range []string{"lastProbeTime", "lastTransitionTime", "lastUpdateTime"} {
+					if lastTransitionTime, exists, _ := unstructured.NestedString(condition, k); exists {
+						if t, err := time.Parse(time.RFC3339, lastTransitionTime); err == nil {
+							lastUpdated = max(lastUpdated, t)
+						}
+					}
+				}
+			}
+		}
+
+		if containerStatuses, ok, _ := unstructured.NestedSlice(status, "containerStatuses"); ok {
+			for _, c := range containerStatuses {
+				containerStatus, ok := c.(map[string]interface{})
+				if !ok {
+					continue
+				}
+
+				for _, k := range [][]string{
+					{"state", "running", "startedAt"},
+					{"state", "running", "finishedAt"},
+					{"state", "terminated", "finishedAt"},
+					{"lastState", "terminated", "finishedAt"},
+					{"operationState", "startedAt"},
+					{"operationState", "finishedAt"},
+				} {
+					if at, exists, _ := unstructured.NestedString(containerStatus, k...); exists {
+						if t, err := time.Parse(time.RFC3339, at); err == nil {
+							lastUpdated = max(lastUpdated, t)
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	return &lastUpdated
+}
+
 // GetResourceHealth returns the health of a k8s resource
 func GetResourceHealth(
 	obj *unstructured.Unstructured,
@@ -182,9 +272,10 @@ func GetResourceHealth(
 		time.Since(obj.GetDeletionTimestamp().Time) > time.Hour {
 		terminatingFor := time.Since(obj.GetDeletionTimestamp().Time)
 		return &HealthStatus{
-			Status:  "TerminatingStalled",
-			Health:  HealthWarning,
-			Message: fmt.Sprintf("terminating for %v", duration.ShortHumanDuration(terminatingFor.Truncate(time.Hour))),
+			Status:      "TerminatingStalled",
+			LastUpdated: GetLastUpdatedTime(obj),
+			Health:      HealthWarning,
+			Message:     fmt.Sprintf("terminating for %v", duration.ShortHumanDuration(terminatingFor.Truncate(time.Hour))),
 		}, nil
 	}
 
@@ -243,6 +334,7 @@ func GetResourceHealth(
 		health.Status = HealthStatusTerminating
 		health.Ready = false
 	}
+	health.LastUpdated = GetLastUpdatedTime(obj)
 
 	return health, err
 }

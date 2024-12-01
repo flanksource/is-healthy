@@ -74,6 +74,14 @@ func testFixture(t *testing.T, yamlPath string) {
 		if v, ok := obj.GetAnnotations()["expected-ready"]; ok {
 			assert.Equal(t, v == "true", hr.Ready)
 		}
+
+		if v, ok := obj.GetAnnotations()["expected-last-update"]; ok {
+			if hr.LastUpdated == nil {
+				assert.Fail(t, "expected last update but got nil")
+			} else {
+				assert.Equal(t, v, hr.LastUpdated.Format(time.RFC3339))
+			}
+		}
 	})
 }
 

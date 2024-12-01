@@ -40,6 +40,9 @@ type HealthStatus struct {
 	Status HealthStatusCode `json:"status,omitempty"  protobuf:"bytes,1,opt,name=status"`
 	// Message is a human-readable informational message describing the health status
 	Message string `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	// LastUpdated is the time this resource as last updated, detected by inspecting all
+	// of the relevant status timestamps
+	LastUpdated *time.Time `json:"lastUpdated,omitempty"`
 
 	order int `json:"-" yaml:"-"`
 }
