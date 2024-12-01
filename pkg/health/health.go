@@ -106,6 +106,7 @@ const (
 	HealthStatusRestart          HealthStatusCode = "Restarting"
 	HealthStatusStarting         HealthStatusCode = "Starting"
 	HealthStatusFailed           HealthStatusCode = "Failed"
+	HealthStatusFailedCreate     HealthStatusCode = "Failed Create"
 	HealthStatusUnschedulable    HealthStatusCode = "Unschedulable"
 	HealthStatusUpgradeFailed    HealthStatusCode = "UpgradeFailed"
 	HealthStatusOOMKilled        HealthStatusCode = "OOMKilled"
