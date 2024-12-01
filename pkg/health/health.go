@@ -181,7 +181,6 @@ func max(a, b time.Time) time.Time {
 }
 
 func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
-
 	lastUpdated := obj.GetCreationTimestamp().Time
 
 	// Check annotations
@@ -275,7 +274,10 @@ func GetResourceHealth(
 			Status:      "TerminatingStalled",
 			LastUpdated: GetLastUpdatedTime(obj),
 			Health:      HealthWarning,
-			Message:     fmt.Sprintf("terminating for %v", duration.ShortHumanDuration(terminatingFor.Truncate(time.Hour))),
+			Message: fmt.Sprintf(
+				"terminating for %v",
+				duration.ShortHumanDuration(terminatingFor.Truncate(time.Hour)),
+			),
 		}, nil
 	}
 

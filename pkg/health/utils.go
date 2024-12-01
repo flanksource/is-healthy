@@ -37,9 +37,9 @@ type HealthStatus struct {
 	Ready  bool   `json:"ready"`
 	Health Health `json:"health"`
 	// Status holds the status code of the application or resource
-	Status HealthStatusCode `json:"status,omitempty"  protobuf:"bytes,1,opt,name=status"`
+	Status HealthStatusCode `json:"status,omitempty"      protobuf:"bytes,1,opt,name=status"`
 	// Message is a human-readable informational message describing the health status
-	Message string `json:"message,omitempty" protobuf:"bytes,2,opt,name=message"`
+	Message string `json:"message,omitempty"     protobuf:"bytes,2,opt,name=message"`
 	// LastUpdated is the time this resource as last updated, detected by inspecting all
 	// of the relevant status timestamps
 	LastUpdated *time.Time `json:"lastUpdated,omitempty"`
