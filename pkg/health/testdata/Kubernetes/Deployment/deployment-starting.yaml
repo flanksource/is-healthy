@@ -1,7 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  creationTimestamp: "@now-5m"
+  labels:
+    app.kubernetes.io/instance: guestbook-default
   name: guestbook-ui
+  annotations:
+    expected-status: Starting
+    expected-health: unknown
+  namespace: default
 spec:
   progressDeadlineSeconds: 600
   replicas: 2
@@ -37,18 +44,22 @@ spec:
       securityContext: {}
       terminationGracePeriodSeconds: 30
 status:
-status:
-  replicas: 2
+  availableReplicas: 0
   conditions:
-    - type: Available
+    - lastTransitionTime: 2018-07-18T04:48:48Z
+      lastUpdateTime: 2018-07-18T04:48:48Z
       reason: MinimumReplicasUnavailable
       status: "False"
       message: Deployment does not have minimum availability.
-    - type: Progressing
-      reason: ProgressDeadlineExceeded
-      status: "False"
-      message: ReplicaSet "mission-control-99b64d74c" has timed out progressing.
-  readyReplicas: 1
-  updatedReplicas: 1
-  availableReplicas: 1
+      type: Available
+    - lastTransitionTime: 2018-07-18T04:40:44Z
+      lastUpdateTime: 2018-07-18T06:19:22Z
+      message: ReplicaSet "guestbook-ui-75dd4d49d5" is progressing.
+      reason: ReplicaSetUpdated
+      status: "True"
+      type: Progressing
+  observedGeneration: 4
+  readyReplicas: 0
+  replicas: 2
   unavailableReplicas: 1
+  updatedReplicas: 1
