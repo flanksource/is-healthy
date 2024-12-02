@@ -206,6 +206,21 @@ func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
 		{"operationState", "finishedAt"},
 	}
 
+	// Check managed fields
+	if managedFields, ok, _ := unstructured.NestedSlice(obj.Object, "metadata", "managedFields"); ok {
+		for _, f := range managedFields {
+			field := f.(map[string]any)
+			operation, _, _ := unstructured.NestedString(field, "operation")
+			if operation == "Update" {
+				if updatedTime, ok := field["time"]; ok {
+					if t, err := time.Parse(time.RFC3339, updatedTime.(string)); err == nil {
+						lastUpdated = max(lastUpdated, t)
+					}
+				}
+			}
+		}
+	}
+
 	if status, ok := obj.Object["status"].(map[string]interface{}); ok {
 		for _, key := range possibleStatus {
 			if value, ok, _ := unstructured.NestedString(status, key...); ok {
@@ -256,7 +271,6 @@ func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
 				}
 			}
 		}
-
 	}
 
 	return &lastUpdated
