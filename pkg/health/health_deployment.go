@@ -54,12 +54,28 @@ func getReplicaHealth(s ReplicaStatus) *HealthStatus {
 
 	gs := GetGenericStatus(s.Object)
 
+	available := gs.FindCondition("Available")
+	isAvailable := s.Ready > 0
+	if available.Status != "" {
+		isAvailable = available.Status == "True"
+	}
+
 	progressing := gs.FindCondition("Progressing")
+
+	failure := gs.FindCondition("ReplicaFailure")
+	if failure.Status == "True" {
+		hs.Status = HealthStatusFailedCreate
+		hs.Health = HealthUnhealthy
+		hs.Message = failure.Message
+		hs.Ready = true
+		return hs
+	}
+
 	isStarting := age < startDeadline
 	isProgressDeadlineExceeded := !isStarting && (progressing.Reason == "ProgressDeadlineExceeded")
-	hs.Ready = progressing.Status == "True"
+	hs.Ready = progressing.Status == "True" && progressing.Reason != "ReplicaSetUpdated"
 
-	hs.Health = lo.Ternary(s.Ready >= s.Desired, HealthHealthy, lo.Ternary(s.Ready > 0, HealthWarning, HealthUnhealthy))
+	hs.Health = lo.Ternary(isAvailable, HealthHealthy, lo.Ternary(s.Ready > 0, HealthWarning, HealthUnhealthy))
 
 	if s.Desired == 0 && s.Replicas == 0 {
 		hs.Ready = true
@@ -75,26 +91,32 @@ func getReplicaHealth(s ReplicaStatus) *HealthStatus {
 			hs.Status = "Pending"
 			hs.Health = HealthUnknown
 		}
-	} else if s.Ready == 0 && isStarting && !isProgressDeadlineExceeded {
-		hs.Health = HealthUnknown
+	} else if s.Ready == 0 && isStarting {
 		hs.Status = HealthStatusStarting
-	} else if s.Ready == 0 && !isStarting {
-		hs.Health = HealthUnhealthy
-		hs.Status = HealthStatusCrashLoopBackoff
+	} else if s.Ready == 0 {
+		if isProgressDeadlineExceeded {
+			hs.Status = HealthStatusCrashLoopBackoff
+		} else if isAvailable {
+			hs.Status = HealthStatusUpdating
+		}
+	}
+
+	if isProgressDeadlineExceeded {
+		hs.Status = HealthStatusRolloutFailed
+		hs.Health = hs.Health.Worst(HealthWarning)
 	} else if s.Desired == 0 && s.Replicas > 0 {
 		hs.Status = HealthStatusScalingDown
-		hs.Health = lo.Ternary(isProgressDeadlineExceeded, HealthWarning, HealthHealthy)
 	} else if s.Ready == s.Desired && s.Desired == s.Updated && s.Replicas == s.Desired {
 		hs.Status = HealthStatusRunning
-	} else if s.Desired != s.Updated {
-		hs.Status = HealthStatusUpdating
+	} else if !isStarting && s.Desired != s.Updated {
+		hs.Status = HealthStatusRollingOut
 	} else if s.Replicas > s.Desired {
 		hs.Status = HealthStatusScalingDown
 	} else if s.Replicas < s.Desired {
 		hs.Status = HealthStatusScalingUp
 	}
 
-	if isStarting && hs.Health == HealthUnhealthy {
+	if isStarting && (hs.Health == HealthUnhealthy || hs.Health == HealthWarning) {
 		hs.Health = HealthUnknown
 	}
 

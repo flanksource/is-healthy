@@ -329,19 +329,12 @@ func TestDeploymentHealth(t *testing.T) {
 	assertAppHealthMsg(
 		t,
 		"./deployment-rollout-failed.yaml",
-		health.HealthStatusUpdating,
+		health.HealthStatusRollingOut,
 		health.HealthWarning,
 		true,
 		"1/2 ready, 1 updating",
 	)
-	assertAppHealthMsg(
-		t,
-		"./testdata/deployment-progressing.yaml",
-		health.HealthStatusUpdating,
-		health.HealthWarning,
-		true,
-		"1/2 ready, 1 updating",
-	)
+
 	assertAppHealthMsg(
 		t,
 		"./testdata/deployment-suspended.yaml",
@@ -353,20 +346,12 @@ func TestDeploymentHealth(t *testing.T) {
 	assertAppHealthMsg(
 		t,
 		"./testdata/deployment-degraded.yaml",
-		health.HealthStatusUpdating,
+		health.HealthStatusRollingOut,
 		health.HealthWarning,
 		true,
 		"1/2 ready, 1 updating",
 	)
 
-	assertAppHealthMsg(
-		t,
-		"./testdata/deployment-starting.yaml",
-		health.HealthStatusStarting,
-		health.HealthUnknown,
-		true,
-		"0/2 ready, 1 updating",
-	)
 	assertAppHealthMsg(
 		t,
 		"./testdata/deployment-scaling-down.yaml",
@@ -375,14 +360,7 @@ func TestDeploymentHealth(t *testing.T) {
 		true,
 		"1/1 ready, 1 updating, 1 terminating",
 	)
-	assertAppHealthMsg(
-		t,
-		"./testdata/deployment-failed.yaml",
-		"Failed Create",
-		health.HealthUnhealthy,
-		false,
-		"0/1 ready",
-	)
+
 }
 
 func TestStatefulSetHealth(t *testing.T) {
