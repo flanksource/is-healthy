@@ -183,6 +183,10 @@ func max(a, b time.Time) time.Time {
 func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
 	lastUpdated := obj.GetCreationTimestamp().Time
 
+	if obj.GetDeletionTimestamp() != nil {
+		lastUpdated = max(lastUpdated, obj.GetDeletionTimestamp().Time)
+	}
+
 	// Check annotations
 	if annotations := obj.GetAnnotations(); annotations != nil {
 		if lastApplied, ok := annotations["kubectl.kubernetes.io/last-applied-configuration"]; ok {
