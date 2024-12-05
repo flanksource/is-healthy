@@ -2,8 +2,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"apps/v1beta2","kind":"StatefulSet","metadata":{"annotations":{},"labels":{"app":"redis","app.kubernetes.io/instance":"redis","chart":"redis-3.6.5","heritage":"Tiller","release":"redis"},"name":"redis-master","namespace":"default"},"spec":{"selector":{"matchLabels":{"app":"redis","release":"redis","role":"master"}},"serviceName":"redis-master","template":{"metadata":{"labels":{"app":"redis","app.kubernetes.io/instance":"redis","release":"redis","role":"master"}},"spec":{"containers":[{"env":[{"name":"REDIS_REPLICATION_MODE","value":"master"},{"name":"REDIS_PASSWORD","valueFrom":{"secretKeyRef":{"key":"redis-password","name":"redis"}}},{"name":"REDIS_DISABLE_COMMANDS","value":"FLUSHDB,FLUSHALL"}],"image":"docker.io/bitnami/redis:4.0.10-debian-9","imagePullPolicy":"Always","livenessProbe":{"exec":{"command":["redis-cli","ping"]},"failureThreshold":5,"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":5},"name":"redis","ports":[{"containerPort":6379,"name":"redis"}],"readinessProbe":{"exec":{"command":["redis-cli","ping"]},"failureThreshold":5,"initialDelaySeconds":5,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":1},"resources":{},"volumeMounts":[{"mountPath":"/bitnami/redis/data","name":"redis-data"}]}],"securityContext":{"fsGroup":1001,"runAsUser":1001},"serviceAccountName":"default"}},"updateStrategy":{"type":"OnDelete"},"volumeClaimTemplates":[{"metadata":{"labels":{"app":"redis","chart":"redis-3.6.5","component":"master","heritage":"Tiller","release":"redis"},"name":"redis-data"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"8Gi"}}}}]}}
+    expected-ready: "false"
+    expected-status: "Terminating"
+    expected-message: "1/1 ready, 1 updating"
   creationTimestamp: 2018-07-20T08:23:04Z
   generation: 1
   labels:

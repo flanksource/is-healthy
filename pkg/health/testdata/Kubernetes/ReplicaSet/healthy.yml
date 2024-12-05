@@ -2,11 +2,10 @@ apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
   annotations:
-    deployment.kubernetes.io/desired-replicas: "1"
-    deployment.kubernetes.io/max-replicas: "1"
-    deployment.kubernetes.io/revision: "2"
-    meta.helm.sh/release-name: ittools
-    meta.helm.sh/release-namespace: default
+    expected-ready: "true"
+    expected-status: "Running"
+    expected-health: healthy"
+    expected-message: "1/1 ready"
   creationTimestamp: "2024-08-03T06:06:18Z"
   generation: 52
   labels:
@@ -17,12 +16,12 @@ metadata:
   name: ittools-5fbf458f49
   namespace: default
   ownerReferences:
-  - apiVersion: apps/v1
-    blockOwnerDeletion: true
-    controller: true
-    kind: Deployment
-    name: ittools
-    uid: d2beccff-8da9-42e8-8459-e7ff938b2ffd
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: ittools
+      uid: d2beccff-8da9-42e8-8459-e7ff938b2ffd
   resourceVersion: "96413911"
   uid: c044b250-2445-4813-b00f-22b696c5fcf2
 spec:
@@ -43,17 +42,17 @@ spec:
     spec:
       automountServiceAccountToken: true
       containers:
-      - image: corentinth/it-tools:latest
-        imagePullPolicy: Always
-        name: it-tools
-        resources:
-          limits:
-            memory: 50Mi
-          requests:
-            cpu: 25m
-            memory: 10Mi
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - image: corentinth/it-tools:latest
+          imagePullPolicy: Always
+          name: it-tools
+          resources:
+            limits:
+              memory: 50Mi
+            requests:
+              cpu: 25m
+              memory: 10Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       enableServiceLinks: false
       restartPolicy: Always

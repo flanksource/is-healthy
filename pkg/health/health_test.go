@@ -315,66 +315,10 @@ func TestExternalSecrets(t *testing.T) {
 	assertAppHealthMsg(t, b+"healthy.yaml", "SecretSynced", health.HealthHealthy, true)
 }
 
-func TestDeploymentHealth(t *testing.T) {
-	assertAppHealthMsg(t, "./testdata/nginx.yaml", health.HealthStatusRunning, health.HealthHealthy, true, "1/1 ready")
-	assertAppHealthMsg(
-		t,
-		"./deployment-scaled-up.yaml",
-		health.HealthStatusRunning,
-		health.HealthHealthy,
-		true,
-		"3/3 ready",
-	)
-
-	assertAppHealthMsg(
-		t,
-		"./deployment-rollout-failed.yaml",
-		health.HealthStatusRollingOut,
-		health.HealthWarning,
-		true,
-		"1/2 ready, 1 updating",
-	)
-
-	assertAppHealthMsg(
-		t,
-		"./testdata/deployment-suspended.yaml",
-		health.HealthStatusSuspended,
-		health.HealthHealthy,
-		false,
-		"1/1 ready, 1 updating, 1 terminating",
-	)
-	assertAppHealthMsg(
-		t,
-		"./testdata/deployment-degraded.yaml",
-		health.HealthStatusRollingOut,
-		health.HealthWarning,
-		true,
-		"1/2 ready, 1 updating",
-	)
-
-	assertAppHealthMsg(
-		t,
-		"./testdata/deployment-scaling-down.yaml",
-		health.HealthStatusScalingDown,
-		health.HealthHealthy,
-		true,
-		"1/1 ready, 1 updating, 1 terminating",
-	)
-
-}
-
 func TestStatefulSetHealth(t *testing.T) {
+	starting := "./testdata/Kubernetes/StatefulSet/statefulset-starting.yaml"
 	assertAppHealthMsg(
-		t,
-		"./testdata/statefulset.yaml",
-		health.HealthStatusRunning,
-		health.HealthHealthy,
-		true,
-		"1/1 ready",
-	)
-	assertAppHealthMsg(
-		t,
-		"./testdata/statefulset-starting.yaml",
+		t, starting,
 		health.HealthStatusStarting,
 		health.HealthUnknown,
 		true,
@@ -384,7 +328,8 @@ func TestStatefulSetHealth(t *testing.T) {
 	)
 	assertAppHealthMsg(
 		t,
-		"./testdata/statefulset-starting.yaml",
+		starting,
+
 		health.HealthStatusStarting,
 		health.HealthUnknown,
 		true,
@@ -394,7 +339,7 @@ func TestStatefulSetHealth(t *testing.T) {
 	)
 	assertAppHealthMsg(
 		t,
-		"./testdata/statefulset-starting.yaml",
+		starting,
 		health.HealthStatusCrashLoopBackoff,
 		health.HealthUnhealthy,
 		true,
@@ -404,7 +349,7 @@ func TestStatefulSetHealth(t *testing.T) {
 	)
 	assertAppHealthMsg(
 		t,
-		"./testdata/statefulset-starting.yaml",
+		starting,
 		health.HealthStatusCrashLoopBackoff,
 		health.HealthUnhealthy,
 		true,
@@ -417,7 +362,7 @@ func TestStatefulSetHealth(t *testing.T) {
 func TestStatefulSetOnDeleteHealth(t *testing.T) {
 	assertAppHealthMsg(
 		t,
-		"./testdata/statefulset-ondelete.yaml",
+		"./testdata/Kubernetes/StatefulSet/statefulset-ondelete.yaml",
 		"TerminatingStalled",
 		health.HealthWarning,
 		false,
@@ -512,16 +457,6 @@ func TestHPA(t *testing.T) {
 		health.HealthHealthy,
 		false,
 	)
-}
-
-func TestReplicaSet(t *testing.T) {
-	assertAppHealthWithOverwrite(t, "./testdata/replicaset-ittools.yml", map[string]string{
-		"2024-08-03T06:06:18Z": time.Now().Add(-time.Minute * 2).UTC().Format("2006-01-02T15:04:05Z"),
-	}, health.HealthStatusRunning, health.HealthHealthy, false)
-
-	assertAppHealthWithOverwrite(t, "./testdata/replicaset-unhealthy-pods.yaml", map[string]string{
-		"2024-10-21T11:20:19Z": time.Now().Add(-time.Minute * 2).UTC().Format("2006-01-02T15:04:05Z"),
-	}, health.HealthStatusStarting, health.HealthUnknown, false)
 }
 
 // func TestAPIService(t *testing.T) {

@@ -53,7 +53,6 @@ func getReplicaHealth(s ReplicaStatus) *HealthStatus {
 	age := time.Since(s.Object.GetCreationTimestamp().Time).Truncate(time.Minute).Abs()
 
 	gs := GetGenericStatus(s.Object)
-
 	available := gs.FindCondition("Available")
 	isAvailable := s.Ready > 0
 	if available.Status != "" {
@@ -94,11 +93,7 @@ func getReplicaHealth(s ReplicaStatus) *HealthStatus {
 	} else if s.Ready == 0 && isStarting {
 		hs.Status = HealthStatusStarting
 	} else if s.Ready == 0 {
-		if isProgressDeadlineExceeded {
-			hs.Status = HealthStatusCrashLoopBackoff
-		} else if isAvailable {
-			hs.Status = HealthStatusUpdating
-		}
+		hs.Status = lo.Ternary(isAvailable, HealthStatusUpdating, HealthStatusCrashLoopBackoff)
 	}
 
 	if isProgressDeadlineExceeded {
@@ -114,6 +109,10 @@ func getReplicaHealth(s ReplicaStatus) *HealthStatus {
 		hs.Status = HealthStatusScalingDown
 	} else if s.Replicas < s.Desired {
 		hs.Status = HealthStatusScalingUp
+	}
+
+	if s.Replicas != s.Desired || s.Replicas != s.Updated {
+		hs.Ready = false
 	}
 
 	if isStarting && (hs.Health == HealthUnhealthy || hs.Health == HealthWarning) {

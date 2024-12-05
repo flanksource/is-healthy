@@ -10,9 +10,11 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   namespace: podinfo
   annotations:
-    meta.helm.sh/release-name: podinfo
-    meta.helm.sh/release-namespace: podinfo
-    deployment.kubernetes.io/revision: "1"
+  annotations:
+    expected-ready: "false"
+    expected-status: "Rolling Out"
+    expected-health: "warning"
+    expected-message: "1/3 ready, 1 updating"
   creationTimestamp: 2023-12-19T15:50:39Z
 spec:
   replicas: 3
@@ -106,13 +108,14 @@ status:
   replicas: 3
   conditions:
     - type: Available
-      reason: MinimumReplicasAvailable
-      status: "True"
-      message: Deployment has minimum availability.
+      reason: MinimumReplicasUnavailable
+      status: "False"
+      message: Deployment does not have minimum availability.
     - type: Progressing
       reason: NewReplicaSetAvailable
       status: "True"
       message: ReplicaSet "podinfo-97c6d4b94" has successfully progressed.
-  readyReplicas: 3
-  updatedReplicas: 3
-  availableReplicas: 3
+  readyReplicas: 1
+  updatedReplicas: 2
+  availableReplicas: 1
+  unavailableReplicas: 2
