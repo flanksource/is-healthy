@@ -143,21 +143,6 @@ func assertAppHealthWithOverwriteMsg(
 	assert.Equal(t, expectedMsg, health.Message)
 }
 
-func assertAppHealthWithOverwrite(
-	t *testing.T,
-	yamlPath string,
-	overwrites map[string]string,
-	expectedStatus health.HealthStatusCode,
-	expectedHealth health.Health,
-	expectedReady bool,
-) {
-	health, _ := getHealthStatus(yamlPath, t, overwrites)
-	assert.NotNil(t, health)
-	assert.Equal(t, expectedHealth, health.Health)
-	assert.Equal(t, expectedReady, health.Ready)
-	assert.Equal(t, expectedStatus, health.Status)
-}
-
 func getHealthStatus(
 	yamlPath string,
 	t *testing.T,
