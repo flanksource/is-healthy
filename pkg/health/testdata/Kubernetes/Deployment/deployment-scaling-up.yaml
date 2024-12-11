@@ -10,7 +10,6 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   namespace: podinfo
   annotations:
-  annotations:
     expected-ready: "false"
     expected-status: "Rolling Out"
     expected-health: "warning"

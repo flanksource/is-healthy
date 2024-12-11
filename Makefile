@@ -4,7 +4,7 @@ test:
 
 .PHONY: tidy
 tidy:
-	go mod tidy -go=1.20 -compat=1.20
+	go mod tidy -go=1.22.0 -compat=1.22
 
 .PHONY: lint
 lint:
