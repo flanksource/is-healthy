@@ -390,6 +390,25 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 		case "Application":
 			return getArgoApplicationHealth
 		}
+	case "canaries.flanksource.com":
+		switch gvk.Kind {
+		case "Canary":
+			return getCanaryHealth
+			// case "Component":
+			// case "Topology":
+		}
+	// case "configs.flanksource.com":
+	// 	switch gvk.Kind {
+	// 	case "ScrapeConfig":
+	// 	case "ScrapePlugin":
+	// 	}
+	// case "mission-control.flanksource.com":
+	// 	switch gvk.Kind {
+	// 	case "Notification":
+	// 	case "Playbook":
+	// 	case "NotificationSilence":
+	// 	case "Connection":
+	// 	}
 	case "kustomize.toolkit.fluxcd.io", "helm.toolkit.fluxcd.io", "source.toolkit.fluxcd.io":
 		return GetDefaultHealth
 	case "cert-manager.io":
