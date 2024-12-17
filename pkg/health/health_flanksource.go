@@ -1,10 +1,12 @@
 package health
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -28,7 +30,7 @@ func getCanaryHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	uptime1h, _, _ := unstructured.NestedString(obj.Object, "status", "uptime1h")
 
 	output := HealthStatus{
-		Message: message,
+		Message: lo.CoalesceOrEmpty(message, fmt.Sprintf("uptime: %s", uptime1h)),
 		Status:  HealthStatusCode(canaryStatus),
 		Ready:   true,
 	}
