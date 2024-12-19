@@ -397,11 +397,12 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 			// case "Component":
 			// case "Topology":
 		}
-	// case "configs.flanksource.com":
-	// 	switch gvk.Kind {
-	// 	case "ScrapeConfig":
-	// 	case "ScrapePlugin":
-	// 	}
+	case "configs.flanksource.com":
+		switch gvk.Kind {
+		case "ScrapeConfig":
+			return getScrapeConfigHealth
+			// 	case "ScrapePlugin":
+		}
 	// case "mission-control.flanksource.com":
 	// 	switch gvk.Kind {
 	// 	case "Notification":
