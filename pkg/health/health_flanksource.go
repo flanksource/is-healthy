@@ -3,6 +3,7 @@ package health
 import (
 	"regexp"
 	"strconv"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -65,4 +66,45 @@ func parseCanaryUptime(uptime string) *float64 {
 	}
 
 	return &v
+}
+
+func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
+	errorCount, _, err := unstructured.NestedInt64(obj.Object, "status", "lastRun", "error")
+	if err != nil {
+		return nil, err
+	}
+
+	successCount, _, err := unstructured.NestedInt64(obj.Object, "status", "lastRun", "success")
+	if err != nil {
+		return nil, err
+	}
+
+	var h Health
+	switch {
+	case errorCount == 0 && successCount == 0:
+		h = HealthUnknown
+	case errorCount == 0 && successCount > 0:
+		h = HealthHealthy
+	case errorCount > 0 && successCount == 0:
+		h = HealthUnhealthy
+	case errorCount > 0 && successCount > 0:
+		h = HealthWarning
+	default:
+		h = HealthUnknown
+	}
+
+	status := &HealthStatus{Health: h}
+
+	if errorCount > 0 {
+		errorMsgs, _, err := unstructured.NestedStringSlice(obj.Object, "status", "lastRun", "errors")
+		if err != nil {
+			return nil, err
+		}
+
+		if len(errorMsgs) > 0 {
+			status.Message = strings.Join(errorMsgs, ",")
+		}
+	}
+
+	return status, nil
 }
