@@ -108,3 +108,48 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 
 	return status, nil
 }
+
+func getNotificationHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
+	failedCount, _, err := unstructured.NestedInt64(obj.Object, "status", "failed")
+	if err != nil {
+		return nil, err
+	}
+
+	pendingCount, _, err := unstructured.NestedInt64(obj.Object, "status", "pending")
+	if err != nil {
+		return nil, err
+	}
+
+	errorMessage, _, err := unstructured.NestedString(obj.Object, "status", "error")
+	if err != nil {
+		return nil, err
+	}
+
+	sentCount, _, err := unstructured.NestedInt64(obj.Object, "status", "sent")
+	if err != nil {
+		return nil, err
+	}
+
+	var h Health = HealthUnknown
+	if sentCount > 0 {
+		h = HealthHealthy
+		if failedCount > 0 || pendingCount > 0 {
+			h = HealthWarning
+		}
+	} else {
+		if pendingCount > 0 {
+			h = HealthWarning
+		}
+		if failedCount > 0 {
+			h = HealthUnhealthy
+		}
+	}
+
+	status := &HealthStatus{Health: h}
+
+	if errorMessage != "" {
+		status.Message = errorMessage
+	}
+
+	return status, nil
+}

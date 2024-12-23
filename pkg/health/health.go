@@ -403,13 +403,14 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 			return getScrapeConfigHealth
 			// 	case "ScrapePlugin":
 		}
-	// case "mission-control.flanksource.com":
-	// 	switch gvk.Kind {
-	// 	case "Notification":
-	// 	case "Playbook":
-	// 	case "NotificationSilence":
-	// 	case "Connection":
-	// 	}
+	case "mission-control.flanksource.com":
+		switch gvk.Kind {
+		case "Notification":
+			return getNotificationHealth
+			// 	case "Playbook":
+			// 	case "NotificationSilence":
+			// 	case "Connection":
+		}
 	case "kustomize.toolkit.fluxcd.io", "helm.toolkit.fluxcd.io", "source.toolkit.fluxcd.io":
 		return GetDefaultHealth
 	case "cert-manager.io":
