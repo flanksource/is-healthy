@@ -455,7 +455,12 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 
 func init() {
 	properties.RegisterListener(func(p *properties.Properties) {
-		v := p.Duration(defaultCertExpiryWarningPeriod, "health.cert-manager.expiryGracePeriod")
-		defaultCertExpiryWarningPeriod = v
+		if v := p.Duration(defaultCertExpiryWarningPeriod, "health.cert-manager.expiryGracePeriod"); v != 0 {
+			certExpiryWarningPeriod = v
+		}
+
+		if v := p.Duration(defaultCrtRenewalWarningPeriod, "health.cert-manager.renewalGracePeriod"); v != 0 {
+			certRenewalWarningPeriod = v
+		}
 	})
 }
