@@ -307,7 +307,9 @@ func TestCertificate(t *testing.T) {
 	// 	"2024-06-26T12:25:46Z": time.Now().Add(time.Hour).UTC().Format("2006-01-02T15:04:05Z"),
 	// }, health.HealthStatusWarning, health.HealthWarning, true)
 
+	assertAppHealthMsg(t, "./testdata/certificate-issuing.yaml", "ManuallyTriggered", health.HealthHealthy, false)
 	assertAppHealthMsg(t, "./testdata/certificate-healthy.yaml", "Issued", health.HealthHealthy, true)
+
 	b := "../resource_customizations/cert-manager.io/Certificate/testdata/"
 	assertAppHealthMsg(t, b+"degraded_configError.yaml", "ConfigError", health.HealthUnhealthy, true)
 	assertAppHealthMsg(t, b+"progressing_issuing.yaml", "Issuing", health.HealthUnknown, false)
