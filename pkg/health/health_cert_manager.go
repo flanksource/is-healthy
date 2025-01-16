@@ -222,6 +222,33 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 			}
 
 			return hs, nil
+
+		default:
+			missingCases := map[string]string{
+				DoesNotExist:                    "Certificate secret does not exist",
+				MissingData:                     "Certificate secret has missing data",
+				InvalidKeyPair:                  "Public key of certificate does not match private key",
+				InvalidCertificate:              "Signed certificate could not be parsed or decoded",
+				InvalidCertificateRequest:       "CSR could not be parsed or decoded",
+				SecretMismatch:                  "Secret's private key does not match spec",
+				IncorrectIssuer:                 "Certificate has been issued by incorrect Issuer",
+				IncorrectCertificate:            "Certificate's secretName already has an annotation with another Certificate",
+				Expired:                         "Certificate has expired",
+				SecretTemplateMismatch:          "SecretTemplate is not reflected on the target Secret",
+				SecretManagedMetadataMismatch:   "Secret is missing labels that should have been added by cert-manager",
+				AdditionalOutputFormatsMismatch: "Certificate's AdditionalOutputFormats are not reflected on the target Secret",
+				ManagedFieldsParseError:         "cert-manager was unable to decode the managed fields on a resource",
+				SecretOwnerRefMismatch:          "Secret has an incorrect owner reference",
+			}
+
+			if msg, exists := missingCases[string(c.Type)]; exists {
+				return &HealthStatus{
+					Health:  HealthUnhealthy,
+					Status:  HealthStatusCode(c.Type),
+					Message: msg,
+					Ready:   true,
+				}, nil
+			}
 		}
 	}
 
