@@ -5,6 +5,7 @@ import (
 	"time"
 
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -23,11 +24,24 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 
 	conditionMap := make(map[certmanagerv1.CertificateRequestConditionType]certmanagerv1.CertificateRequestCondition)
 	for _, condition := range certReq.Status.Conditions {
-		if string(condition.Status) != string(v1.ConditionTrue) {
-			continue
+		if condition.Type == certmanagerv1.CertificateRequestConditionReady &&
+			condition.Status == cmmeta.ConditionFalse {
+			// If the ready condition hasn't been met, look for failures or denial.
+			// Can initially be approved but then get failed (eg: CommonName mismatch)
+			switch condition.Reason {
+			case certmanagerv1.CertificateRequestReasonFailed, certmanagerv1.CertificateRequestReasonDenied:
+				return &HealthStatus{
+					Health:  HealthUnhealthy,
+					Message: condition.Message,
+					Status:  HealthStatusCode(condition.Reason),
+					Ready:   true,
+				}, nil
+			}
 		}
 
-		conditionMap[condition.Type] = condition
+		if condition.Status == cmmeta.ConditionTrue {
+			conditionMap[condition.Type] = condition
+		}
 	}
 
 	if cr, ok := conditionMap[certmanagerv1.CertificateRequestConditionDenied]; ok {

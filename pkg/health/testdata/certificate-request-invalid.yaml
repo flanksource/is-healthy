@@ -1,0 +1,56 @@
+---
+# This certificate request is created for an invalid certificate
+# which has a mismatching commonNam and dns name
+apiVersion: cert-manager.io/v1
+kind: CertificateRequest
+metadata:
+  annotations:
+    cert-manager.io/certificate-name: shortlived
+    cert-manager.io/certificate-revision: '1'
+    cert-manager.io/private-key-secret-name: shortlived-pmfwq
+  creationTimestamp: '2025-01-16T14:48:55Z'
+  generation: 1
+  name: shortlived-1
+  namespace: nginx-ingress
+  ownerReferences:
+    - apiVersion: cert-manager.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Certificate
+      name: shortlived
+      uid: a6f08530-d0c6-439b-ae55-1a0b88de10d0
+  resourceVersion: '128055219'
+  uid: 3f9cba26-6a27-4be5-a36b-2137dae488bd
+spec:
+  duration: 1h0m0s
+  extra:
+    authentication.kubernetes.io/pod-name:
+      - cert-manager-64f9bcd9c6-zwxgw
+    authentication.kubernetes.io/pod-uid:
+      - 658da69f-9505-4d01-828c-ac1e56ee7f48
+  groups:
+    - system:serviceaccounts
+    - system:serviceaccounts:cert-manager
+    - system:authenticated
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-staging
+  request: ZHVtbXk= # dummy
+  uid: 7cc4d02c-46aa-4f3c-b6d5-7d766af3e1d8
+  username: system:serviceaccount:cert-manager:cert-manager
+status:
+  conditions:
+    - lastTransitionTime: '2025-01-16T14:48:55Z'
+      message: Certificate request has been approved by cert-manager.io
+      reason: cert-manager.io
+      status: 'True'
+      type: Approved
+    - lastTransitionTime: '2025-01-16T14:48:55Z'
+      message: 'The CSR PEM requests a commonName that is not present in the list of
+        dnsNames or ipAddresses. If a commonName is set, ACME requires that the value
+        is also present in the list of dnsNames or ipAddresses: "example.com" does not
+        exist in [testing-cert-manager.example.com] or []'
+      reason: Failed
+      status: 'False'
+      type: Ready
+  failureTime: '2025-01-16T14:48:55Z'

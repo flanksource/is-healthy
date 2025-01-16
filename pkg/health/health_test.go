@@ -263,6 +263,9 @@ func TestNamespace(t *testing.T) {
 }
 
 func TestCertificateRequest(t *testing.T) {
+	// Approved but then failed
+	assertAppHealthMsg(t, "./testdata/certificate-request-invalid.yaml", "Failed", health.HealthUnhealthy, true)
+
 	// approved but not issued in 1h
 	assertAppHealthMsg(t, "./testdata/certificate-request-approved.yaml", "Approved", health.HealthUnhealthy, false)
 

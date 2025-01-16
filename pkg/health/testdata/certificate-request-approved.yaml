@@ -14,7 +14,7 @@ metadata:
   namespace: gitlab
   annotations:
     cert-manager.io/certificate-name: gitlab-registry-tls
-    cert-manager.io/certificate-revision: "1"
+    cert-manager.io/certificate-revision: '1'
     cert-manager.io/private-key-secret-name: gitlab-registry-tls-rxvln
   ownerReferences:
     - uid: 7328d775-104a-4a6a-b419-c65a16995819
@@ -38,7 +38,7 @@ spec:
   usages:
     - digital signature
     - key encipherment
-  request:
+  request: ZHVtbXk= # dummy
   username: system:serviceaccount:cert-manager:cert-manager
   issuerRef:
     kind: ClusterIssuer
@@ -48,10 +48,10 @@ status:
   conditions:
     - type: Approved
       reason: cert-manager.io
-      status: "True"
+      status: 'True'
       message: Certificate request has been approved by cert-manager.io
     - type: Ready
       reason: Pending
-      status: "False"
+      status: 'False'
       message: 'Waiting on certificate issuance from order
         gitlab/gitlab-registry-tls-1-751983884: "pending"'
