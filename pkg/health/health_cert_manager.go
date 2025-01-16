@@ -12,10 +12,6 @@ import (
 
 var defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
 
-func SetDefaultCertificateExpiryWarningPeriod(p time.Duration) {
-	defaultCertExpiryWarningPeriod = p
-}
-
 func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	var certReq certmanagerv1.CertificateRequest
 	if err := convertFromUnstructured(obj, &certReq); err != nil {
