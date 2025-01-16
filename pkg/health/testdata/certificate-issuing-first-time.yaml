@@ -1,0 +1,42 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"cert-manager.io/v1","kind":"Certificate","metadata":{"annotations":{},"name":"shortlived","namespace":"nginx-ingress"},"spec":{"commonName":"example.com","dnsNames":["testing-cert-manager.example.com"],"duration":"1h","issuerRef":{"kind":"ClusterIssuer","name":"letsencrypt-production"},"renewBefore":"50m","secretName":"shortlived"}}
+  creationTimestamp: "2025-01-16T14:27:19Z"
+  generation: 1
+  name: shortlived
+  namespace: nginx-ingress
+  resourceVersion: "128050007"
+  uid: bb3563f9-5fae-4f3d-aaa1-8de659aee674
+spec:
+  commonName: example.com
+  dnsNames:
+  - testing-cert-manager.example.com
+  duration: 1h
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-staging
+  renewBefore: 50m
+  secretName: shortlived
+status:
+  conditions:
+  - lastTransitionTime: "2025-01-16T14:27:19Z"
+    message: 'The certificate request has failed to complete and will be retried:
+      The CSR PEM requests a commonName that is not present in the list of dnsNames
+      or ipAddresses. If a commonName is set, ACME requires that the value is also
+      present in the list of dnsNames or ipAddresses: "example.com" does not exist
+      in [testing-cert-manager.example.com] or []'
+    observedGeneration: 1
+    reason: Failed
+    status: "False"
+    type: Issuing
+  - lastTransitionTime: "2025-01-16T14:27:19Z"
+    message: Issuing certificate as Secret does not exist
+    observedGeneration: 1
+    reason: DoesNotExist
+    status: "False"
+    type: Ready
+  failedIssuanceAttempts: 1
+  lastFailureTime: "2025-01-16T14:27:19Z"

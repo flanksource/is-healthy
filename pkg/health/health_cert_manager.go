@@ -176,22 +176,57 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 			continue
 		}
 
-		switch string(c.Type) {
-		case string(certmanagerv1.CertificateConditionIssuing):
-			if cert.Status.NotBefore != nil {
-				hs := &HealthStatus{
-					Status:  HealthStatusCode(c.Reason),
-					Ready:   false,
-					Message: c.Message,
+		if c.Type == certmanagerv1.CertificateConditionIssuing {
+			hs := &HealthStatus{
+				Status:  HealthStatusCode(c.Reason),
+				Ready:   false,
+				Message: c.Message,
+			}
+
+			switch c.Reason {
+			case "ManuallyTriggered", DoesNotExist:
+				// We check for expiry below
+				hs.Status = "Issuing"
+				hs.Health = HealthUnknown
+
+			case Renewing:
+				renewalTime := cert.Status.RenewalTime.Time
+
+				if time.Since(renewalTime) > certRenewalWarningPeriod {
+					hs.Health = HealthWarning
+					hs.Message = fmt.Sprintf(
+						"Certificate has been in renewal state for > %s",
+						time.Since(renewalTime).Truncate(time.Minute),
+					)
+				} else {
+					hs.Health = HealthHealthy
 				}
 
-				switch c.Reason {
-				case "ManuallyTriggered":
-					// Basically a renewal
-					hs.Health = HealthHealthy
-					return hs, nil
+			default:
+				unhealthyReasons := map[string]string{
+					MissingData:                     "Certificate secret has missing data",
+					InvalidKeyPair:                  "Public key of certificate does not match private key",
+					InvalidCertificate:              "Signed certificate could not be parsed or decoded",
+					InvalidCertificateRequest:       "CSR could not be parsed or decoded",
+					SecretMismatch:                  "Secret's private key does not match spec",
+					IncorrectIssuer:                 "Certificate has been issued by incorrect Issuer",
+					IncorrectCertificate:            "Certificate's secretName already has an annotation with another Certificate",
+					Expired:                         "Certificate has expired",
+					SecretTemplateMismatch:          "SecretTemplate is not reflected on the target Secret",
+					SecretManagedMetadataMismatch:   "Secret is missing labels that should have been added by cert-manager",
+					AdditionalOutputFormatsMismatch: "Certificate's AdditionalOutputFormats are not reflected on the target Secret",
+					ManagedFieldsParseError:         "cert-manager was unable to decode the managed fields on a resource",
+					SecretOwnerRefMismatch:          "Secret has an incorrect owner reference",
+				}
 
-				default:
+				if msg, exists := unhealthyReasons[string(c.Reason)]; exists {
+					return &HealthStatus{
+						Health:  HealthUnhealthy,
+						Status:  HealthStatusCode(c.Reason),
+						Message: msg,
+						Ready:   true,
+					}, nil
+				} else if cert.Status.NotBefore != nil {
 					if overdue := time.Since(cert.Status.NotBefore.Time); overdue > time.Hour {
 						hs.Health = HealthUnhealthy
 						return hs, nil
@@ -202,75 +237,17 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 				}
 			}
 
-		case Renewing:
-			if cert.Status.RenewalTime != nil {
-				renewalTime := cert.Status.RenewalTime.Time
-
-				if time.Since(renewalTime) > certRenewalWarningPeriod {
-					return &HealthStatus{
-						Health:  HealthWarning,
-						Status:  HealthStatusWarning,
-						Message: fmt.Sprintf("Certificate has been in renewal state for > %s", time.Since(renewalTime)),
-					}, nil
-				}
-			}
-
-			hs := &HealthStatus{
-				Status:  HealthStatusCode(c.Reason),
-				Ready:   false,
-				Message: c.Message,
-			}
-
-			return hs, nil
-
-		default:
-			missingCases := map[string]string{
-				DoesNotExist:                    "Certificate secret does not exist",
-				MissingData:                     "Certificate secret has missing data",
-				InvalidKeyPair:                  "Public key of certificate does not match private key",
-				InvalidCertificate:              "Signed certificate could not be parsed or decoded",
-				InvalidCertificateRequest:       "CSR could not be parsed or decoded",
-				SecretMismatch:                  "Secret's private key does not match spec",
-				IncorrectIssuer:                 "Certificate has been issued by incorrect Issuer",
-				IncorrectCertificate:            "Certificate's secretName already has an annotation with another Certificate",
-				Expired:                         "Certificate has expired",
-				SecretTemplateMismatch:          "SecretTemplate is not reflected on the target Secret",
-				SecretManagedMetadataMismatch:   "Secret is missing labels that should have been added by cert-manager",
-				AdditionalOutputFormatsMismatch: "Certificate's AdditionalOutputFormats are not reflected on the target Secret",
-				ManagedFieldsParseError:         "cert-manager was unable to decode the managed fields on a resource",
-				SecretOwnerRefMismatch:          "Secret has an incorrect owner reference",
-			}
-
-			if msg, exists := missingCases[string(c.Type)]; exists {
-				return &HealthStatus{
-					Health:  HealthUnhealthy,
-					Status:  HealthStatusCode(c.Type),
-					Message: msg,
-					Ready:   true,
-				}, nil
+			// If we're issuing a new cert, at least ensure the existing cert hasn't expired
+			if expiryHealth := certExpiryCheck(cert); expiryHealth != nil {
+				return expiryHealth, nil
+			} else {
+				return hs, nil
 			}
 		}
 	}
 
-	if cert.Status.NotAfter != nil {
-		notAfterTime := cert.Status.NotAfter.Time
-		if notAfterTime.Before(time.Now()) {
-			return &HealthStatus{
-				Health:  HealthUnhealthy,
-				Status:  "Expired",
-				Message: "Certificate has expired",
-				Ready:   true,
-			}, nil
-		}
-
-		if time.Until(notAfterTime) < certExpiryWarningPeriod {
-			return &HealthStatus{
-				Health:  HealthWarning,
-				Status:  HealthStatusWarning,
-				Message: fmt.Sprintf("Certificate is expiring soon (%s)", notAfterTime),
-				Ready:   true,
-			}, nil
-		}
+	if expiryHealth := certExpiryCheck(cert); expiryHealth != nil {
+		return expiryHealth, nil
 	}
 
 	if cert.Status.RenewalTime != nil {
@@ -292,4 +269,31 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 	}
 
 	return status, nil
+}
+
+func certExpiryCheck(cert certmanagerv1.Certificate) *HealthStatus {
+	if cert.Status.NotAfter == nil {
+		return nil
+	}
+
+	notAfterTime := cert.Status.NotAfter.Time
+	if notAfterTime.Before(time.Now()) {
+		return &HealthStatus{
+			Health:  HealthUnhealthy,
+			Status:  "Expired",
+			Message: "Certificate has expired",
+			Ready:   true,
+		}
+	}
+
+	if time.Until(notAfterTime) < certExpiryWarningPeriod {
+		return &HealthStatus{
+			Health:  HealthWarning,
+			Status:  HealthStatusWarning,
+			Message: fmt.Sprintf("Certificate is expiring soon (%s)", notAfterTime),
+			Ready:   true,
+		}
+	}
+
+	return nil
 }
