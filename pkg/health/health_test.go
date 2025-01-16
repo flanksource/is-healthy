@@ -307,12 +307,41 @@ func TestCertificate(t *testing.T) {
 	// 	"2024-06-26T12:25:46Z": time.Now().Add(time.Hour).UTC().Format("2006-01-02T15:04:05Z"),
 	// }, health.HealthStatusWarning, health.HealthWarning, true)
 
-	assertAppHealthMsg(t, "./testdata/certificate-issuing.yaml", "ManuallyTriggered", health.HealthHealthy, false)
+	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-renewal.yaml", map[string]string{
+		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339),        // not Before
+		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 10).UTC().Format(time.RFC3339), // renewal time
+	}, "Renewing", health.HealthHealthy, false, "Renewing certificate as renewal was scheduled at 2025-01-16 14:09:47 +0000 UTC")
+
+	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-renewal.yaml", map[string]string{
+		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339), // not Before
+		"2025-01-16T14:09:52Z": time.Now().
+			Add(-time.Minute * 40).
+			UTC().
+			Format(time.RFC3339),
+		// renewal time over the grace period
+	}, "Renewing", health.HealthWarning, false, "Certificate has been in renewal state for > 40m0s")
+
+	assertAppHealthMsg(t, "./testdata/certificate-issuing-first-time.yaml", "Issuing", health.HealthUnknown, false)
+
+	assertAppHealthMsg(
+		t,
+		"./testdata/certificate-issuing-manually-triggered.yaml",
+		"Issuing",
+		health.HealthUnknown,
+		false,
+	)
 	assertAppHealthMsg(t, "./testdata/certificate-healthy.yaml", "Issued", health.HealthHealthy, true)
 
 	b := "../resource_customizations/cert-manager.io/Certificate/testdata/"
 	assertAppHealthMsg(t, b+"degraded_configError.yaml", "ConfigError", health.HealthUnhealthy, true)
-	assertAppHealthMsg(t, b+"progressing_issuing.yaml", "Issuing", health.HealthUnknown, false)
+	assertAppHealthMsg(
+		t,
+		b+"progressing_issuing.yaml",
+		"Issuing",
+		health.HealthUnknown,
+		false,
+		"Issuing certificate as Secret does not exist",
+	)
 }
 
 func TestExternalSecrets(t *testing.T) {
