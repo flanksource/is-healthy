@@ -36,6 +36,13 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 					Status:  HealthStatusCode(condition.Reason),
 					Ready:   true,
 				}, nil
+
+			case certmanagerv1.CertificateRequestReasonPending:
+				return &HealthStatus{
+					Health:  HealthUnknown,
+					Message: condition.Message,
+					Status:  HealthStatusCode(condition.Reason),
+				}, nil
 			}
 		}
 
@@ -66,7 +73,7 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 		return &HealthStatus{
 			Health:  HealthHealthy,
 			Message: cr.Message,
-			Status:  HealthStatusCode(cr.Type),
+			Status:  HealthStatusCode(cr.Reason),
 			Ready:   true,
 		}, nil
 	}

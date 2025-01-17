@@ -1,0 +1,52 @@
+apiVersion: cert-manager.io/v1
+kind: CertificateRequest
+metadata:
+  annotations:
+    cert-manager.io/certificate-name: homelab-tls-cert
+    cert-manager.io/certificate-revision: '1'
+    cert-manager.io/private-key-secret-name: homelab-tls-cert-gq575
+  creationTimestamp: '2024-11-18T07:12:41Z'
+  generation: 1
+  labels:
+    kustomize.toolkit.fluxcd.io/name: nginx
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  name: homelab-tls-cert-1
+  namespace: nginx-ingress
+  ownerReferences:
+    - apiVersion: cert-manager.io/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Certificate
+      name: homelab-tls-cert
+      uid: 3be95aaf-44c5-426e-af57-6f8e5543cfab
+  resourceVersion: '107624781'
+  uid: 5cba7d3c-68ec-40dd-82bc-11fbdbb673a3
+spec:
+  extra:
+    authentication.kubernetes.io/pod-name:
+      - cert-manager-f6554f586-tdndj
+    authentication.kubernetes.io/pod-uid:
+      - d6af0998-8133-4267-ace5-ed4a3cfa8baf
+  groups:
+    - system:serviceaccounts
+    - system:serviceaccounts:cert-manager
+    - system:authenticated
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  request: ZHVtbXk= # dummy
+  uid: 7cc4d02c-46aa-4f3c-b6d5-7d766af3e1d8
+  username: system:serviceaccount:cert-manager:cert-manager
+status:
+  certificate: ZHVtbXk= # dummy
+  conditions:
+    - lastTransitionTime: '2024-11-18T07:12:41Z'
+      message: Certificate request has been approved by cert-manager.io
+      reason: cert-manager.io
+      status: 'True'
+      type: Approved
+    - lastTransitionTime: '2024-11-18T07:19:20Z'
+      message: Certificate fetched from issuer successfully
+      reason: Issued
+      status: 'True'
+      type: Ready

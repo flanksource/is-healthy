@@ -1,0 +1,37 @@
+apiVersion: cert-manager.io/v1
+kind: CertificateRequest
+metadata:
+  uid: 9e67f1f7-c57e-4807-bf1f-773618e444a9
+  name: test-certificate-rnsfm
+  namespace: mission-control
+  annotations:
+    cert-manager.io/certificate-name: test-certificate
+    cert-manager.io/certificate-revision: "1"
+    cert-manager.io/private-key-secret-name: test-certificate-4p7hs
+  generateName: test-certificate-
+  ownerReferences:
+    - uid: 9c03ef34-c657-4e58-8cd2-bf49c117be31
+      kind: Certificate
+      name: test-certificate
+      apiVersion: cert-manager.io/v1
+      controller: true
+      blockOwnerDeletion: true
+  creationTimestamp: 2024-04-02T13:49:45Z
+spec:
+  request: ZHVtbXk= # dummy
+  duration: 2160h0m0s
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-staging
+    group: cert-manager.io
+status:
+  conditions:
+    - type: Approved
+      reason: cert-manager.io
+      status: "True"
+      message: Certificate request has been approved by cert-manager.io
+    - type: Ready
+      reason: Pending
+      status: "False"
+      message: 'Referenced "ClusterIssuer" not found: clusterissuer.cert-manager.io
+        "letsencrypt-staging" not found'

@@ -263,16 +263,33 @@ func TestNamespace(t *testing.T) {
 }
 
 func TestCertificateRequest(t *testing.T) {
+	assertAppHealthMsg(t, "./testdata/certificate-request-issued.yaml", "Issued", health.HealthHealthy, true)
+
+	// Approved but then failed
+	assertAppHealthMsg(
+		t,
+		"./testdata/certificate-request-invalid-cluster-issuer.yaml",
+		"Pending",
+		health.HealthUnknown,
+		false,
+		`Referenced "ClusterIssuer" not found: clusterissuer.cert-manager.io "letsencrypt-staging" not found`,
+	)
+
 	// Approved but then failed
 	assertAppHealthMsg(t, "./testdata/certificate-request-invalid.yaml", "Failed", health.HealthUnhealthy, true)
 
 	// approved but not issued in 1h
-	assertAppHealthMsg(t, "./testdata/certificate-request-approved.yaml", "Approved", health.HealthUnhealthy, false)
+	assertAppHealthMsg(t, "./testdata/certificate-request-pending.yaml", "Pending", health.HealthUnknown, false)
 
 	// approved in the last 1h
-	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-request-approved.yaml", map[string]string{
+	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-request-pending.yaml", map[string]string{
 		"2024-10-28T08:22:13Z": time.Now().Add(-time.Minute * 10).Format(time.RFC3339),
-	}, "Approved", health.HealthHealthy, false, "Certificate request has been approved by cert-manager.io")
+	},
+		"Pending",
+		health.HealthUnknown,
+		false,
+		`Waiting on certificate issuance from order gitlab/gitlab-registry-tls-1-751983884: "pending"`,
+	)
 }
 
 func TestCertificate(t *testing.T) {
