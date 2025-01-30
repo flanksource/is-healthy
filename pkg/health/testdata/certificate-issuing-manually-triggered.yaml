@@ -1,0 +1,39 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  creationTimestamp: "2024-11-18T07:12:40Z"
+  generation: 1
+  labels:
+    kustomize.toolkit.fluxcd.io/name: nginx
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  name: my-tls-cert
+  namespace: nginx-ingress
+  resourceVersion: "128012546"
+  uid: 3be95aaf-44c5-426e-af57-6f8e5543cfab
+spec:
+  commonName: example.com
+  dnsNames:
+  - example.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  secretName: my-tls-cert
+status:
+  conditions:
+  - lastTransitionTime: "2024-11-18T07:19:20Z"
+    message: Certificate is up to date and has not expired
+    observedGeneration: 1
+    reason: Ready
+    status: "True"
+    type: Ready
+  - lastTransitionTime: "2025-01-16T11:52:26Z"
+    message: Certificate re-issuance manually triggered
+    observedGeneration: 1
+    reason: ManuallyTriggered
+    status: "True"
+    type: Issuing
+  nextPrivateKeySecretName: my-tls-cert-rqvmk
+  notAfter: "2025-02-16T06:20:48Z"
+  notBefore: "2024-11-18T06:20:49Z"
+  renewalTime: "2025-01-17T06:20:48Z"
+  revision: 1
