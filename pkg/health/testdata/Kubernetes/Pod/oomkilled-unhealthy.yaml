@@ -8,8 +8,7 @@ metadata:
     expected-status: OOMKilled
     expected-health: unhealthy
     expected-last-update: "@now-5m"
-    expected-message:  system has run out of memory, restarted 9 times
-  creationTimestamp: 2024-11-20T06:57:31Z
+    expected-message: 'ContainersNotReady containers with unready status: [oomkilled], system has run out of memory, restarted 9 times'
 spec:
   volumes:
     - name: kube-api-access-c5fxw

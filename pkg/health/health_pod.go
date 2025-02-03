@@ -117,14 +117,15 @@ func getContainerStatus(containerStatus corev1.ContainerStatus) (waiting *Health
 }
 
 func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
-	isReady := IsPodReady(pod)
+	isReady, isReadyMsg := IsPodReady(pod)
 	containers := append(pod.Status.InitContainerStatuses, pod.Status.ContainerStatuses...)
 	deadline := GetStartDeadline(append(pod.Spec.InitContainers, pod.Spec.Containers...)...)
 	age := time.Since(pod.CreationTimestamp.Time).Truncate(time.Minute).Abs()
 	isStarting := age < deadline
 	hr := HealthStatus{
-		Health: lo.Ternary(isReady, HealthHealthy, HealthUnhealthy),
-		Ready:  isReady,
+		Health:  lo.Ternary(isReady, HealthHealthy, HealthUnhealthy),
+		Ready:   isReady,
+		Message: isReadyMsg,
 	}
 
 	if pod.ObjectMeta.DeletionTimestamp != nil && !pod.ObjectMeta.DeletionTimestamp.IsZero() {

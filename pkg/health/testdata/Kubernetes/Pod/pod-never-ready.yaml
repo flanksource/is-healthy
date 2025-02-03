@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2025-02-03T10:31:50Z"
+  name: slow-start-pod
+  namespace: default
+  resourceVersion: "424384538"
+  uid: cc0ff436-50bb-49a5-a76c-6b6b873cb1de
+  annotations:
+    expected-status: Running
+    expected-health: unhealthy
+    expected-message: 'ContainersNotReady containers with unready status: [slow-container]' 
+spec:
+  containers:
+  - command:
+    - sh
+    - -c
+    - sleep 3600
+    image: busybox
+    imagePullPolicy: Always
+    livenessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - echo alive
+      failureThreshold: 3
+      initialDelaySeconds: 3
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    name: slow-container
+    readinessProbe:
+      exec:
+        command:
+        - sh
+        - -c
+        - sleep 600 && exit 1
+      failureThreshold: 100
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-jtpfz
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+  - name: dockerhub
+  nodeName: ip-10-0-4-167.eu-west-1.compute.internal
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-jtpfz
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-03T10:31:53Z"
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-03T10:31:50Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-03T10:31:50Z"
+    message: 'containers with unready status: [slow-container]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-03T10:31:50Z"
+    message: 'containers with unready status: [slow-container]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2025-02-03T10:31:50Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://ad0eda231ac102fee79bee9b2d71b8573445e45615aced0742500d88ceb23418
+    image: docker.io/library/busybox:latest
+    imageID: docker.io/library/busybox@sha256:a5d0ce49aa801d475da48f8cb163c354ab95cab073cd3c138bd458fc8257fbf1
+    lastState: {}
+    name: slow-container
+    ready: false
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2025-02-03T10:31:52Z"
+  hostIP: 10.0.4.167
+  hostIPs:
+  - ip: 10.0.4.167
+  phase: Running
+  podIP: 10.0.4.177
+  podIPs:
+  - ip: 10.0.4.177
+  qosClass: BestEffort
+  startTime: "2025-02-03T10:31:50Z"
+

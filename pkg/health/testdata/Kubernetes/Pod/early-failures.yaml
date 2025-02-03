@@ -11,7 +11,7 @@ metadata:
   annotations:
     expected-status: Running
     expected-health: warning
-    expected-message: restarted 2 times
+    expected-message: 'restarted 2 times'
   namespace: mission-control
   generateName: canary-checker-6985458cf7-
   ownerReferences:

@@ -78,8 +78,12 @@ func (hs HealthStatus) Merge(others ...*HealthStatus) HealthStatus {
 			hs.Status = other.Status
 		}
 		hs.Ready = hs.Ready && other.Ready
-		hs.Message = strings.Join(lo.Compact([]string{hs.Message, other.Message}), ", ")
-
+		hs.Message = strings.TrimSpace(hs.Message)
+		if hs.Message != "" {
+			hs.Message = strings.Join(lo.Compact([]string{hs.Message, other.Message}), ", ")
+		} else {
+			hs.Message = other.Message
+		}
 	}
 	return hs
 }
@@ -88,7 +92,7 @@ func (hs *HealthStatus) AppendMessage(msg string, args ...interface{}) {
 	if msg == "" {
 		return
 	}
-	if hs.Message != "" {
+	if strings.TrimSpace(hs.Message) != "" {
 		hs.Message += ", "
 	}
 	hs.Message += fmt.Sprintf(msg, args...)
@@ -111,7 +115,7 @@ func (hs *HealthStatus) PrependMessage(msg string, args ...interface{}) {
 // 1. minReadySeconds == 0, or
 // 2. LastTransitionTime (is set) + minReadySeconds < current time
 func IsPodAvailable(pod *corev1.Pod, minReadySeconds int32, now metav1.Time) bool {
-	if !IsPodReady(pod) {
+	if isReady, _ := IsPodReady(pod); !isReady {
 		return false
 	}
 
@@ -124,15 +128,19 @@ func IsPodAvailable(pod *corev1.Pod, minReadySeconds int32, now metav1.Time) boo
 	return false
 }
 
-// IsPodReady returns true if a pod is ready; false otherwise.
-func IsPodReady(pod *corev1.Pod) bool {
+// IsPodReady returns true if a pod is ready; false with message otherwise.
+func IsPodReady(pod *corev1.Pod) (bool, string) {
 	return isPodReadyConditionTrue(pod.Status)
 }
 
 // IsPodReadyConditionTrue returns true if a pod is ready; false otherwise.
-func isPodReadyConditionTrue(status corev1.PodStatus) bool {
+func isPodReadyConditionTrue(status corev1.PodStatus) (bool, string) {
 	condition := getPodReadyCondition(status)
-	return condition != nil && condition.Status == corev1.ConditionTrue
+	if condition == nil {
+		return false, ""
+	}
+	msg := fmt.Sprintf("%s %s", condition.Reason, condition.Message)
+	return condition.Status == corev1.ConditionTrue, msg
 }
 
 // GetPodReadyCondition extracts the pod ready condition from the given status and returns that.
