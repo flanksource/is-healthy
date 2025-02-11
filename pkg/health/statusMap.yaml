@@ -69,7 +69,7 @@ Kustomization:
         ArtifactOutdated:
           health: warning
         DependencyNotReady:
-          health: warning
+          health: unknown
     Healthy:
       order: 1
       health: healthy
