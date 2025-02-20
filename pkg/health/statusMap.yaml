@@ -48,10 +48,6 @@ Kustomization:
   conditions:
     Ready:
       order: 2
-      onFalse:
-        order: 3
-        message: true
-        health: unhealthy
       ready: true
       message: true
       reasons:
@@ -64,12 +60,22 @@ Kustomization:
           health: unhealthy
         FetchFailed:
           health: warning
+        PruneFailed:
+          health: warning
         StorageOperationFailed:
+          health: unhealthy
+        HealthCheckFailed:
           health: unhealthy
         ArtifactOutdated:
           health: warning
+        ArtifactFailed:
+          health: warning
+        ProgressingWithRetry:
+          health: warning
         DependencyNotReady:
           health: unknown
+        ReconciliationFailed:
+          health: unhealthy
     Healthy:
       order: 1
       health: healthy
