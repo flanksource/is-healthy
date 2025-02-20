@@ -245,7 +245,7 @@ func TestCrossplane(t *testing.T) {
 		t,
 		"./testdata/crossplane-reconcile-error.yaml",
 		"ReconcileError",
-		health.HealthWarning,
+		health.HealthUnhealthy,
 		true,
 		"observe failed: cannot run plan: plan failed: Instance cannot be destroyed: Resource azurerm_kubernetes_cluster_node_pool.prodeu01 has lifecycle.prevent_destroy set, but the plan calls for this resource to be destroyed. To avoid this error and continue with the plan, either disable lifecycle.prevent_destroy or reduce the scope of the plan using the -target flag.",
 	)

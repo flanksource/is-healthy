@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"strings"
 
+	"github.com/samber/lo"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -175,6 +176,10 @@ func (mapped *Condition) Apply(health *HealthStatus, c *metav1.Condition) {
 	}
 
 	if reason, ok := mapped.Reasons[c.Reason]; ok {
+		reason.Order = max(reason.Order, lo.FromPtr(mapped).Order)
+		if c.Status == metav1.ConditionFalse {
+			reason.Order = max(reason.Order, lo.FromPtr(mapped.OnFalse).Order)
+		}
 		reason.Apply(health, c)
 	}
 }

@@ -50,6 +50,10 @@ Kustomization:
       order: 2
       ready: true
       message: true
+      onFalse:
+        order: 3
+        message: true
+        health: unhealthy
       reasons:
         ReconciliationSucceeded:
           health: healthy

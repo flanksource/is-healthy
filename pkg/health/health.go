@@ -174,7 +174,7 @@ func GetHealthByConfigType(configType string, obj map[string]any, states ...stri
 	}
 }
 
-func max(a, b time.Time) time.Time {
+func maxTime(a, b time.Time) time.Time {
 	if a.After(b) {
 		return a
 	}
@@ -185,14 +185,14 @@ func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
 	lastUpdated := obj.GetCreationTimestamp().Time
 
 	if obj.GetDeletionTimestamp() != nil {
-		lastUpdated = max(lastUpdated, obj.GetDeletionTimestamp().Time)
+		lastUpdated = maxTime(lastUpdated, obj.GetDeletionTimestamp().Time)
 	}
 
 	// Check annotations
 	if annotations := obj.GetAnnotations(); annotations != nil {
 		if lastApplied, ok := annotations["kubectl.kubernetes.io/last-applied-configuration"]; ok {
 			if t, err := time.Parse(time.RFC3339, lastApplied); err == nil {
-				lastUpdated = max(lastUpdated, t)
+				lastUpdated = maxTime(lastUpdated, t)
 			}
 		}
 	}
@@ -219,7 +219,7 @@ func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
 			if operation == "Update" {
 				if updatedTime, ok := field["time"]; ok {
 					if t, err := time.Parse(time.RFC3339, updatedTime.(string)); err == nil {
-						lastUpdated = max(lastUpdated, t)
+						lastUpdated = maxTime(lastUpdated, t)
 					}
 				}
 			}
@@ -230,7 +230,7 @@ func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
 		for _, key := range possibleStatus {
 			if value, ok, _ := unstructured.NestedString(status, key...); ok {
 				if t, err := time.Parse(time.RFC3339, value); err == nil {
-					lastUpdated = max(lastUpdated, t)
+					lastUpdated = maxTime(lastUpdated, t)
 				}
 			}
 		}
@@ -246,7 +246,7 @@ func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
 				for _, k := range []string{"lastProbeTime", "lastTransitionTime", "lastUpdateTime"} {
 					if lastTransitionTime, exists, _ := unstructured.NestedString(condition, k); exists {
 						if t, err := time.Parse(time.RFC3339, lastTransitionTime); err == nil {
-							lastUpdated = max(lastUpdated, t)
+							lastUpdated = maxTime(lastUpdated, t)
 						}
 					}
 				}
@@ -270,7 +270,7 @@ func GetLastUpdatedTime(obj *unstructured.Unstructured) *time.Time {
 				} {
 					if at, exists, _ := unstructured.NestedString(containerStatus, k...); exists {
 						if t, err := time.Parse(time.RFC3339, at); err == nil {
-							lastUpdated = max(lastUpdated, t)
+							lastUpdated = maxTime(lastUpdated, t)
 						}
 					}
 				}
