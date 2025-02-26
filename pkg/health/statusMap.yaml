@@ -100,6 +100,10 @@ HelmRelease: &flux
       ready: true
       health: healthy
       message: true
+      onFalse:
+        order: 3
+        message: true
+        health: unhealthy
       reasons:
         UpgradeFailed:
           health: unhealthy

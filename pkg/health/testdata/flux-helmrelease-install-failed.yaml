@@ -1,0 +1,123 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  uid: b14d1616-c52b-42a5-9739-8abb007e9aeb
+  name: mission-control-helm
+  labels:
+    kustomize.toolkit.fluxcd.io/name: aws-demo-infra
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  namespace: mission-control
+  finalizers:
+    - finalizers.fluxcd.io
+  annotations:
+    config.kubernetes.io/origin: |
+      path: canaries/_tenant/registry-helm.yaml
+    reconcile.fluxcd.io/requestedAt: 2025-01-15T10:26:23.215058793+05:30
+  creationTimestamp: 2025-01-15T04:29:19Z
+spec:
+  chart:
+    spec:
+      chart: mission-control-helm
+      version: vx.x.x-beta
+      interval: 5m
+      sourceRef:
+        kind: HelmRepository
+        name: mission-control
+        namespace: mission-control
+      reconcileStrategy: ChartVersion
+  values:
+    git:
+      connection: connection://mission-control/github
+  interval: 5m
+status:
+  failures: 89
+  helmChart: mission-control/mission-control-mission-control-helm
+  conditions:
+    - type: Ready
+      reason: InstallFailed
+      status: "False"
+      message: >-
+        Helm install failed for release mission-control/mission-control-helm
+        with chart mission-control-helm@0.1.4-beta.3: error while running post
+        render on files: map[string]interface {}(nil): yaml: unmarshal errors:
+          line 20: mapping key "name" already defined at line 17
+          line 40: mapping key "name" already defined at line 37
+          line 60: mapping key "name" already defined at line 57
+          line 80: mapping key "name" already defined at line 77
+          line 100: mapping key "name" already defined at line 97
+          line 120: mapping key "name" already defined at line 117
+          line 140: mapping key "name" already defined at line 137
+          line 160: mapping key "name" already defined at line 157
+          line 180: mapping key "name" already defined at line 177
+          line 200: mapping key "name" already defined at line 197
+          line 220: mapping key "name" already defined at line 217
+          line 240: mapping key "name" already defined at line 237
+          line 260: mapping key "name" already defined at line 257
+          line 280: mapping key "name" already defined at line 277
+          line 300: mapping key "name" already defined at line 297
+          line 320: mapping key "name" already defined at line 317
+          line 340: mapping key "name" already defined at line 337
+          line 360: mapping key "name" already defined at line 357
+          line 380: mapping key "name" already defined at line 377
+          line 400: mapping key "name" already defined at line 397
+          line 420: mapping key "name" already defined at line 417
+          line 440: mapping key "name" already defined at line 437
+          line 460: mapping key "name" already defined at line 457
+          line 480: mapping key "name" already defined at line 477
+          line 500: mapping key "name" already defined at line 497
+          line 520: mapping key "name" already defined at line 517
+          line 540: mapping key "name" already defined at line 537
+          line 560: mapping key "name" already defined at line 557
+          line 580: mapping key "name" already defined at line 577
+          line 600: mapping key "name" already defined at line 597
+          line 620: mapping key "name" already defined at line 617
+          line 640: mapping key "name" already defined at line 637
+    - type: Reconciling
+      reason: Progressing
+      status: "True"
+      message: Running 'install' action with timeout of 5m0s
+    - type: Released
+      reason: InstallFailed
+      status: "False"
+      message: >-
+        Helm install failed for release mission-control/mission-control-helm
+        with chart mission-control-helm@0.1.4-beta.3: error while running post
+        render on files: map[string]interface {}(nil): yaml: unmarshal errors:
+          line 20: mapping key "name" already defined at line 17
+          line 40: mapping key "name" already defined at line 37
+          line 60: mapping key "name" already defined at line 57
+          line 80: mapping key "name" already defined at line 77
+          line 100: mapping key "name" already defined at line 97
+          line 120: mapping key "name" already defined at line 117
+          line 140: mapping key "name" already defined at line 137
+          line 160: mapping key "name" already defined at line 157
+          line 180: mapping key "name" already defined at line 177
+          line 200: mapping key "name" already defined at line 197
+          line 220: mapping key "name" already defined at line 217
+          line 240: mapping key "name" already defined at line 237
+          line 260: mapping key "name" already defined at line 257
+          line 280: mapping key "name" already defined at line 277
+          line 300: mapping key "name" already defined at line 297
+          line 320: mapping key "name" already defined at line 317
+          line 340: mapping key "name" already defined at line 337
+          line 360: mapping key "name" already defined at line 357
+          line 380: mapping key "name" already defined at line 377
+          line 400: mapping key "name" already defined at line 397
+          line 420: mapping key "name" already defined at line 417
+          line 440: mapping key "name" already defined at line 437
+          line 460: mapping key "name" already defined at line 457
+          line 480: mapping key "name" already defined at line 477
+          line 500: mapping key "name" already defined at line 497
+          line 520: mapping key "name" already defined at line 517
+          line 540: mapping key "name" already defined at line 537
+          line 560: mapping key "name" already defined at line 557
+          line 580: mapping key "name" already defined at line 577
+          line 600: mapping key "name" already defined at line 597
+          line 620: mapping key "name" already defined at line 617
+          line 640: mapping key "name" already defined at line 637
+  storageNamespace: mission-control
+  lastAttemptedRevision: 0.1.4-beta.3
+  lastHandledReconcileAt: 2025-01-15T10:26:23.215058793+05:30
+  lastAttemptedGeneration: 5
+  lastAttemptedConfigDigest: sha256:28c365f14e979b5360a6426ae24a9de0b6b60b5cf4d9d6295ad30139247ab15b
+  lastAttemptedReleaseAction: install
