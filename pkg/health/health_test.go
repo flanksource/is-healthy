@@ -543,13 +543,6 @@ func TestArgoApplication(t *testing.T) {
 func TestFluxResources(t *testing.T) {
 	assertAppHealthMsg(
 		t,
-		"./testdata/flux-helmrelease-install-failed.yaml",
-		"InstallFailed",
-		health.HealthUnhealthy,
-		false,
-	)
-	assertAppHealthMsg(
-		t,
 		"./testdata/kustomization-reconciliation-failed.yaml",
 		"ReconciliationFailed",
 		health.HealthUnhealthy,

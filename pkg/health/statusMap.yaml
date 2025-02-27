@@ -104,6 +104,7 @@ HelmRelease: &flux
         order: 3
         message: true
         health: unhealthy
+        ready: true
       reasons:
         UpgradeFailed:
           health: unhealthy

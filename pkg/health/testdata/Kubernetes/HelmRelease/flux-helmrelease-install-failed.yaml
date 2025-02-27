@@ -13,6 +13,9 @@ metadata:
     config.kubernetes.io/origin: |
       path: canaries/_tenant/registry-helm.yaml
     reconcile.fluxcd.io/requestedAt: 2025-01-15T10:26:23.215058793+05:30
+    expected-status: InstallFailed
+    expected-health: unhealthy
+    expected-ready: "true"
   creationTimestamp: 2025-01-15T04:29:19Z
 spec:
   chart:
@@ -34,6 +37,7 @@ status:
   helmChart: mission-control/mission-control-mission-control-helm
   conditions:
     - type: Ready
+      lastTransitionTime: 2025-01-15T10:26:23.215058793+05:30
       reason: InstallFailed
       status: "False"
       message: >-
@@ -73,10 +77,12 @@ status:
           line 620: mapping key "name" already defined at line 617
           line 640: mapping key "name" already defined at line 637
     - type: Reconciling
+      lastTransitionTime: 2025-01-15T10:26:23.215058793+05:30
       reason: Progressing
       status: "True"
       message: Running 'install' action with timeout of 5m0s
     - type: Released
+      lastTransitionTime: 2025-01-15T10:26:23.215058793+05:30
       reason: InstallFailed
       status: "False"
       message: >-
