@@ -270,7 +270,7 @@ func TestCertificateRequest(t *testing.T) {
 		t,
 		"./testdata/certificate-request-invalid-cluster-issuer.yaml",
 		"Pending",
-		health.HealthUnknown,
+		health.HealthUnhealthy,
 		false,
 		`Referenced "ClusterIssuer" not found: clusterissuer.cert-manager.io "letsencrypt-staging" not found`,
 	)
@@ -279,7 +279,7 @@ func TestCertificateRequest(t *testing.T) {
 	assertAppHealthMsg(t, "./testdata/certificate-request-invalid.yaml", "Failed", health.HealthUnhealthy, true)
 
 	// approved but not issued in 1h
-	assertAppHealthMsg(t, "./testdata/certificate-request-pending.yaml", "Pending", health.HealthUnknown, false)
+	assertAppHealthMsg(t, "./testdata/certificate-request-pending.yaml", "Pending", health.HealthUnhealthy, false)
 
 	// approved in the last 1h
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-request-pending.yaml", map[string]string{

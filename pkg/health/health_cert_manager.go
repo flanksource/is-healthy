@@ -101,8 +101,15 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 				}, nil
 
 			case certmanagerv1.CertificateRequestReasonPending:
+				health := HealthUnknown
+
+				durationInPendingState := time.Since(obj.GetCreationTimestamp().Time)
+				if durationInPendingState > time.Minute*30 {
+					health = HealthUnhealthy
+				}
+
 				return &HealthStatus{
-					Health:  HealthUnknown,
+					Health:  health,
 					Message: condition.Message,
 					Status:  HealthStatusCode(condition.Reason),
 				}, nil
