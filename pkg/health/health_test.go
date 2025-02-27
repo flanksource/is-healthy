@@ -321,7 +321,9 @@ func TestCertificate(t *testing.T) {
 		// renewal time over the grace period
 	}, "Renewing", health.HealthWarning, false, "Certificate has been in renewal state for > 40m0s")
 
-	assertAppHealthMsg(t, "./testdata/certificate-issuing-first-time.yaml", "Issuing", health.HealthUnknown, false)
+	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-first-time.yaml", map[string]string{
+		"2025-01-16T14:27:19Z": time.Now().Add(-time.Minute * 5).UTC().Format(time.RFC3339), // creation timestamp
+	}, "Failed", health.HealthUnhealthy, true, `The certificate request has failed to complete and will be retried: The CSR PEM requests a commonName that is not present in the list of dnsNames or ipAddresses. If a commonName is set, ACME requires that the value is also present in the list of dnsNames or ipAddresses: "example.com" does not exist in [testing-cert-manager.example.com] or []`)
 
 	assertAppHealthMsg(
 		t,
@@ -337,8 +339,8 @@ func TestCertificate(t *testing.T) {
 	assertAppHealthMsg(
 		t,
 		b+"progressing_issuing.yaml",
-		"Issuing",
-		health.HealthUnknown,
+		"DoesNotExist",
+		health.HealthUnhealthy,
 		false,
 		"Issuing certificate as Secret does not exist",
 	)

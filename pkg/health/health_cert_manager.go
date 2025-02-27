@@ -6,7 +6,6 @@ import (
 
 	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -179,10 +178,6 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 	}
 
 	for _, c := range cert.Status.Conditions {
-		if string(c.Status) != string(v1.ConditionTrue) {
-			continue
-		}
-
 		if c.Type == certmanagerv1.CertificateConditionIssuing {
 			hs := &HealthStatus{
 				Status:  HealthStatusCode(c.Reason),
@@ -191,7 +186,22 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 			}
 
 			switch c.Reason {
-			case "ManuallyTriggered", DoesNotExist:
+			case "ManuallyTriggered":
+				// We check for expiry below
+				hs.Status = "Issuing"
+				hs.Health = HealthUnknown
+
+			case DoesNotExist:
+				inIssuingState := time.Since(obj.GetCreationTimestamp().Time)
+				if inIssuingState > time.Minute*30 {
+					return &HealthStatus{
+						Status:  HealthStatusCode(c.Reason),
+						Health:  HealthUnhealthy,
+						Message: c.Message,
+						Ready:   false,
+					}, nil
+				}
+
 				// We check for expiry below
 				hs.Status = "Issuing"
 				hs.Health = HealthUnknown
@@ -208,6 +218,14 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 				} else {
 					hs.Health = HealthHealthy
 				}
+
+			case "Failed":
+				return &HealthStatus{
+					Status:  HealthStatusCode(c.Reason),
+					Health:  HealthUnhealthy,
+					Message: c.Message,
+					Ready:   true,
+				}, nil
 
 			default:
 				unhealthyReasons := map[string]string{
