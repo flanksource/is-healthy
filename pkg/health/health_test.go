@@ -263,8 +263,6 @@ func TestNamespace(t *testing.T) {
 }
 
 func TestCertificateRequest(t *testing.T) {
-	assertAppHealthMsg(t, "./testdata/certificate-request-issued.yaml", "Issued", health.HealthHealthy, true)
-
 	// Approved but then failed
 	assertAppHealthMsg(
 		t,
@@ -274,12 +272,6 @@ func TestCertificateRequest(t *testing.T) {
 		false,
 		`Referenced "ClusterIssuer" not found: clusterissuer.cert-manager.io "letsencrypt-staging" not found`,
 	)
-
-	// Approved but then failed
-	assertAppHealthMsg(t, "./testdata/certificate-request-invalid.yaml", "Failed", health.HealthUnhealthy, true)
-
-	// approved but not issued in 1h
-	assertAppHealthMsg(t, "./testdata/certificate-request-pending.yaml", "Pending", health.HealthUnhealthy, false)
 
 	// approved in the last 1h
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-request-pending.yaml", map[string]string{
@@ -324,15 +316,6 @@ func TestCertificate(t *testing.T) {
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-first-time.yaml", map[string]string{
 		"2025-01-16T14:27:19Z": time.Now().Add(-time.Minute * 5).UTC().Format(time.RFC3339), // creation timestamp
 	}, "Failed", health.HealthUnhealthy, true, `The certificate request has failed to complete and will be retried: The CSR PEM requests a commonName that is not present in the list of dnsNames or ipAddresses. If a commonName is set, ACME requires that the value is also present in the list of dnsNames or ipAddresses: "example.com" does not exist in [testing-cert-manager.example.com] or []`)
-
-	assertAppHealthMsg(
-		t,
-		"./testdata/certificate-issuing-manually-triggered.yaml",
-		"Issuing",
-		health.HealthUnknown,
-		false,
-	)
-	assertAppHealthMsg(t, "./testdata/certificate-healthy.yaml", "Issued", health.HealthHealthy, true)
 
 	b := "../resource_customizations/cert-manager.io/Certificate/testdata/"
 	assertAppHealthMsg(t, b+"degraded_configError.yaml", "ConfigError", health.HealthUnhealthy, true)

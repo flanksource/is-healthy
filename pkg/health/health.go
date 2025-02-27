@@ -459,7 +459,7 @@ func init() {
 			certExpiryWarningPeriod = v
 		}
 
-		if v := p.Duration(defaultCrtRenewalWarningPeriod, "health.cert-manager.renewalGracePeriod"); v != 0 {
+		if v := p.Duration(defaultCertRenewalWarningPeriod, "health.cert-manager.renewalGracePeriod"); v != 0 {
 			certRenewalWarningPeriod = v
 		}
 	})

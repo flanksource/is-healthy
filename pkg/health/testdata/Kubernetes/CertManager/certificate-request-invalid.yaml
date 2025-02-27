@@ -8,6 +8,9 @@ metadata:
     cert-manager.io/certificate-name: shortlived
     cert-manager.io/certificate-revision: '1'
     cert-manager.io/private-key-secret-name: shortlived-pmfwq
+    expected-status: "Failed"
+    expected-health: unhealthy
+    expected-ready: "true"
   creationTimestamp: '2025-01-16T14:48:55Z'
   generation: 1
   name: shortlived-1

@@ -5,6 +5,9 @@ metadata:
     cert-manager.io/certificate-name: homelab-tls-cert
     cert-manager.io/certificate-revision: '1'
     cert-manager.io/private-key-secret-name: homelab-tls-cert-gq575
+    expected-status: "Issued"
+    expected-health: healthy
+    expected-ready: "true"
   creationTimestamp: '2024-11-18T07:12:41Z'
   generation: 1
   labels:

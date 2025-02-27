@@ -6,6 +6,10 @@ metadata:
   labels:
     kustomize.toolkit.fluxcd.io/name: nginx
     kustomize.toolkit.fluxcd.io/namespace: flux-system
+  annotations:
+    expected-status: "Issuing"
+    expected-health: unknown
+    expected-ready: "false"
   name: my-tls-cert
   namespace: nginx-ingress
   resourceVersion: "128012546"
@@ -13,27 +17,28 @@ metadata:
 spec:
   commonName: example.com
   dnsNames:
-  - example.com
+    - example.com
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-production
   secretName: my-tls-cert
 status:
   conditions:
-  - lastTransitionTime: "2024-11-18T07:19:20Z"
-    message: Certificate is up to date and has not expired
-    observedGeneration: 1
-    reason: Ready
-    status: "True"
-    type: Ready
-  - lastTransitionTime: "2025-01-16T11:52:26Z"
-    message: Certificate re-issuance manually triggered
-    observedGeneration: 1
-    reason: ManuallyTriggered
-    status: "True"
-    type: Issuing
+    - lastTransitionTime: "2024-11-18T07:19:20Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    - lastTransitionTime: "2025-01-16T11:52:26Z"
+      message: Certificate re-issuance manually triggered
+      observedGeneration: 1
+      reason: ManuallyTriggered
+      status: "True"
+      type: Issuing
   nextPrivateKeySecretName: my-tls-cert-rqvmk
   notAfter: "2035-02-16T06:20:48Z"
   notBefore: "2024-11-18T06:20:49Z"
   renewalTime: "2035-01-17T06:20:48Z"
   revision: 1
+

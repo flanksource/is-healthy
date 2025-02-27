@@ -8,6 +8,10 @@ metadata:
   resourceVersion: "68337322"
   selfLink: /apis/cert-manager.io/v1alpha2/namespaces/argocd/certificates/test-cert
   uid: e6cfba50-314d-11e9-be3f-42010a800011
+  annotations:
+    expected-status: Issued
+    expected-health: healthy
+    expected-ready: "true"
 spec:
   acme:
     config:
