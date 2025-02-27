@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	defaultCertExpiryWarningPeriod = time.Hour * 24 * 2
-	defaultCrtRenewalWarningPeriod = time.Minute * 30
+	defaultCertExpiryWarningPeriod  = time.Hour * 24 * 2
+	defaultCertRenewalWarningPeriod = time.Minute * 30
 )
 
 var (
 	certExpiryWarningPeriod  = defaultCertExpiryWarningPeriod
-	certRenewalWarningPeriod = defaultCrtRenewalWarningPeriod
+	certRenewalWarningPeriod = defaultCertRenewalWarningPeriod
 )
 
 // https://github.com/cert-manager/cert-manager/blob/cb20920fcf80c73ab6310470d5464d40e22db492/internal/controller/certificates/policies/constants.go
@@ -103,7 +103,7 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 				health := HealthUnknown
 
 				durationInPendingState := time.Since(obj.GetCreationTimestamp().Time)
-				if durationInPendingState > time.Minute*30 {
+				if durationInPendingState > certRenewalWarningPeriod {
 					health = HealthUnhealthy
 				}
 
