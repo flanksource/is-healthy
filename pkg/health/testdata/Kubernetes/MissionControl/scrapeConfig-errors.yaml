@@ -1,0 +1,47 @@
+apiVersion: configs.flanksource.com/v1
+kind: ScrapeConfig
+metadata:
+  annotations:
+    expected-ready: 'true'
+    expected-health: 'warning'
+    expected-message: 'failed to get server resources'
+  creationTimestamp: '2024-12-04T12:21:48Z'
+  finalizers:
+    - scrapeConfig.config.flanksource.com
+  generation: 5
+  name: homelab
+  namespace: mc
+  resourceVersion: '145300093'
+  uid: 139182ab-8637-40df-9f0f-ab9bc419c6f7
+spec:
+  kubernetes:
+    - clusterName: homelab
+      exclusions:
+        kind:
+          - Secret
+          - APIService
+          - ComponentStatus
+          - PodMetrics
+          - NodeMetrics
+          - endpoints.discovery.k8s.io
+          - endpointslices.discovery.k8s.io
+          - leases.coordination.k8s.io
+          - orders.acme.cert-manager.io
+        labels:
+          canaries.flanksource.com/check: '*'
+          canaries.flanksource.com/check-id: '*'
+          canaries.flanksource.com/generated: 'true'
+        name:
+          - junit*
+          - k6-junit*
+          - newman-junit*
+          - playwright-junit-*
+        namespace: []
+  schedule: '@every 1h'
+status:
+  lastRun:
+    error: 1
+    errors:
+      - 'failed to get server resources'
+    success: 1
+    timestamp: '@now-5m'

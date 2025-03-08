@@ -7,6 +7,7 @@ require (
 	github.com/cert-manager/cert-manager v1.9.0
 	github.com/flanksource/commons v1.31.2
 	github.com/gobwas/glob v0.2.3
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.44.0
 	github.com/stretchr/testify v1.9.0
 	github.com/yuin/gopher-lua v1.1.0

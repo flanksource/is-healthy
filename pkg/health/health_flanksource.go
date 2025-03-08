@@ -5,7 +5,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -95,7 +97,10 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 		h = HealthUnknown
 	}
 
-	status := &HealthStatus{Health: h}
+	status := &HealthStatus{
+		Health: h,
+		Ready:  true,
+	}
 
 	if errorCount > 0 {
 		errorMsgs, _, err := unstructured.NestedStringSlice(obj.Object, "status", "lastRun", "errors")
@@ -105,6 +110,44 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 
 		if len(errorMsgs) > 0 {
 			status.Message = strings.Join(errorMsgs, ",")
+		}
+	}
+
+	if lastRunTime, _, err := unstructured.NestedString(obj.Object, "status", "lastRun", "timestamp"); err != nil {
+		return nil, err
+	} else if lastRunTime != "" {
+		parsedLastRuntime, err := time.Parse(time.RFC3339, lastRunTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse lastRun timestamp: %w", err)
+		}
+
+		var schedule time.Duration
+		if scheduleRaw, _, err := unstructured.NestedString(obj.Object, "spec", "schedule"); err != nil {
+			return nil, fmt.Errorf("failed to parse scraper schedule: %w", err)
+		} else if scheduleRaw == "" {
+			schedule = time.Hour // The default schedule
+		} else {
+			parsedSchedule, err := cron.ParseStandard(scheduleRaw)
+			if err != nil {
+				return &HealthStatus{
+					Health:  HealthUnhealthy,
+					Message: fmt.Sprintf("Bad schedule: %s", scheduleRaw),
+					Ready:   true,
+				}, nil
+			}
+
+			schedule = time.Until(parsedSchedule.Next(time.Now()))
+		}
+
+		elapsed := time.Since(parsedLastRuntime)
+		if elapsed > schedule*2 {
+			status.Health = HealthUnhealthy
+			status.Status = "MajorDelay"
+			status.Message = fmt.Sprintf("scraper hasn't run for %s", elapsed)
+		} else if elapsed > schedule && status.Health != HealthUnhealthy {
+			status.Health = HealthWarning
+			status.Status = "MinorDelay"
+			status.Message = fmt.Sprintf("last ran was at %s", elapsed)
 		}
 	}
 
