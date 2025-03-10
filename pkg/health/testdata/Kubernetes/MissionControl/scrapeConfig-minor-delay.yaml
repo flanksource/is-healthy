@@ -3,7 +3,7 @@ kind: ScrapeConfig
 metadata:
   annotations:
     expected-ready: "true"
-    expected-status: "MinorDelay"
+    expected-status: "Stale"
     expected-health: "warning"
   creationTimestamp: "2024-12-04T12:21:48Z"
   finalizers:

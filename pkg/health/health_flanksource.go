@@ -10,6 +10,7 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/util/duration"
 )
 
 var re = regexp.MustCompile(`(?:\((\d+\.?\d*)%\))|(\d+\.?\d*)%`)
@@ -142,12 +143,12 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 		elapsed := time.Since(parsedLastRuntime)
 		if elapsed > schedule*2 {
 			status.Health = HealthUnhealthy
-			status.Status = "MajorDelay"
-			status.Message = fmt.Sprintf("scraper hasn't run for %s", elapsed)
+			status.Status = "Stale"
+			status.Message = fmt.Sprintf("scraper hasn't run for %s", duration.HumanDuration(elapsed))
 		} else if elapsed > schedule && status.Health != HealthUnhealthy {
 			status.Health = HealthWarning
-			status.Status = "MinorDelay"
-			status.Message = fmt.Sprintf("last ran was at %s", elapsed)
+			status.Status = "Stale"
+			status.Message = fmt.Sprintf("scraper hasn't run for %s", duration.HumanDuration(elapsed))
 		}
 	}
 
