@@ -33,6 +33,7 @@ var (
 		"@now-5m":  _now.Add(-time.Minute * 5).Format(RFC3339Micro),
 		"@now-10m": _now.Add(-time.Minute * 10).Format(RFC3339Micro),
 		"@now-15m": _now.Add(-time.Minute * 15).Format(RFC3339Micro),
+		"@now-30m": _now.Add(-time.Minute * 30).Format(RFC3339Micro),
 		"@now-1h":  _now.Add(-time.Hour).Format(RFC3339Micro),
 		"@now-2h":  _now.Add(-time.Hour * 2).Format(RFC3339Micro),
 		"@now-4h":  _now.Add(-time.Hour * 4).Format(RFC3339Micro),

@@ -1,0 +1,23 @@
+apiVersion: configs.flanksource.com/v1
+kind: ScrapeConfig
+metadata:
+  uid: 8e6902db-67bc-4546-a93e-5492112205f9
+  name: ifs-dev-cluster
+  namespace: mission-control-agent
+  finalizers:
+    - scrapeConfig.config.flanksource.com
+  annotations:
+    meta.helm.sh/release-name: dev-kubernetes-bundle
+    meta.helm.sh/release-namespace: mission-control-agent
+    expected-ready: 'true'
+    expected-health: 'unhealthy'
+    expected-message: "scraper hasn't run for 120m"
+  creationTimestamp: '2024-12-04T12:21:48Z'
+spec:
+  schedule: "10 * * * *"
+  kubernetes:
+    - clusterName: ifs-dev-cluster
+status:
+  lastRun:
+    success: 950
+    timestamp: "@now-2h"

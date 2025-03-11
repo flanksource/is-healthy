@@ -41,4 +41,4 @@ spec:
 status:
   lastRun:
     success: 1
-    timestamp: "@now-15m"
+    timestamp: "@now-30m"

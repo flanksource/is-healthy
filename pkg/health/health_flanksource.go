@@ -122,11 +122,11 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 			return nil, fmt.Errorf("failed to parse lastRun timestamp: %w", err)
 		}
 
-		var schedule time.Duration
+		var nextRuntime time.Time
 		if scheduleRaw, _, err := unstructured.NestedString(obj.Object, "spec", "schedule"); err != nil {
 			return nil, fmt.Errorf("failed to parse scraper schedule: %w", err)
 		} else if scheduleRaw == "" {
-			schedule = time.Hour // The default schedule
+			nextRuntime = parsedLastRuntime.Add(time.Hour) // The default schedule
 		} else {
 			parsedSchedule, err := cron.ParseStandard(scheduleRaw)
 			if err != nil {
@@ -137,18 +137,18 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 				}, nil
 			}
 
-			schedule = time.Until(parsedSchedule.Next(time.Now()))
+			nextRuntime = parsedSchedule.Next(parsedLastRuntime)
 		}
 
-		elapsed := time.Since(parsedLastRuntime)
-		if elapsed > schedule*2 {
-			status.Health = HealthUnhealthy
+		// If the ScrapeConfig is few minutes behind the schedule, it's not healthy
+		if time.Since(nextRuntime) > time.Minute*10 {
 			status.Status = "Stale"
-			status.Message = fmt.Sprintf("scraper hasn't run for %s", duration.HumanDuration(elapsed))
-		} else if elapsed > schedule && status.Health != HealthUnhealthy {
 			status.Health = HealthWarning
-			status.Status = "Stale"
-			status.Message = fmt.Sprintf("scraper hasn't run for %s", duration.HumanDuration(elapsed))
+			status.Message = fmt.Sprintf("scraper hasn't run for %s", duration.HumanDuration(time.Since(parsedLastRuntime)))
+
+			if time.Since(nextRuntime) > time.Hour {
+				status.Health = HealthUnhealthy
+			}
 		}
 	}
 

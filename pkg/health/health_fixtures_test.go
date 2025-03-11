@@ -16,6 +16,10 @@ func TestFixtures(t *testing.T) {
 	}
 
 	for _, file := range files {
+		// if file != "testdata/Kubernetes/MissionControl/scrapeConfig-minor-delay.yaml" {
+		// 	continue
+		// }
+
 		testFixture(t, file)
 	}
 }
