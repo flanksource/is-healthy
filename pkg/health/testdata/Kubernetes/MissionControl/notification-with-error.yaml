@@ -1,0 +1,45 @@
+apiVersion: mission-control.flanksource.com/v1
+kind: Notification
+metadata:
+  annotations:
+    meta.helm.sh/release-name: playbooks-ai
+    meta.helm.sh/release-namespace: mc
+    expected-ready: 'false'
+    expected-health: 'unhealthy'
+    expected-message: "tcp: lookup slack.com: no such host"
+  creationTimestamp: "2025-03-11T07:12:44Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: notify-recommender-playbook
+  namespace: mc
+  resourceVersion: "147557980"
+  uid: a37a3b53-951d-40f3-a65a-b540950ceb0f
+spec:
+  events:
+  - config.unhealthy
+  - config.warning
+  fallback:
+    connection: connection://mc/flanksource-slack
+  filter: tags.cluster == 'homelab'
+  inhibitions:
+  - direction: incoming
+    from: Kubernetes::Pod
+    to:
+    - Kubernetes::Deployment
+    - Kubernetes::ReplicaSet
+    - Kubernetes::DaemonSet
+    - Kubernetes::StatefulSet
+  - direction: outgoing
+    from: Kubernetes::Node
+    to:
+    - Kubernetes::Pod
+  repeatInterval: 1d
+  to:
+    playbook: mc/recommend-playbook
+  waitFor: 20s
+status:
+  failed: 1
+  lastSent: "2025-03-14T04:37:50Z"
+  lastFailed: "@now-2h"
+  sent: 4
+  error: "tcp: lookup slack.com: no such host"

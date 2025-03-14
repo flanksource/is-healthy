@@ -176,25 +176,53 @@ func getNotificationHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 		return nil, err
 	}
 
-	var h Health = HealthUnknown
-	if sentCount > 0 {
-		h = HealthHealthy
-		if failedCount > 0 || pendingCount > 0 {
-			h = HealthWarning
-		}
-	} else {
-		if pendingCount > 0 {
-			h = HealthWarning
-		}
-		if failedCount > 0 {
-			h = HealthUnhealthy
-		}
+	status := &HealthStatus{
+		Health: HealthUnknown,
+		Ready:  true,
 	}
-
-	status := &HealthStatus{Health: h}
 
 	if errorMessage != "" {
 		status.Message = errorMessage
+		status.Health = HealthUnhealthy
+		status.Ready = false
+		return status, nil
+	}
+
+	if sentCount > 0 {
+		status.Health = HealthHealthy
+		if failedCount > 0 || pendingCount > 0 {
+			status.Health = HealthWarning
+		}
+	} else {
+		if pendingCount > 0 {
+			status.Health = HealthWarning
+		}
+		if failedCount > 0 {
+			status.Health = HealthUnhealthy
+		}
+	}
+
+	// Check lastFailed timestamp
+	lastFailedTime, found, err := unstructured.NestedString(obj.Object, "status", "lastFailed")
+	if err != nil {
+		return nil, err
+	}
+
+	if found && lastFailedTime != "" {
+		parsedLastFailedTime, err := time.Parse(time.RFC3339, lastFailedTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse lastFailed timestamp: %w", err)
+		}
+
+		timeSinceLastFailure := time.Since(parsedLastFailedTime)
+
+		if timeSinceLastFailure <= 12*time.Hour {
+			status.Health = HealthWarning
+			status.Message = fmt.Sprintf("Failed %s ago", duration.HumanDuration(timeSinceLastFailure))
+			if timeSinceLastFailure <= time.Hour {
+				status.Health = HealthUnhealthy
+			}
+		}
 	}
 
 	return status, nil
