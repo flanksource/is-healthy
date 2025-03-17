@@ -13,6 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/duration"
 )
 
+const maxMessageLength = 60
+
 var re = regexp.MustCompile(`(?:\((\d+\.?\d*)%\))|(\d+\.?\d*)%`)
 
 func getCanaryHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
@@ -23,7 +25,8 @@ func getCanaryHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 
 	if errorMsg != "" {
 		return &HealthStatus{
-			Message: errorMsg,
+			Ready:   true,
+			Message: lo.Elipse(errorMsg, maxMessageLength),
 			Health:  HealthUnhealthy,
 		}, nil
 	}
@@ -110,7 +113,9 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 		}
 
 		if len(errorMsgs) > 0 {
-			status.Message = strings.Join(errorMsgs, ",")
+			status.Message = strings.Join(lo.Map(errorMsgs, func(msg string, _ int) string {
+				return lo.Elipse(msg, maxMessageLength)
+			}), ",")
 		}
 	}
 

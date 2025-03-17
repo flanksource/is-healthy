@@ -1,0 +1,158 @@
+apiVersion: canaries.flanksource.com/v1
+kind: Canary
+metadata:
+  uid: f8db4be5-5e6f-4388-b2ae-84e54d29e63f
+  name: ingress-test
+  labels:
+    Expected-Fail: 'false'
+    kustomize.toolkit.fluxcd.io/name: canaries
+    kustomize.toolkit.fluxcd.io/namespace: default
+  namespace: canaries
+  finalizers:
+    - canary.canaries.flanksource.com
+  annotations:
+    config.kubernetes.io/origin: |
+      path: k8s/kubernetes_resource_ingress_pass.yaml
+    expected-ready: 'true'
+    expected-health: 'unhealthy'
+    expected-message: 'failed to apply resource (Pod/default/httpbin): Pod "http...'
+  creationTimestamp: 2024-05-28T11:12:10Z
+spec:
+  replicas: 1
+  schedule: '@every 5m'
+  kubernetesResource:
+    - name: ingress-accessibility-check
+      checks:
+        - http:
+            - url: http://ingress-nginx.ingress-nginx.svc
+              name: Call httpbin via ingress
+              headers:
+                - name: Host
+                  value: '{{(index ((index .staticResources 0).Object.spec.rules) 0).host}}'
+      waitFor:
+        expr: dyn(resources).all(r, k8s.isReady(r))
+        timeout: 5m
+        interval: 2s
+      namespace: default
+      resources:
+        - kind: Pod
+          spec:
+            containers:
+              - name: httpbin
+                image: kennethreitz/httpbin:latest
+                ports:
+                  - containerPort: 80
+          metadata:
+            name: httpbin
+            labels:
+              app: httpbin
+            namespace: default
+          apiVersion: v1
+        - kind: Service
+          spec:
+            ports:
+              - port: 80
+                targetPort: 80
+            selector:
+              app: httpbin
+          metadata:
+            name: httpbin
+            namespace: default
+          apiVersion: v1
+      description: deploy httpbin & check that it's accessible via ingress
+      checkRetries:
+        delay: 3s
+        timeout: 5m
+        interval: 2s
+      staticResources:
+        - kind: Ingress
+          spec:
+            rules:
+              - host: httpbin.127.0.0.1.nip.io
+                http:
+                  paths:
+                    - path: /
+                      backend:
+                        service:
+                          name: httpbin
+                          port:
+                            number: 80
+                      pathType: Prefix
+          metadata:
+            name: httpbin
+            namespace: default
+          apiVersion: networking.k8s.io/v1
+status:
+  checks:
+    ingress-accessibility-check: 018fbee6-88b8-ee2c-78c6-32f1f8d15987
+  status: Failed
+  replicas: 1
+  checkStatus:
+    018fbee6-88b8-ee2c-78c6-32f1f8d15987: {}
+  errorMessage: >
+    failed to apply resource (Pod/default/httpbin): Pod "httpbin" is invalid:
+    spec: Forbidden: pod updates may not change fields other than
+    `spec.containers[*].image`,`spec.initContainers[*].image`,`spec.activeDeadlineSeconds`,`spec.tolerations`
+    (only additions to existing
+    tolerations),`spec.terminationGracePeriodSeconds` (allow it to be set to 1
+    if it was previously negative)
+      core.PodSpec{
+    - 	Volumes: []core.Volume{
+
+    - 		{
+
+    - 			Name:         "kube-api-access-m2ksq",
+
+    - 			VolumeSource: core.VolumeSource{Projected: &core.ProjectedVolumeSource{...}},
+
+    - 		},
+
+    - 	},
+
+    + 	Volumes:        nil,
+      	InitContainers: nil,
+      	Containers: []core.Container{
+      		{
+      			... // 9 identical fields
+      			ResizePolicy:  nil,
+      			RestartPolicy: nil,
+    - 			VolumeMounts: []core.VolumeMount{
+
+    - 				{
+
+    - 					Name:      "kube-api-access-m2ksq",
+
+    - 					ReadOnly:  true,
+
+    - 					MountPath: "/var/run/secrets/kubernetes.io/serviceaccount",
+
+    - 				},
+
+    - 			},
+
+    + 			VolumeMounts:  nil,
+      			VolumeDevices: nil,
+      			LivenessProbe: nil,
+      			... // 10 identical fields
+      		},
+      	},
+      	EphemeralContainers: nil,
+      	RestartPolicy:       "Always",
+      	... // 2 identical fields
+      	DNSPolicy:                    "ClusterFirst",
+      	NodeSelector:                 nil,
+    - 	ServiceAccountName:           "default",
+
+    + 	ServiceAccountName:           "",
+      	AutomountServiceAccountToken: nil,
+    - 	NodeName:                     "ip-10-0-4-167.eu-west-1.compute.internal",
+
+    + 	NodeName:                     "",
+      	SecurityContext:              &{},
+    - 	ImagePullSecrets:             []core.LocalObjectReference{{Name: "dockerhub"}},
+
+    + 	ImagePullSecrets:             nil,
+      	Hostname:                     "",
+      	Subdomain:                    "",
+      	... // 17 identical fields
+      }
