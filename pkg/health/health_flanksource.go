@@ -13,7 +13,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/duration"
 )
 
-const maxMessageLength = 60
+const defaultMaxMessageLength = 512
+
+var maxMessageLength = defaultMaxMessageLength
 
 var re = regexp.MustCompile(`(?:\((\d+\.?\d*)%\))|(\d+\.?\d*)%`)
 

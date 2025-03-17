@@ -15,8 +15,22 @@ metadata:
       path: k8s/kubernetes_resource_ingress_pass.yaml
     expected-ready: 'true'
     expected-health: 'unhealthy'
-    expected-message: 'failed to apply resource (Pod/default/httpbin): Pod "http...'
-  creationTimestamp: 2024-05-28T11:12:10Z
+    expected-message: >-
+      failed to apply resource (Pod/default/httpbin): Pod "httpbin" is invalid:
+      spec: Forbidden: pod updates may not change fields other than
+      `spec.containers[*].image`,`spec.initContainers[*].image`,`spec.activeDeadlineSeconds`,`spec.tolerations`
+      (only additions to existing
+      tolerations),`spec.terminationGracePeriodSeconds` (allow it to be set to 1
+      if it was previously negative)
+        core.PodSpec{
+      - 	Volumes: []core.Volume{
+
+      - 		{
+
+      - 			Name:         "kube-api-access-m2ksq",
+
+      - 			VolumeSource: core.VolumeSource{Pro...
+    creationTimestamp: 2024-05-28T11:12:10Z
 spec:
   replicas: 1
   schedule: '@every 5m'

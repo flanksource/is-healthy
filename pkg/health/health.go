@@ -462,5 +462,9 @@ func init() {
 		if v := p.Duration(defaultCertRenewalWarningPeriod, "health.cert-manager.renewalGracePeriod"); v != 0 {
 			certRenewalWarningPeriod = v
 		}
+
+		if v := p.Int(defaultMaxMessageLength, "health.maxMessageLength"); v != 0 {
+			maxMessageLength = v
+		}
 	})
 }
