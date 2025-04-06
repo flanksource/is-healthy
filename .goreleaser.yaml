@@ -21,6 +21,9 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+      - "^chore:"
 
-release:
-  footer: >-
+upx:
+  - enabled: true
+    goos: [linux]
+    lzma: true
