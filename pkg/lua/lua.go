@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -426,6 +427,23 @@ func GetWildcardConfigMapKey(vm VM, gvk schema.GroupVersionKind) string {
 		}
 	}
 	return ""
+}
+
+func ListResourceTypes() []string {
+	types := []string{}
+
+	_ = fs.WalkDir(resource_customizations.Embedded, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() && !strings.HasSuffix(d.Name(), "testdata") && !strings.Contains(path, "/actions") &&
+			strings.Contains(path, "/") {
+			types = append(types, path)
+		}
+		return nil
+	})
+
+	return types
 }
 
 func (vm VM) getPredefinedLuaScripts(objKey string, scriptFile string) (string, error) {

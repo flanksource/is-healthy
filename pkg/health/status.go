@@ -262,3 +262,14 @@ func GetHealthFromStatus(k GenericStatus, statusMap StatusMap) (*HealthStatus, e
 
 	return health, nil
 }
+
+func ListResourceTypes() []string {
+	types := []string{}
+	for k := range statusByKind {
+		if k == "default" {
+			continue
+		}
+		types = append(types, k)
+	}
+	return types
+}
