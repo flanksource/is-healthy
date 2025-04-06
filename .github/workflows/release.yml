@@ -76,6 +76,7 @@ jobs:
           repository: flanksource/${{ matrix.repos }}
   goreleaser:
     runs-on: ubuntu-latest
+    permissions: write-all
     needs: [semantic-release]
     steps:
       - name: Checkout
