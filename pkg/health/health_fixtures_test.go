@@ -11,12 +11,13 @@ func TestFixtures(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if len(files) == 0 {
 		t.Fatal("no test files found")
 	}
 
 	for _, file := range files {
-		// if file != "testdata/Kubernetes/MissionControl/canary-unhealthy.yaml" {
+		// if file != "testdata/Kubernetes/Deployment/progress-deadline-exceeded.yaml" {
 		// 	continue
 		// }
 

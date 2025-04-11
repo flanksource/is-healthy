@@ -92,6 +92,9 @@ func getReplicaHealth(s ReplicaStatus) *HealthStatus {
 		}
 	} else if s.Ready == 0 && isStarting {
 		hs.Status = HealthStatusStarting
+		if isProgressDeadlineExceeded {
+			hs.Health = HealthUnhealthy
+		}
 	} else if s.Ready == 0 {
 		hs.Status = lo.Ternary(isAvailable, HealthStatusUpdating, HealthStatusCrashLoopBackoff)
 	}
