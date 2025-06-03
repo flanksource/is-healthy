@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/flanksource/commons/duration"
 )
 
 var now = time.Now
@@ -40,7 +42,7 @@ func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 				return HealthStatus{
 					Health:  HealthWarning,
 					Status:  "Expiring",
-					Message: fmt.Sprintf("%s is expiring in %s", resourceType, endTime.Sub(now())),
+					Message: fmt.Sprintf("%s is expiring in %s", resourceType, duration.Duration(endTime.Sub(now()))),
 				}
 			}
 		}
