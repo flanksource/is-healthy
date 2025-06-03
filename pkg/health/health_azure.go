@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var now = time.Now
+
 const defaultAzureClientSecretExpiry = time.Hour * 24 * 30
 
 var (
@@ -13,10 +15,15 @@ var (
 
 func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 	switch configType {
-	case "Azure::ClientSecret":
+	case "Azure::AppRegistration::ClientSecret":
 		endDateTime := get(obj, "endDateTime")
-		if endTime, err := time.Parse(time.RFC3339, endDateTime); err == nil {
-			if endTime.Before(time.Now()) {
+		if endTime, err := time.Parse(time.RFC3339, endDateTime); err != nil {
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Message: "End date time is not set",
+			}
+		} else {
+			if endTime.Before(now()) {
 				return HealthStatus{
 					Health:  HealthUnhealthy,
 					Status:  "Expired",
@@ -24,11 +31,11 @@ func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 				}
 			}
 
-			if time.Now().Add(azureClientSecretExpiry).After(endTime) {
+			if now().Add(azureClientSecretExpiry).After(endTime) {
 				return HealthStatus{
 					Health:  HealthWarning,
 					Status:  "Expiring",
-					Message: fmt.Sprintf("client secret is expiring in %s", time.Until(endTime)),
+					Message: fmt.Sprintf("client secret is expiring in %s", endTime.Sub(now())),
 				}
 			}
 		}
@@ -37,31 +44,6 @@ func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 			Health:  HealthHealthy,
 			Status:  "Healthy",
 			Message: "Azure client secret is valid",
-		}
-
-	case "Azure::ClientCertificate":
-		endDateTime := get(obj, "endDateTime")
-		if endTime, err := time.Parse(time.RFC3339, endDateTime); err == nil {
-			if endTime.Before(time.Now()) {
-				return HealthStatus{
-					Health:  HealthUnhealthy,
-					Status:  "Expired",
-					Message: "client certificate has expired",
-				}
-			}
-
-			if time.Now().Add(azureClientSecretExpiry).After(endTime) {
-				return HealthStatus{
-					Health:  HealthWarning,
-					Status:  "Expiring",
-					Message: fmt.Sprintf("client certificate is expiring in %s", time.Until(endTime)),
-				}
-			}
-		}
-		return HealthStatus{
-			Health:  HealthHealthy,
-			Status:  "Healthy",
-			Message: "Azure client certificate is valid",
 		}
 
 	default:
