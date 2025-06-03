@@ -145,6 +145,8 @@ func GetHealthByConfigType(configType string, obj map[string]any, states ...stri
 		return getAWSHealthByConfigType(configType, obj, states...)
 	case "mongo":
 		return GetMongoHealth(obj)
+	case "azure":
+		return GetAzureHealth(configType, obj)
 	case "kubernetes", "crossplane", "missioncontrol", "flux", "argo":
 		hr, err := GetResourceHealth(&unstructured.Unstructured{Object: obj}, DefaultOverrides)
 		if hr != nil {
@@ -461,6 +463,10 @@ func init() {
 
 		if v := p.Duration(defaultCertRenewalWarningPeriod, "health.cert-manager.renewalGracePeriod"); v != 0 {
 			certRenewalWarningPeriod = v
+		}
+
+		if v := p.Duration(defaultAzureClientSecretExpiry, "health.azure.clientSecretExpiryGracePeriod"); v != 0 {
+			azureClientSecretExpiry = v
 		}
 
 		if v := p.Int(defaultMaxMessageLength, "health.maxMessageLength"); v != 0 {
