@@ -12,9 +12,7 @@ var now = time.Now
 
 const defaultAzureClientSecretExpiry = time.Hour * 24 * 30
 
-var (
-	azureClientSecretExpiry = defaultAzureClientSecretExpiry
-)
+var azureClientSecretExpiry = defaultAzureClientSecretExpiry
 
 func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 	switch configType {
@@ -24,10 +22,17 @@ func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 		resourceType := strings.TrimPrefix(configType, "Azure::AppRegistration::")
 
 		endDateTime := get(obj, "endDateTime")
-		if endTime, err := time.Parse(time.RFC3339, endDateTime); err != nil {
+		if endDateTime == "" {
 			return HealthStatus{
 				Health:  HealthUnknown,
 				Message: "End date time is not set",
+			}
+		}
+
+		if endTime, err := time.Parse(time.RFC3339, endDateTime); err != nil {
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Message: fmt.Sprintf("%s is not a valid date time", endDateTime),
 			}
 		} else {
 			if endTime.Before(now()) {

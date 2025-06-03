@@ -285,6 +285,7 @@ func TestCertificateRequest(t *testing.T) {
 	)
 }
 
+//nolint:unused
 func testCertificate(t *testing.T) {
 	// assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-stuck.yaml", map[string]string{
 	// 	"2024-10-28T08:05:00Z": time.Now().Add(-time.Minute * 50).Format(time.RFC3339),
