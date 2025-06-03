@@ -2,6 +2,7 @@ package health
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -15,7 +16,11 @@ var (
 
 func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 	switch configType {
-	case "Azure::AppRegistration::ClientSecret":
+	case "Azure::AppRegistration::ClientSecret",
+		"Azure::AppRegistration::Certificate":
+
+		resourceType := strings.TrimPrefix(configType, "Azure::AppRegistration::")
+
 		endDateTime := get(obj, "endDateTime")
 		if endTime, err := time.Parse(time.RFC3339, endDateTime); err != nil {
 			return HealthStatus{
@@ -27,7 +32,7 @@ func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 				return HealthStatus{
 					Health:  HealthUnhealthy,
 					Status:  "Expired",
-					Message: "client secret has expired",
+					Message: fmt.Sprintf("%s has expired", resourceType),
 				}
 			}
 
@@ -35,7 +40,7 @@ func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 				return HealthStatus{
 					Health:  HealthWarning,
 					Status:  "Expiring",
-					Message: fmt.Sprintf("client secret is expiring in %s", endTime.Sub(now())),
+					Message: fmt.Sprintf("%s is expiring in %s", resourceType, endTime.Sub(now())),
 				}
 			}
 		}
@@ -43,7 +48,7 @@ func GetAzureHealth(configType string, obj map[string]any) HealthStatus {
 		return HealthStatus{
 			Health:  HealthHealthy,
 			Status:  "Healthy",
-			Message: "Azure client secret is valid",
+			Message: fmt.Sprintf("%s is valid", resourceType),
 		}
 
 	default:

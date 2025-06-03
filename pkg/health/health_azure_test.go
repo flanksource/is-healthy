@@ -57,7 +57,7 @@ func TestGetAzureHealth_ClientSecret(t *testing.T) {
 			configType:      "Azure::AppRegistration::ClientSecret",
 			expectedHealth:  HealthHealthy,
 			expectedStatus:  "Healthy",
-			expectedMessage: "Azure client secret is valid",
+			expectedMessage: "ClientSecret is valid",
 		},
 		{
 			name:            "ClientSecret Expiring",
@@ -65,7 +65,7 @@ func TestGetAzureHealth_ClientSecret(t *testing.T) {
 			configType:      "Azure::AppRegistration::ClientSecret",
 			expectedHealth:  HealthWarning,
 			expectedStatus:  "Expiring",
-			expectedMessage: "client secret is expiring in 336h0m0s", // 14 days * 24 hours/day = 336 hours
+			expectedMessage: "ClientSecret is expiring in 336h0m0s", // 14 days * 24 hours/day = 336 hours
 		},
 		{
 			name:            "ClientSecret Expired",
@@ -73,7 +73,7 @@ func TestGetAzureHealth_ClientSecret(t *testing.T) {
 			configType:      "Azure::AppRegistration::ClientSecret",
 			expectedHealth:  HealthUnhealthy,
 			expectedStatus:  "Expired",
-			expectedMessage: "client secret has expired",
+			expectedMessage: "ClientSecret has expired",
 		},
 	}
 
