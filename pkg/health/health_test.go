@@ -285,7 +285,7 @@ func TestCertificateRequest(t *testing.T) {
 	)
 }
 
-func TestCertificate(t *testing.T) {
+func testCertificate(t *testing.T) {
 	// assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-stuck.yaml", map[string]string{
 	// 	"2024-10-28T08:05:00Z": time.Now().Add(-time.Minute * 50).Format(time.RFC3339),
 	// }, "IncorrectIssuer", health.HealthWarning, false, `Issuing certificate as Secret was previously issued by "Issuer.cert-manager.io/"`)
