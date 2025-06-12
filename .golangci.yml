@@ -20,6 +20,8 @@ linters:
       - third_party$
       - builtin$
       - examples$
+      - argo-cd/
+      - gitops-engine/
 formatters:
   exclusions:
     generated: lax
@@ -27,3 +29,5 @@ formatters:
       - third_party$
       - builtin$
       - examples$
+      - argo-cd/
+      - gitops-engine/

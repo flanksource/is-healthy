@@ -26,14 +26,12 @@ test:
 lint: fmt
 	golangci-lint run
 
-
 .PHONY:
 sync:
 	git submodule update --init --recursive
 
 update-submodules:
 	git submodule update --remote --merge && git submodule sync
-
 
 .PHONY: tidy
 tidy: fmt
@@ -42,7 +40,7 @@ tidy: fmt
 fmt:
 	golines -m 120 -w pkg/
 	golines -m 120 -w events/
-	gofumpt -w .
+	gofumpt -w pkg/ events/ main.go
 
 .PHONY: compress
 compress:
@@ -70,11 +68,9 @@ windows:
 .PHONY: binaries
 binaries: linux darwin windows compress
 
-
 .PHONY: build
 build:
 	GOOS=$(OS) GOARCH=$(ARCH) go build -o ./.bin/$(NAME) $(LD_FLAGS)  main.go
-
 
 .PHONY: install
 install:
