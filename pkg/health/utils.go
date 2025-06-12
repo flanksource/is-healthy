@@ -34,6 +34,7 @@ const (
 )
 
 type HealthStatus struct {
+	// Ready means the status is stable and not progressing
 	Ready  bool   `json:"ready"`
 	Health Health `json:"health"`
 	// Status holds the status code of the application or resource

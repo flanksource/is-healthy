@@ -17,7 +17,7 @@ func TestFixtures(t *testing.T) {
 	}
 
 	for _, file := range files {
-		// if file != "testdata/Kubernetes/Deployment/progress-deadline-exceeded.yaml" {
+		// if file != "testdata/GCP/Sqladmin/Instance/ready.yaml" {
 		// 	continue
 		// }
 

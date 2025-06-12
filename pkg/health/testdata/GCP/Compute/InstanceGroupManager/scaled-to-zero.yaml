@@ -1,0 +1,62 @@
+annotations:
+  expected-health: healthy
+  expected-status: Ready
+  expected-message: "scaled to zero"
+baseInstanceName: gke-workload-prod-eu-workload-pool-n2-e5aba8de
+creationTimestamp: 2024-11-27T00:51:38.973-08:00
+currentActions:
+  none: 0
+  creating: 0
+  deleting: 0
+  resuming: 0
+  starting: 0
+  stopping: 0
+  verifying: 0
+  abandoning: 0
+  recreating: 0
+  refreshing: 0
+  restarting: 0
+  suspending: 0
+  creatingWithoutRetries: 0
+fingerprint: alcsp7latMY=
+id: "7135690069199512437"
+instanceGroup: https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/zones/europe-west1-c/instanceGroups/gke-workload-prod-eu-workload-pool-n2-e5aba8de-grp
+instanceLifecyclePolicy:
+  forceUpdateOnRepair: NO
+  defaultActionOnFailure: REPAIR
+instanceTemplate: https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/regions/europe-west1/instanceTemplates/gke-workload-prod-eu-workload-pool-n2-7ba1b939
+listManagedInstancesResults: PAGINATED
+name: gke-workload-prod-eu-workload-pool-n2-e5aba8de-grp
+satisfiesPzi: true
+satisfiesPzs: true
+selfLink: https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/zones/europe-west1-c/instanceGroupManagers/gke-workload-prod-eu-workload-pool-n2-e5aba8de-grp
+standbyPolicy:
+  mode: MANUAL
+status:
+  isStable: true
+  stateful:
+    hasStatefulConfig: false
+    perInstanceConfigs:
+      allEffective: true
+  versionTarget:
+    isReached: true
+  allInstancesConfig:
+    effective: true
+targetSize: 0
+targetStoppedSize: 0
+targetSuspendedSize: 0
+updatePolicy:
+  type: OPPORTUNISTIC
+  maxSurge:
+    fixed: 1
+    calculated: 1
+  minimalAction: REPLACE
+  maxUnavailable:
+    fixed: 1
+    calculated: 1
+  replacementMethod: SUBSTITUTE
+versions:
+  - targetSize:
+      calculated: 0
+    instanceTemplate: https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/regions/europe-west1/instanceTemplates/gke-workload-prod-eu-workload-pool-n2-7ba1b939
+zone: https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/zones/europe-west1-c

@@ -143,6 +143,8 @@ func GetHealthByConfigType(configType string, obj map[string]any, states ...stri
 	switch strings.ToLower(configClass) {
 	case "aws":
 		return getAWSHealthByConfigType(configType, obj, states...)
+	case "gcp":
+		return GetGCPHealth(configType, obj)
 	case "mongo":
 		return GetMongoHealth(obj)
 	case "azure":

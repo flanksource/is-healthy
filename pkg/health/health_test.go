@@ -188,7 +188,8 @@ func getHealthStatus(
 	}
 
 	var obj unstructured.Unstructured
-	if !strings.Contains(yamlString, "apiVersion:") && !strings.Contains(yamlString, "kind:") {
+	isKubernetesObj := strings.Contains(yamlString, "apiVersion:") && strings.Contains(yamlString, "kind:")
+	if !isKubernetesObj {
 		configType := strings.Join(
 			strings.Split(strings.ReplaceAll(filepath.Dir(yamlPath), "testdata/", ""), "/"),
 			"::",

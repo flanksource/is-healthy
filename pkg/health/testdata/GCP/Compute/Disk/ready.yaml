@@ -1,0 +1,49 @@
+annotations:
+  expected-health: healthy
+  expected-status: Ready
+  expected-message: "100 GB"
+architecture: X86_64
+creationTimestamp: 2025-06-06T18:45:41.082-07:00
+enableConfidentialCompute: false
+guestOsFeatures:
+  - type: SEV_LIVE_MIGRATABLE_V2
+  - type: SEV_LIVE_MIGRATABLE
+  - type: VIRTIO_SCSI_MULTIQUEUE
+  - type: SEV_SNP_CAPABLE
+  - type: UEFI_COMPATIBLE
+  - type: IDPF
+  - type: SEV_CAPABLE
+  - type: TDX_CAPABLE
+  - type: GVNIC
+id: "8589796206927816491"
+labelFingerprint: n98PDlUBCxE=
+labels:
+  goog-gke-node: ""
+  goog-gke-volume: ""
+  managed-by-cnrm: "true"
+  goog-k8s-cluster-name: workload-prod-eu-02
+  goog-k8s-node-pool-name: workload-pool-n2-standard-4
+  goog-k8s-cluster-location: europe-west1
+  goog-gke-cluster-id-base32: absufyzk4ncmvoodvgwlz62yfdaljfth5rfuey45opr346euj43q
+lastAttachTimestamp: 2025-06-06T18:45:42.181-07:00
+licenseCodes:
+  - "166739712233658766"
+  - "1001010"
+  - "6880041984096540132"
+  - "1001003"
+licenses:
+  - https://www.googleapis.com/compute/v1/projects/cos-cloud-shielded/global/licenses/shielded-cos
+  - https://www.googleapis.com/compute/v1/projects/cos-cloud/global/licenses/cos
+  - https://www.googleapis.com/compute/v1/projects/cos-cloud/global/licenses/cos-pcid
+  - https://www.googleapis.com/compute/v1/projects/gke-node-images/global/licenses/gke-node
+name: gke-workload-prod-eu-workload-pool-n2-13d4da39-4faj
+physicalBlockSizeBytes: "4096"
+selfLink: https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/zones/europe-west1-d/disks/gke-workload-prod-eu-workload-pool-n2-13d4da39-4faj
+sizeGb: "100"
+sourceImage: https://www.googleapis.com/compute/v1/projects/gke-node-images/global/images/gke-1317-gke1390000-cos-117-18613-164-121-c-pre
+sourceImageId: "3946468833713617510"
+status: READY
+type: https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/zones/europe-west1-d/diskTypes/pd-standard
+users:
+  - https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/zones/europe-west1-d/instances/gke-workload-prod-eu-workload-pool-n2-13d4da39-4faj
+zone: https://www.googleapis.com/compute/v1/projects/workload-prod-eu-02/zones/europe-west1-d
