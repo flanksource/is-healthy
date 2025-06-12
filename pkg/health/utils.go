@@ -34,7 +34,9 @@ const (
 )
 
 type HealthStatus struct {
-	// Ready means the status is stable and not progressing
+	// Ready indicates the resource has reached its desired state and is not actively changing.
+	// A resource is considered ready when it has successfully completed its deployment/update
+	// and is stable (not progressing through state transitions).
 	Ready  bool   `json:"ready"`
 	Health Health `json:"health"`
 	// Status holds the status code of the application or resource

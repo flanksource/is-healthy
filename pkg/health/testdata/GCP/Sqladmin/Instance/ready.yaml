@@ -1,7 +1,7 @@
 annotations:
   expected-health: healthy
   expected-status: Ready
-  expected-message: "POSTGRES_16 (500 GB)"
+  expected-message: POSTGRES_16, 500 GB
 availableMaintenanceVersions:
   - POSTGRES_16_9.R20250302.00_31
 backendType: SECOND_GEN

@@ -2,6 +2,7 @@ package health
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/samber/lo"
 )
@@ -107,7 +108,6 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 		if state, ok := obj["state"]; ok {
 			if stateStr, ok := state.(string); ok {
 				var messageDetails []string
-
 				if dbVersion, ok := obj["databaseVersion"]; ok {
 					if dbVersionStr, ok := dbVersion.(string); ok {
 						messageDetails = append(messageDetails, dbVersionStr)
@@ -124,19 +124,7 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 					}
 				}
 
-				if region, ok := obj["region"]; ok {
-					if regionStr, ok := region.(string); ok {
-						messageDetails = append(messageDetails, regionStr)
-					}
-				}
-
-				message := ""
-				if len(messageDetails) > 0 {
-					message = messageDetails[0]
-					if len(messageDetails) > 1 {
-						message = fmt.Sprintf("%s (%s)", messageDetails[0], messageDetails[1])
-					}
-				}
+				message := strings.Join(messageDetails, ", ")
 
 				switch stateStr {
 				case "RUNNABLE":
