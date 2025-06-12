@@ -188,7 +188,7 @@ func (vm VM) ExecuteResourceAction(obj *unstructured.Unstructured, script string
 
 		jsonString := bytes.NewBuffer(jsonBytes).String()
 		if len(jsonString) < 2 {
-			return nil, fmt.Errorf("Lua output was not a valid json object or array")
+			return nil, fmt.Errorf("lua output was not a valid json object or array")
 		}
 		// The output from Lua is either an object (old-style action output) or an array (new-style action output).
 		// Check whether the string starts with an opening square bracket and ends with a closing square bracket,

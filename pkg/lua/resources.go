@@ -87,9 +87,9 @@ func (s ResourceOverride) MarshalJSON() ([]byte, error) {
 }
 
 // TODO: describe this method
-func (o *ResourceOverride) GetActions() (ResourceActions, error) {
+func (s *ResourceOverride) GetActions() (ResourceActions, error) {
 	var actions ResourceActions
-	err := yaml.Unmarshal([]byte(o.Actions), &actions)
+	err := yaml.Unmarshal([]byte(s.Actions), &actions)
 	if err != nil {
 		return actions, err
 	}
