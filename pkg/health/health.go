@@ -165,13 +165,21 @@ func GetHealthByConfigType(configType string, obj map[string]any, states ...stri
 	} else {
 		for k, v := range obj {
 			_k := strings.ToLower(k)
-			_v := fmt.Sprintf("%s", v)
-			if _k == "status" || _k == "state" ||
-				strings.HasSuffix(_k, "status") {
-				return GetHealthFromStatusName(_v)
+			if _k == "status" || _k == "state" || strings.HasSuffix(_k, "status") {
+				if v, ok := v.(string); ok {
+					return GetHealthFromStatusName(v)
+				}
+
+				// If not an string, it's probably a map.
+				// We want to avoid that as that leads to statuses like
+				//  - Map[Scheduling:map[]]
+				//  - Map[All Instances Config:map[Effective:%!S(Bool=True)] Is Stable:%!S(Bool=True)
+				//    Stateful:map[Has Stateful Config:%!S(Bool=False) Per Instance Configs:map[All Effective:%!S(Bool=True)]]
+				//    Version Target:map[Is Reached:%!S(Bool=True)]]
 			}
 		}
 	}
+
 	return HealthStatus{
 		Health: HealthUnknown,
 	}
