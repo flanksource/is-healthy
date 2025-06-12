@@ -5,166 +5,170 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 	switch configType {
 	case "GCP::Compute::Disk":
-		if status, ok := obj["status"]; ok {
-			if statusStr, ok := status.(string); ok {
-				sizeGb := ""
-				if size, ok := obj["sizeGb"]; ok {
-					if sizeStr, ok := size.(string); ok {
-						sizeGb = fmt.Sprintf("%s GB", sizeStr)
-					}
-				}
+		statusStr, found, err := unstructured.NestedString(obj, "status")
+		if err != nil || !found {
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Message: fmt.Sprintf("GCP::Compute::Disk missing or invalid 'status' field: %v", err),
+			}
+		}
 
-				message := sizeGb
+		// Extract size information using unstructured helper
+		var message string
+		if sizeStr, found, _ := unstructured.NestedString(obj, "sizeGb"); found {
+			message = fmt.Sprintf("%s GB", sizeStr)
+		} else {
+			message = "No size information"
+		}
 
-				switch statusStr {
-				case "READY":
-					return HealthStatus{
-						Health:  HealthHealthy,
-						Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-						Message: message,
-						Ready:   true,
-					}
-				case "CREATING":
-					return HealthStatus{
-						Health:  HealthUnknown,
-						Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-						Message: message,
-					}
-				case "RESTORING":
-					return HealthStatus{
-						Health:  HealthWarning,
-						Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-						Message: message,
-					}
-				case "FAILED":
-					return HealthStatus{
-						Health:  HealthUnhealthy,
-						Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-						Message: message,
-						Ready:   true,
-					}
-				case "DELETING":
-					return HealthStatus{
-						Health:  HealthWarning,
-						Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-						Message: message,
-					}
-				default:
-					return HealthStatus{
-						Health:  HealthUnknown,
-						Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-						Message: message,
-					}
-				}
+		switch statusStr {
+		case "READY":
+			return HealthStatus{
+				Health:  HealthHealthy,
+				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
+				Message: message,
+				Ready:   true,
+			}
+		case "CREATING":
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
+				Message: message,
+			}
+		case "RESTORING":
+			return HealthStatus{
+				Health:  HealthWarning,
+				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
+				Message: message,
+			}
+		case "FAILED":
+			return HealthStatus{
+				Health:  HealthUnhealthy,
+				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
+				Message: message,
+				Ready:   true,
+			}
+		case "DELETING":
+			return HealthStatus{
+				Health:  HealthWarning,
+				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
+				Message: message,
+			}
+		default:
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
+				Message: lo.CoalesceOrEmpty(message, "Unknown status"),
 			}
 		}
 
 	case "GCP::Compute::InstanceGroupManager":
-		if status, ok := obj["status"]; ok {
-			if statusMap, ok := status.(map[string]any); ok {
-				isStable := statusMap["isStable"] == true
+		statusMap, found, err := unstructured.NestedMap(obj, "status")
+		if err != nil || !found {
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Message: fmt.Sprintf("GCP::Compute::InstanceGroupManager missing or invalid 'status' field: %v", err),
+			}
+		}
 
-				// Extract target size for meaningful message
-				targetSize := 0
-				if ts, ok := obj["targetSize"]; ok {
-					switch v := ts.(type) {
-					case float64:
-						targetSize = int(v)
-					case int:
-						targetSize = v
-					}
-				}
+		isStable := statusMap["isStable"] == true
 
-				var message string
-				if targetSize == 0 {
-					message = "scaled to zero"
-				} else {
-					message = fmt.Sprintf("%d instances", targetSize)
-				}
+		// Extract target size for meaningful message
+		targetSize := 0
+		if ts, ok := obj["targetSize"]; ok {
+			switch v := ts.(type) {
+			case float64:
+				targetSize = int(v)
+			case int:
+				targetSize = v
+			}
+		}
 
-				if isStable {
-					return HealthStatus{
-						Health:  HealthHealthy,
-						Status:  "Ready",
-						Message: message,
-						Ready:   true,
-					}
-				} else {
-					return HealthStatus{
-						Health:  HealthUnhealthy,
-						Status:  HealthStatusDegraded,
-						Message: message,
-					}
-				}
+		var message string
+		if targetSize == 0 {
+			message = "scaled to zero"
+		} else {
+			message = fmt.Sprintf("%d instances", targetSize)
+		}
+
+		if isStable {
+			return HealthStatus{
+				Health:  HealthHealthy,
+				Status:  "Ready",
+				Message: message,
+				Ready:   true,
+			}
+		} else {
+			return HealthStatus{
+				Health:  HealthUnhealthy,
+				Status:  HealthStatusDegraded,
+				Message: message,
 			}
 		}
 
 	case "GCP::Sqladmin::Instance":
-		if state, ok := obj["state"]; ok {
-			if stateStr, ok := state.(string); ok {
-				var messageDetails []string
-				if dbVersion, ok := obj["databaseVersion"]; ok {
-					if dbVersionStr, ok := dbVersion.(string); ok {
-						messageDetails = append(messageDetails, dbVersionStr)
-					}
-				}
+		stateStr, found, err := unstructured.NestedString(obj, "state")
+		if err != nil || !found {
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Message: fmt.Sprintf("GCP::Sqladmin::Instance missing or invalid 'state' field: %v", err),
+			}
+		}
 
-				if settings, ok := obj["settings"]; ok {
-					if settingsMap, ok := settings.(map[string]any); ok {
-						if diskSize, ok := settingsMap["dataDiskSizeGb"]; ok {
-							if diskSizeStr, ok := diskSize.(string); ok {
-								messageDetails = append(messageDetails, fmt.Sprintf("%s GB", diskSizeStr))
-							}
-						}
-					}
-				}
+		var messageDetails []string
+		if dbVersionStr, found, _ := unstructured.NestedString(obj, "databaseVersion"); found {
+			messageDetails = append(messageDetails, dbVersionStr)
+		}
 
-				message := strings.Join(messageDetails, ", ")
+		if diskSizeStr, found, _ := unstructured.NestedString(obj, "settings", "dataDiskSizeGb"); found {
+			messageDetails = append(messageDetails, fmt.Sprintf("%s GB", diskSizeStr))
+		}
 
-				switch stateStr {
-				case "RUNNABLE":
-					return HealthStatus{
-						Health:  HealthHealthy,
-						Status:  "Ready",
-						Message: message,
-						Ready:   true,
-					}
-				case "CREATING":
-					return HealthStatus{
-						Health:  HealthUnknown,
-						Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-						Message: message,
-					}
-				case "SUSPENDED":
-					return HealthStatus{
-						Health:  HealthWarning,
-						Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-						Message: message,
-					}
-				case "MAINTENANCE":
-					return HealthStatus{
-						Health:  HealthWarning,
-						Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-						Message: message,
-					}
-				case "FAILED":
-					return HealthStatus{
-						Health:  HealthUnhealthy,
-						Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-						Message: message,
-					}
-				default:
-					return HealthStatus{
-						Health:  HealthUnknown,
-						Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-						Message: message,
-					}
-				}
+		message := lo.CoalesceOrEmpty(strings.Join(messageDetails, ", "), "No details available")
+
+		switch stateStr {
+		case "RUNNABLE":
+			return HealthStatus{
+				Health:  HealthHealthy,
+				Status:  "Ready",
+				Message: message,
+				Ready:   true,
+			}
+		case "CREATING":
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
+				Message: message,
+			}
+		case "SUSPENDED":
+			return HealthStatus{
+				Health:  HealthWarning,
+				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
+				Message: message,
+			}
+		case "MAINTENANCE":
+			return HealthStatus{
+				Health:  HealthWarning,
+				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
+				Message: message,
+			}
+		case "FAILED":
+			return HealthStatus{
+				Health:  HealthUnhealthy,
+				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
+				Message: message,
+			}
+		default:
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
+				Message: lo.CoalesceOrEmpty(message, "Unknown status"),
 			}
 		}
 	}
