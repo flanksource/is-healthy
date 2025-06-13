@@ -19,7 +19,6 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 			}
 		}
 
-		// Extract size information using unstructured helper
 		var message string
 		if sizeStr, found, _ := unstructured.NestedString(obj, "sizeGb"); found {
 			message = fmt.Sprintf("%s GB", sizeStr)
@@ -27,45 +26,14 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 			message = "No size information"
 		}
 
-		switch statusStr {
-		case "READY":
-			return HealthStatus{
-				Health:  HealthHealthy,
-				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-				Message: message,
-				Ready:   true,
-			}
-		case "CREATING":
-			return HealthStatus{
-				Health:  HealthUnknown,
-				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-				Message: message,
-			}
-		case "RESTORING":
-			return HealthStatus{
-				Health:  HealthWarning,
-				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-				Message: message,
-			}
-		case "FAILED":
-			return HealthStatus{
-				Health:  HealthUnhealthy,
-				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-				Message: message,
-				Ready:   true,
-			}
-		case "DELETING":
-			return HealthStatus{
-				Health:  HealthWarning,
-				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-				Message: message,
-			}
-		default:
-			return HealthStatus{
-				Health:  HealthUnknown,
-				Status:  HealthStatusCode(lo.PascalCase(statusStr)),
-				Message: lo.CoalesceOrEmpty(message, "Unknown status"),
-			}
+		healthStatus := GetHealthFromStatusName(statusStr, message)
+		if healthStatus.Health != "" {
+			return healthStatus
+		}
+
+		return HealthStatus{
+			Health:  HealthUnknown,
+			Message: message,
 		}
 
 	case "GCP::Compute::InstanceGroupManager":
@@ -105,11 +73,7 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 				Ready:   true,
 			}
 		} else {
-			return HealthStatus{
-				Health:  HealthUnhealthy,
-				Status:  HealthStatusDegraded,
-				Message: message,
-			}
+			return GetHealthFromStatusName("degraded", message)
 		}
 
 	case "GCP::Sqladmin::Instance":
@@ -131,7 +95,6 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 		}
 
 		message := lo.CoalesceOrEmpty(strings.Join(messageDetails, ", "), "No details available")
-
 		switch stateStr {
 		case "RUNNABLE":
 			return HealthStatus{
@@ -140,36 +103,8 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 				Message: message,
 				Ready:   true,
 			}
-		case "CREATING":
-			return HealthStatus{
-				Health:  HealthUnknown,
-				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-				Message: message,
-			}
-		case "SUSPENDED":
-			return HealthStatus{
-				Health:  HealthWarning,
-				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-				Message: message,
-			}
-		case "MAINTENANCE":
-			return HealthStatus{
-				Health:  HealthWarning,
-				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-				Message: message,
-			}
-		case "FAILED":
-			return HealthStatus{
-				Health:  HealthUnhealthy,
-				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-				Message: message,
-			}
 		default:
-			return HealthStatus{
-				Health:  HealthUnknown,
-				Status:  HealthStatusCode(lo.PascalCase(stateStr)),
-				Message: lo.CoalesceOrEmpty(message, "Unknown status"),
-			}
+			return GetHealthFromStatusName(stateStr, message)
 		}
 	}
 

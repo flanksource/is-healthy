@@ -17,18 +17,18 @@ func GetHealthFromStatusName(status string, reasons ...string) (health HealthSta
 	case "update complete cleanup in progress",
 		"update in progress",
 		"updating",
-		"maintenance",
 		"rebooting",
 		"storage full",
 		"storage optimization",
 		"upgrading",
 		"resetting master credentials",
+		"ready",
 		"modifying":
 		hr.Health = HealthHealthy
 	case "stopped", "terminated", "delete complete", "deleted":
 		hr.Health = HealthUnknown
 		hr.Ready = true
-	case "stopping", "shutting down", "delete in progress", "import in progress", "deleting":
+	case "creating", "stopping", "shutting down", "delete in progress", "import in progress", "deleting":
 		hr.Health = HealthUnknown
 	case "create failed",
 		"delete failed",
@@ -44,9 +44,9 @@ func GetHealthFromStatusName(status string, reasons ...string) (health HealthSta
 	case "running", "active", "create complete", "import complete", "update complete", "available", "in use":
 		hr.Health = HealthHealthy
 		hr.Ready = true
-	case "rollback in progress", "import rollback in progress", "update rollback in progress":
+	case "rollback in progress", "import rollback in progress", "update rollback in progress", "maintenance", "restoring":
 		hr.Health = HealthWarning
-	case "import rollback complete", "rollback complete", "update rollback complete", "active impaired":
+	case "suspended", "import rollback complete", "rollback complete", "update rollback complete", "active impaired":
 		hr.Health = HealthWarning
 		hr.Ready = true
 	}
