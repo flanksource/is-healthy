@@ -16,16 +16,6 @@ jobs:
         with:
           go-version: 1.22.x
 
-      - name: Install Golines and GoFumpt
-        run: |
-          go install github.com/segmentio/golines@latest
-          go install mvdan.cc/gofumpt@latest
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          args: --timeout 5m0s --verbose
-
       - name: Verify formatting
         run: |
           make lint

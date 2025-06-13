@@ -18,13 +18,25 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+## Tool Binaries
+LOCALBIN ?= $(shell pwd)/.bin
+GOLINES ?= $(LOCALBIN)/golines
+GOFUMPT ?= $(LOCALBIN)/gofumpt
+GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
+
+## Tool Versions
+GOLANGCI_LINT_VERSION ?= v2.1.6
+
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
 .PHONY: test
 test:
 	go test ./... -v
 
 .PHONY: lint
-lint: fmt
-	golangci-lint run
+lint: fmt golangci-lint
+	$(GOLANGCI_LINT) run ./...
 
 .PHONY:
 sync:
@@ -37,10 +49,11 @@ update-submodules:
 tidy: fmt
 	go mod tidy
 
-fmt:
-	golines -m 120 -w pkg/
-	golines -m 120 -w events/
-	gofumpt -w pkg/ events/ main.go
+.PHONY: fmt
+fmt: golines gofumpt
+	$(GOLINES) -m 120 -w pkg/
+	$(GOLINES) -m 120 -w events/
+	$(GOFUMPT) -w pkg/ events/ main.go
 
 .PHONY: compress
 compress:
@@ -75,3 +88,18 @@ build:
 .PHONY: install
 install:
 	cp ./.bin/$(NAME) /usr/local/bin/
+
+.PHONY: golines
+golines: $(GOLINES) ## Download golines locally if necessary.
+$(GOLINES): $(LOCALBIN)
+	test -s $(LOCALBIN)/golines || GOBIN=$(LOCALBIN) go install github.com/segmentio/golines@latest
+
+.PHONY: gofumpt
+gofumpt: $(GOFUMPT) ## Download gofumpt locally if necessary.
+$(GOFUMPT): $(LOCALBIN)
+	test -s $(LOCALBIN)/gofumpt || GOBIN=$(LOCALBIN) go install mvdan.cc/gofumpt@latest
+
+.PHONY: golangci-lint
+golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
+$(GOLANGCI_LINT): $(LOCALBIN)
+	test -s $(LOCALBIN)/golangci-lint || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(LOCALBIN) $(GOLANGCI_LINT_VERSION)

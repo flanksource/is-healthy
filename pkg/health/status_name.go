@@ -44,7 +44,11 @@ func GetHealthFromStatusName(status string, reasons ...string) (health HealthSta
 	case "running", "active", "create complete", "import complete", "update complete", "available", "in use":
 		hr.Health = HealthHealthy
 		hr.Ready = true
-	case "rollback in progress", "import rollback in progress", "update rollback in progress", "maintenance", "restoring":
+	case "rollback in progress",
+		"import rollback in progress",
+		"update rollback in progress",
+		"maintenance",
+		"restoring":
 		hr.Health = HealthWarning
 	case "suspended", "import rollback complete", "rollback complete", "update rollback complete", "active impaired":
 		hr.Health = HealthWarning

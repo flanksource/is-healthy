@@ -21,3 +21,4 @@
 go.work
 # Added by goreleaser init:
 dist/
+.bin/
