@@ -10,7 +10,7 @@ import (
 
 func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 	switch configType {
-	case "GCP::Compute::Disk":
+	case "GCP::Disk":
 		statusStr, found, err := unstructured.NestedString(obj, "status")
 		if err != nil || !found {
 			return HealthStatus{
@@ -36,7 +36,7 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 			Message: message,
 		}
 
-	case "GCP::Compute::InstanceGroupManager":
+	case "GCP::InstanceGroupManager":
 		statusMap, found, err := unstructured.NestedMap(obj, "status")
 		if err != nil || !found {
 			return HealthStatus{
@@ -76,7 +76,7 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 			return GetHealthFromStatusName("degraded", message)
 		}
 
-	case "GCP::Sqladmin::Instance":
+	case "GCP::SQLInstance":
 		stateStr, found, err := unstructured.NestedString(obj, "state")
 		if err != nil || !found {
 			return HealthStatus{
