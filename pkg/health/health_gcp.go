@@ -15,7 +15,7 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 		if err != nil || !found {
 			return HealthStatus{
 				Health:  HealthUnknown,
-				Message: fmt.Sprintf("GCP::Compute::Disk missing or invalid 'status' field: %v", err),
+				Message: fmt.Sprintf("GCP::Disk missing or invalid 'status' field: %v", err),
 			}
 		}
 
@@ -41,7 +41,7 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 		if err != nil || !found {
 			return HealthStatus{
 				Health:  HealthUnknown,
-				Message: fmt.Sprintf("GCP::Compute::InstanceGroupManager missing or invalid 'status' field: %v", err),
+				Message: fmt.Sprintf("GCP::InstanceGroupManager missing or invalid 'status' field: %v", err),
 			}
 		}
 
@@ -81,7 +81,7 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 		if err != nil || !found {
 			return HealthStatus{
 				Health:  HealthUnknown,
-				Message: fmt.Sprintf("GCP::Sqladmin::Instance missing or invalid 'state' field: %v", err),
+				Message: fmt.Sprintf("GCP::SQLInstance missing or invalid 'state' field: %v", err),
 			}
 		}
 
@@ -105,6 +105,25 @@ func GetGCPHealth(configType string, obj map[string]any) HealthStatus {
 			}
 		default:
 			return GetHealthFromStatusName(stateStr, message)
+		}
+
+	case "GCP::GKECluster", "GCP::Instance", "GCP::NodePool":
+		statusStr, found, err := unstructured.NestedString(obj, "status")
+		if err != nil || !found {
+			return HealthStatus{
+				Health:  HealthUnknown,
+				Message: fmt.Sprintf("%s missing or invalid 'status' field: %v", configType, err),
+			}
+		}
+		message, _, _ := unstructured.NestedString(obj, "statusMessage")
+		healthStatus := GetHealthFromStatusName(statusStr, message)
+		if healthStatus.Health != "" {
+			return healthStatus
+		}
+
+		return HealthStatus{
+			Health:  HealthUnknown,
+			Message: message,
 		}
 	}
 

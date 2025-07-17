@@ -1,0 +1,52 @@
+autoscaling:
+  enabled: true
+  maxNodeCount: 2
+  minNodeCount: 1
+  locationPolicy: BALANCED
+config:
+  tags:
+    - hub-cluster-node
+  diskType: pd-standard
+  metadata:
+    disable-legacy-endpoints: "true"
+  imageType: COS_CONTAINERD
+  diskSizeGb: 100
+  machineType: n2-standard-2
+  oauthScopes:
+    - https://www.googleapis.com/auth/cloud-platform
+  loggingConfig: {}
+  serviceAccount: infrastructure-cluster-node-sa@flanksource-sandbox.iam.gserviceaccount.com
+  windowsNodeConfig: {}
+  effectiveCgroupMode: EFFECTIVE_CGROUP_MODE_V2
+  shieldedInstanceConfig:
+    enableIntegrityMonitoring: true
+  workloadMetadataConfig:
+    mode: GKE_METADATA
+etag: 07134131-79ea-45b2-83ae-3cb65edb69a1
+initialNodeCount: 1
+instanceGroupUrls:
+  - projects/flanksource-sandbox/zones/europe-west1-d/instanceGroupManagers/gke-hub-cluster-private-pool-containe-1b24fcc0-grp
+  - projects/flanksource-sandbox/zones/europe-west1-b/instanceGroupManagers/gke-hub-cluster-private-pool-containe-de26c8a2-grp
+  - projects/flanksource-sandbox/zones/europe-west1-c/instanceGroupManagers/gke-hub-cluster-private-pool-containe-00531631-grp
+locations:
+  - europe-west1-d
+  - europe-west1-b
+  - europe-west1-c
+management:
+  autoRepair: true
+  autoUpgrade: true
+maxPodsConstraint:
+  maxPodsPerNode: "110"
+name: private-pool-containerd
+networkConfig:
+  podRange: pods
+  podIpv4CidrBlock: 10.65.224.0/20
+  enablePrivateNodes: true
+podIpv4CidrSize: 24
+selfLink: https://container.googleapis.com/v1/projects/flanksource-sandbox/locations/europe-west1/clusters/hub-cluster/nodePools/private-pool-containerd
+status: RUNNING
+upgradeSettings:
+  maxSurge: 1
+  strategy: SURGE
+version: 1.32.4-gke.1415000
+

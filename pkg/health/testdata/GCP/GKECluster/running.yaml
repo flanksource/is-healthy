@@ -1,0 +1,222 @@
+addonsConfig:
+  cloudRunConfig:
+    disabled: true
+    loadBalancerType: LOAD_BALANCER_TYPE_EXTERNAL
+  dnsCacheConfig:
+    enabled: true
+  httpLoadBalancing:
+    disabled: true
+  kubernetesDashboard:
+    disabled: true
+  networkPolicyConfig:
+    disabled: true
+  configConnectorConfig:
+    enabled: true
+  horizontalPodAutoscaling: {}
+  gcePersistentDiskCsiDriverConfig:
+    enabled: true
+autopilot: {}
+autoscaling:
+  autoscalingProfile: BALANCED
+binaryAuthorization: {}
+clusterIpv4Cidr: 10.65.224.0/20
+controlPlaneEndpointsConfig:
+  dnsEndpointConfig:
+    endpoint: gke-3b2324ae3175445fb37e20172167c1106814-365415247865.europe-west1.gke.goog
+    allowExternalTraffic: false
+  ipEndpointsConfig:
+    enabled: true
+    privateEndpoint: 10.65.101.210
+    enablePublicEndpoint: false
+    authorizedNetworksConfig:
+      enabled: true
+      cidrBlocks:
+        - cidrBlock: 10.65.88.0/22
+          displayName: Tailscale exit subnet
+      privateEndpointEnforcementEnabled: true
+    privateEndpointSubnetwork: projects/flanksource-sandbox/regions/europe-west1/subnetworks/hub-network-control
+createTime: 2024-11-22T11:04:49+00:00
+currentMasterVersion: 1.32.4-gke.1415000
+currentNodeCount: 3
+currentNodeVersion: 1.32.4-gke.1415000
+databaseEncryption:
+  state: DECRYPTED
+  currentState: CURRENT_STATE_DECRYPTED
+defaultMaxPodsConstraint:
+  maxPodsPerNode: "110"
+endpoint: 10.65.101.210
+enterpriseConfig:
+  clusterTier: STANDARD
+etag: 567aead8-5125-45c6-8c0b-4916cc006445
+id: 3b2324ae3175445fb37e20172167c110681464dcc9834f7bb3ee54294caf5b4f
+initialClusterVersion: 1.30.5-gke.1443001
+initialNodeCount: 1
+instanceGroupUrls:
+  - projects/flanksource-sandbox/zones/europe-west1-d/instanceGroupManagers/gke-hub-cluster-private-pool-containe-1b24fcc0-grp
+  - projects/flanksource-sandbox/zones/europe-west1-b/instanceGroupManagers/gke-hub-cluster-private-pool-containe-de26c8a2-grp
+  - projects/flanksource-sandbox/zones/europe-west1-c/instanceGroupManagers/gke-hub-cluster-private-pool-containe-00531631-grp
+ipAllocationPolicy:
+  stackType: IPV4
+  useIpAliases: true
+  clusterIpv4Cidr: 10.65.224.0/20
+  servicesIpv4Cidr: 10.65.172.0/22
+  clusterIpv4CidrBlock: 10.65.224.0/20
+  servicesIpv4CidrBlock: 10.65.172.0/22
+  clusterSecondaryRangeName: pods
+  podCidrOverprovisionConfig: {}
+  servicesSecondaryRangeName: services
+  defaultPodIpv4RangeUtilization: 0.1875
+labelFingerprint: 78cdf2f6
+legacyAbac: {}
+location: europe-west1
+locations:
+  - europe-west1-d
+  - europe-west1-b
+  - europe-west1-c
+loggingConfig:
+  componentConfig:
+    enableComponents:
+      - SYSTEM_COMPONENTS
+      - WORKLOADS
+loggingService: logging.googleapis.com/kubernetes
+maintenancePolicy:
+  window:
+    recurringWindow:
+      window:
+        endTime: 2019-08-01T09:00:00Z
+        startTime: 2019-08-01T05:00:00Z
+      recurrence: FREQ=DAILY
+  resourceVersion: a957028c
+masterAuth:
+  clusterCaCertificate: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVMVENDQXBXZ0F3SUJBZ0lSQU5ObzV6TXZkTDlkcC9reGhQeTNVZWN3RFFZSktvWklodmNOQVFFTEJRQXcKTHpFdE1Dc0dBMVVFQXhNa05qQTBNelJpTldFdE9EazVOUzAwWVRNd0xUaGlNbUV0WkRNeFpqRXhZamRsWVRsbApNQ0FYRFRJME1URXlNakV3TURRMU1Gb1lEekl3TlRReE1URTFNVEV3TkRVd1dqQXZNUzB3S3dZRFZRUURFeVEyCk1EUXpOR0kxWVMwNE9UazFMVFJoTXpBdE9HSXlZUzFrTXpGbU1URmlOMlZoT1dVd2dnR2lNQTBHQ1NxR1NJYjMKRFFFQkFRVUFBNElCandBd2dnR0tBb0lCZ1FEREJqY0QwaW9vOFZZdUMrcmV6bUxpbExObE5UdlJTQWIrU3JJSAowc2YwQzNKT1k2emdCSHZPOUQxWVkyblBaS0ZWYlVVcnhnaGY0UDViV3JTL3B1WU9BNnJjbzg2Q2RxUm5UcGJICnZ4K093WnN2UUtSR20vL2h1ci9VcWgzYlpyQXduYTNZbTNzSnRNRnVYY0Y4bDNwUFdhUFp5T090Z0JYbVFNVXEKbXFXclI4WmtzVVYyVkV4NWl6N25KSjllS2NSL3QrSXo5eWE4QU8rMWNBZFNBT3lYYmFFRDNPbHFCQU1VRFRVTwpRckRmZWpiZGFoT1NuR2ZCOHZ6V0J2eEF0VGIzR29VNndTTC9tdW9kZ1JDZFAyUm1rZDNHa0JDV0VONU9XTVdWCno5dEJ6ZFRTaGtJL3RXUm9QbWNIZ29GVnltdkpLbVhEd2d4WU9wQVJHTURDUVNlVHE0ampvVG5qOVlPZ0lnQTcKeUdhcktDbDRpdEJqbm91anpFYUF1c0lhVjdHMVpkangwYkoxOHBPNWFJUWk3TlU1QXE0ZHZPa0p3bjE1TnRuUwpVcVVlMW4zdXIzbUQxcTZIM084UDBJREhCczRiQ3lvVGZBazVrZ0ZwRXV3bklTU1FORTNDSXNzSytFYTJTVUpyCmM5eE4xZ00wQk1yNCtjc25mUThjaERFOTBzVUNBd0VBQWFOQ01FQXdEZ1lEVlIwUEFRSC9CQVFEQWdJRU1BOEcKQTFVZEV3RUIvd1FGTUFNQkFmOHdIUVlEVlIwT0JCWUVGQ1VpTytGa04yOGxybzJ4cnQ0WEhOMHpiUjFlTUEwRwpDU3FHU0liM0RRRUJDd1VBQTRJQmdRQWZPSUlSa2NGdkRPamdOcGJnSlNFY3hnWCs3Ti92OStNTktMS2NzZVhiCkVzQnVEL3VmZkhKbGc3L0FkSzNqT2kvK1RER0ZxN3oxb2hQZlpGZyttT1c4MGcxRmJ3UWh3SWltbmtUQmlkTkkKV1l4VzBEcWRnNXJycDlqcldtdEVCRHNBQTZEK0pqN1NwdXAwVUhveVJaT3l0WjdpazZnWkVNcEF3ZzJucVowTgo3emlhNzJsNkdiNWZVUWo3WGkrVm81bXp3c1dpOHQ2ZHRvVUJ6MHEzc0NOcVFyMjBFbkZjeGlRWTNwdi93dmlnCjJuWU4zVUdrNC9mR0NkNm9HTTNHbEYxMzJTRHptU2JuaVpQejZ2bnErUk5BZlltbE91dHc0c01FS2tsVzl6eVYKYlh6bWNMVHZvM25Ub3VQNXFtVDJNTzVzQitSWFZqaklYUDczQU1sdjBXd2MyWU1DWHZ5TnZwYXVaSHY3QlB3TgpCSnJsOVFFWHhhaVhFaHpPWi81c3dLTFNLbXArN281eGpockY0ZEpqNnNHQ2FRdWt3Vkc4Q0t6TDNtckNnV0RMCi80dndyOVNkdU85cjU0bmNWcTFEWW9CV1IrcVE4MkFCMElhWW9kMkdKRDRqQlY2NXh6blBmM0J1OUlRMW40U2YKaDJsT2taRGZvblJkOWRXYVdtTWJ2VXM9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  clientCertificateConfig: {}
+masterAuthorizedNetworksConfig:
+  enabled: true
+  cidrBlocks:
+    - cidrBlock: 10.65.88.0/22
+      displayName: Tailscale exit subnet
+  privateEndpointEnforcementEnabled: true
+monitoringConfig:
+  componentConfig: {}
+  managedPrometheusConfig: {}
+  advancedDatapathObservabilityConfig: {}
+monitoringService: none
+name: hub-cluster
+network: flanksource-workload
+networkConfig:
+  network: projects/flanksource-sandbox/global/networks/flanksource-workload
+  subnetwork: projects/flanksource-sandbox/regions/europe-west1/subnetworks/hub-network-cluster
+  defaultSnatStatus: {}
+  serviceExternalIpsConfig: {}
+  defaultEnablePrivateNodes: true
+nodeConfig:
+  tags:
+    - hub-cluster-node
+  diskType: pd-standard
+  metadata:
+    disable-legacy-endpoints: "true"
+  imageType: COS_CONTAINERD
+  diskSizeGb: 100
+  machineType: n2-standard-2
+  oauthScopes:
+    - https://www.googleapis.com/auth/cloud-platform
+  loggingConfig: {}
+  serviceAccount: infrastructure-cluster-node-sa@flanksource-sandbox.iam.gserviceaccount.com
+  windowsNodeConfig: {}
+  effectiveCgroupMode: EFFECTIVE_CGROUP_MODE_V2
+  shieldedInstanceConfig:
+    enableIntegrityMonitoring: true
+  workloadMetadataConfig:
+    mode: GKE_METADATA
+nodePoolDefaults:
+  nodeConfigDefaults:
+    loggingConfig:
+      variantConfig:
+        variant: DEFAULT
+    nodeKubeletConfig:
+      insecureKubeletReadonlyPortEnabled: true
+nodePools:
+  - etag: 07134131-79ea-45b2-83ae-3cb65edb69a1
+    name: private-pool-containerd
+    config:
+      tags:
+        - hub-cluster-node
+      diskType: pd-standard
+      metadata:
+        disable-legacy-endpoints: "true"
+      imageType: COS_CONTAINERD
+      diskSizeGb: 100
+      machineType: n2-standard-2
+      oauthScopes:
+        - https://www.googleapis.com/auth/cloud-platform
+      loggingConfig: {}
+      serviceAccount: infrastructure-cluster-node-sa@flanksource-sandbox.iam.gserviceaccount.com
+      windowsNodeConfig: {}
+      effectiveCgroupMode: EFFECTIVE_CGROUP_MODE_V2
+      shieldedInstanceConfig:
+        enableIntegrityMonitoring: true
+      workloadMetadataConfig:
+        mode: GKE_METADATA
+    status: RUNNING
+    version: 1.32.4-gke.1415000
+    selfLink: https://container.googleapis.com/v1/projects/flanksource-sandbox/locations/europe-west1/clusters/hub-cluster/nodePools/private-pool-containerd
+    locations:
+      - europe-west1-d
+      - europe-west1-b
+      - europe-west1-c
+    management:
+      autoRepair: true
+      autoUpgrade: true
+    autoscaling:
+      enabled: true
+      maxNodeCount: 2
+      minNodeCount: 1
+      locationPolicy: BALANCED
+    networkConfig:
+      podRange: pods
+      subnetwork: projects/flanksource-sandbox/regions/europe-west1/subnetworks/hub-network-cluster
+      podIpv4CidrBlock: 10.65.224.0/20
+      enablePrivateNodes: true
+      podIpv4RangeUtilization: 0.1875
+    podIpv4CidrSize: 24
+    upgradeSettings:
+      maxSurge: 1
+      strategy: SURGE
+    initialNodeCount: 1
+    instanceGroupUrls:
+      - projects/flanksource-sandbox/zones/europe-west1-d/instanceGroupManagers/gke-hub-cluster-private-pool-containe-1b24fcc0-grp
+      - projects/flanksource-sandbox/zones/europe-west1-b/instanceGroupManagers/gke-hub-cluster-private-pool-containe-de26c8a2-grp
+      - projects/flanksource-sandbox/zones/europe-west1-c/instanceGroupManagers/gke-hub-cluster-private-pool-containe-00531631-grp
+    maxPodsConstraint:
+      maxPodsPerNode: "110"
+notificationConfig:
+  pubsub: {}
+podAutoscaling:
+  hpaProfile: HPA_PROFILE_UNSPECIFIED
+privateClusterConfig:
+  publicEndpoint: 35.195.57.105
+  privateEndpoint: 10.65.101.210
+  enablePrivateNodes: true
+  enablePrivateEndpoint: true
+  privateEndpointSubnetwork: projects/flanksource-sandbox/regions/europe-west1/subnetworks/hub-network-control
+rbacBindingConfig:
+  enableInsecureBindingSystemAuthenticated: true
+  enableInsecureBindingSystemUnauthenticated: true
+releaseChannel:
+  channel: REGULAR
+resourceLabels:
+  goog-terraform-provisioned: "true"
+satisfiesPzi: false
+satisfiesPzs: false
+securityPostureConfig:
+  mode: BASIC
+  vulnerabilityMode: VULNERABILITY_MODE_UNSPECIFIED
+selfLink: https://container.googleapis.com/v1/projects/flanksource-sandbox/locations/europe-west1/clusters/hub-cluster
+servicesIpv4Cidr: 10.65.172.0/22
+shieldedNodes:
+  enabled: true
+status: RUNNING
+subnetwork: hub-network-cluster
+workloadIdentityConfig:
+  workloadPool: flanksource-sandbox.svc.id.goog
+zone: europe-west1

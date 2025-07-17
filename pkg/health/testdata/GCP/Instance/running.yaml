@@ -1,0 +1,105 @@
+cpuPlatform: Intel Cascade Lake
+creationTimestamp: 2025-06-22T01:24:09.607-07:00
+deletionProtection: false
+disks:
+  - boot: true
+    mode: READ_WRITE
+    type: PERSISTENT
+    index: 0
+    source: projects/flanksource-sandbox/zones/europe-west1-c/disks/gke-hub-cluster-private-pool-containe-00531631-iehk
+    licenses:
+      - projects/gke-node-images/global/licenses/gke-node
+      - projects/cos-cloud/global/licenses/cos-pcid
+      - projects/cos-cloud-shielded/global/licenses/shielded-cos
+      - projects/cos-cloud/global/licenses/cos
+    interface: SCSI
+    autoDelete: true
+    deviceName: persistent-disk-0
+    diskSizeGb: "100"
+    architecture: X86_64
+    guestOsFeatures:
+      - type: SEV_SNP_CAPABLE
+      - type: SEV_LIVE_MIGRATABLE
+      - type: IDPF
+      - type: UEFI_COMPATIBLE
+      - type: GVNIC
+      - type: VIRTIO_SCSI_MULTIQUEUE
+      - type: TDX_CAPABLE
+      - type: SEV_CAPABLE
+      - type: SEV_LIVE_MIGRATABLE_V2
+  - boot: false
+    mode: READ_WRITE
+    type: PERSISTENT
+    index: 1
+    source: projects/flanksource-sandbox/zones/europe-west1-c/disks/pvc-54b0f92b-9a1e-427a-8d2d-7c4185560daa
+    interface: SCSI
+    autoDelete: false
+    deviceName: pvc-54b0f92b-9a1e-427a-8d2d-7c4185560daa
+    diskSizeGb: "20"
+  - boot: false
+    mode: READ_WRITE
+    type: PERSISTENT
+    index: 2
+    source: projects/flanksource-sandbox/zones/europe-west1-c/disks/pvc-45f76351-7866-4526-ae39-07aaae7757d9
+    interface: SCSI
+    autoDelete: false
+    deviceName: pvc-45f76351-7866-4526-ae39-07aaae7757d9
+    diskSizeGb: "20"
+fingerprint: 1eaHfnxYm/s=
+id: "2626829480504197959"
+labelFingerprint: jHr23c61U+U=
+labels:
+  goog-gke-node: ""
+  goog-k8s-cluster-name: hub-cluster
+  goog-k8s-node-pool-name: private-pool-containerd
+  goog-gke-cost-management: ""
+  goog-k8s-cluster-location: europe-west1
+  goog-gke-cluster-id-base32: hmrsjlrrovcf7m36ealscz6bcbubizg4zgbu665t5zkcstfplnhq
+  goog-terraform-provisioned: "true"
+lastStartTimestamp: 2025-06-22T01:24:17.764-07:00
+machineType: projects/flanksource-sandbox/zones/europe-west1-c/machineTypes/n2-standard-2
+metadata:
+  items:
+    - key: vm-dns-setting
+      value: ""
+name: gke-hub-cluster-private-pool-containe-00531631-iehk
+networkInterfaces:
+  - name: nic0
+    network: projects/flanksource-sandbox/global/networks/flanksource-workload
+    networkIP: 10.65.153.58
+    stackType: IPV4_ONLY
+    subnetwork: projects/flanksource-sandbox/regions/europe-west1/subnetworks/hub-network-cluster
+    fingerprint: w70hZPs2NxM=
+    aliasIpRanges:
+      - ipCidrRange: 10.65.224.0/24
+        subnetworkRangeName: pods
+networkPerformanceConfig:
+  totalEgressBandwidthTier: DEFAULT
+resourceStatus:
+  scheduling: {}
+satisfiesPzi: true
+scheduling:
+  preemptible: false
+  automaticRestart: true
+  onHostMaintenance: MIGRATE
+  provisioningModel: STANDARD
+selfLink: projects/flanksource-sandbox/zones/europe-west1-c/instances/gke-hub-cluster-private-pool-containe-00531631-iehk
+serviceAccounts:
+  - email: infrastructure-cluster-node-sa@flanksource-sandbox.iam.gserviceaccount.com
+    scopes:
+      - https://www.googleapis.com/auth/cloud-platform
+shieldedInstanceConfig:
+  enableVtpm: true
+  enableSecureBoot: false
+  enableIntegrityMonitoring: true
+shieldedInstanceIntegrityPolicy:
+  updateAutoLearnPolicy: true
+startRestricted: false
+status: RUNNING
+tags:
+  items:
+    - gke-hub-cluster-3b2324ae-node
+    - hub-cluster-node
+  fingerprint: L1Vg4PW6mNY=
+zone: projects/flanksource-sandbox/zones/europe-west1-c
+
