@@ -1,0 +1,143 @@
+apiVersion: v1
+kind: Node
+metadata:
+  uid: f059fd5b-c62c-45bb-8c6c-3cf2bc09037c
+  name: arsene
+  labels:
+    kubernetes.io/os: linux
+    kubernetes.io/arch: amd64
+    beta.kubernetes.io/os: linux
+    kubernetes.io/hostname: arsene
+    beta.kubernetes.io/arch: amd64
+    node-role.kubernetes.io/etcd: "true"
+    node-role.kubernetes.io/master: "true"
+    beta.kubernetes.io/instance-type: k3s
+    node.kubernetes.io/instance-type: k3s
+    node-role.kubernetes.io/control-plane: "true"
+  finalizers:
+    - wrangler.cattle.io/managed-etcd-controller
+    - wrangler.cattle.io/node
+  annotations:
+    expected-health: "healthy"
+    expected-status: "Running"
+    expected-ready: "true"
+    alpha.kubernetes.io/provided-node-ip: 10.99.99.15
+    csi.volume.kubernetes.io/nodeid: '{"smb.csi.k8s.io":"arsene"}'
+    etcd.k3s.cattle.io/local-snapshots-timestamp: 2025-09-23T00:00:05+05:45
+    etcd.k3s.cattle.io/node-address: 10.99.99.15
+    etcd.k3s.cattle.io/node-name: arsene-f6bf6666
+    flannel.alpha.coreos.com/backend-type: vxlan
+    flannel.alpha.coreos.com/kube-subnet-manager: "true"
+    flannel.alpha.coreos.com/public-ip: 10.99.99.15
+    k3s.io/hostname: arsene
+    k3s.io/internal-ip: 10.99.99.15
+    node.alpha.kubernetes.io/ttl: "0"
+    volumes.kubernetes.io/controller-managed-attach-detach: "true"
+  creationTimestamp: 2025-09-13T05:58:31Z
+spec:
+  taints:
+    - key: node-role.kubernetes.io/master
+      value: "true"
+      effect: NoSchedule
+  podCIDR: 10.42.1.0/24
+  podCIDRs:
+    - 10.42.1.0/24
+  providerID: k3s://arsene
+status:
+  images:
+    - names:
+        - registry.k8s.io/sig-storage/smbplugin@sha256:1ec16928aa355e3dafdc84be2acf88d7d9124816e4cd580411536eae064f1d37
+        - registry.k8s.io/sig-storage/smbplugin:v1.16.0
+      sizeBytes: 82627431
+    - names:
+        - quay.io/metallb/speaker@sha256:fd86bfc502601d6525739d411a0045e7085a4008a732be7e271c851800952142
+        - quay.io/metallb/speaker:v0.14.8
+      sizeBytes: 53146149
+    - names:
+        - registry.k8s.io/sig-storage/csi-provisioner@sha256:7b9cdb5830d01bda96111b4f138dbddcc01eed2f95aa980a404c45a042d60a10
+        - registry.k8s.io/sig-storage/csi-provisioner:v5.0.2
+      sizeBytes: 30330584
+    - names:
+        - docker.io/rancher/mirrored-metrics-server@sha256:20b8b36f8cac9e25aa2a0ff35147b13643bfec603e7e7480886632330a3bbc59
+        - docker.io/rancher/mirrored-metrics-server:v0.7.0
+      sizeBytes: 19434712
+    - names:
+        - docker.io/rancher/local-path-provisioner@sha256:3617a2fb32bf59d06861dd4c3cfb7ba7e66ae2a34bb5443e625fe490df463c71
+        - docker.io/rancher/local-path-provisioner:v0.0.27
+      sizeBytes: 17843415
+    - names:
+        - docker.io/rancher/mirrored-coredns-coredns@sha256:a11fafae1f8037cbbd66c5afa40ba2423936b72b4fd50a7034a7e8b955163594
+        - docker.io/rancher/mirrored-coredns-coredns:1.10.1
+      sizeBytes: 16190137
+    - names:
+        - ghcr.io/kube-vip/kube-vip@sha256:a48dc8d85c7d36876dcc8c0661ac225603936065e51e2e3a92978f036877dcb2
+        - ghcr.io/kube-vip/kube-vip:v0.8.2
+      sizeBytes: 15767495
+    - names:
+        - registry.k8s.io/sig-storage/csi-node-driver-registrar@sha256:e01facb9fb9cffaf52d0053bdb979fbd8c505c8e411939a6e026dd061a6b4fbe
+        - registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.11.1
+      sizeBytes: 13697025
+    - names:
+        - registry.k8s.io/sig-storage/livenessprobe@sha256:d2a9027a4876e039185e9bef7c61a0142c8ea14e7440860285c34ac73fee4ffb
+        - registry.k8s.io/sig-storage/livenessprobe:v2.13.1
+      sizeBytes: 13651774
+    - names:
+        - quay.io/prometheus/node-exporter@sha256:d00a542e409ee618a4edc67da14dd48c5da66726bbd5537ab2af9c1dfc442c8a
+        - quay.io/prometheus/node-exporter:v1.9.1
+      sizeBytes: 12955907
+    - names:
+        - docker.io/rancher/mirrored-pause@sha256:74c4244427b7312c5b901fe0f67cbc53683d06f4f24c6faee65d4182bf0fa893
+        - docker.io/rancher/mirrored-pause:3.6
+      sizeBytes: 301463
+  capacity:
+    cpu: "4"
+    pods: "110"
+    memory: 4009276Ki
+    hugepages-2Mi: "0"
+    ephemeral-storage: 22776352Ki
+  nodeInfo:
+    bootID: ce029a7f-7b10-4083-b0c1-b5c66aeafcb8
+    osImage: Ubuntu 24.04.3 LTS
+    machineID: 0a6b00fb2e68490a83f341440e868091
+    systemUUID: 0a6b00fb-2e68-490a-83f3-41440e868091
+    architecture: amd64
+    kernelVersion: 6.8.0-83-generic
+    kubeletVersion: v1.30.2+k3s2
+    operatingSystem: linux
+    kubeProxyVersion: v1.30.2+k3s2
+    containerRuntimeVersion: containerd://1.7.17-k3s1
+  addresses:
+    - type: InternalIP
+      address: 10.99.99.15
+    - type: Hostname
+      address: arsene
+  conditions:
+    - type: DiskPressure
+      reason: KubeletHasNoDiskPressure
+      status: "False"
+      message: kubelet has no disk pressure
+    - type: EtcdIsVoter
+      reason: MemberNotLearner
+      status: "True"
+      message: Node is a voting member of the etcd cluster
+    - type: MemoryPressure
+      reason: KubeletHasSufficientMemory
+      status: "False"
+      message: kubelet has sufficient memory available
+    - type: PIDPressure
+      reason: KubeletHasSufficientPID
+      status: "False"
+      message: kubelet has sufficient PID available
+    - type: Ready
+      reason: KubeletReady
+      status: "True"
+      message: kubelet is posting ready status
+  allocatable:
+    cpu: "4"
+    pods: "110"
+    memory: 4009276Ki
+    hugepages-2Mi: "0"
+    ephemeral-storage: "22156835209"
+  daemonEndpoints:
+    kubeletEndpoint:
+      Port: 10250
