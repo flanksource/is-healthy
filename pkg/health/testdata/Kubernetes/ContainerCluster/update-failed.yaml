@@ -1,0 +1,170 @@
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+  uid: 816e6e37-1324-4ed0-a02d-69d131f7de35
+  name: workload-prod-eu-02
+  labels:
+    kustomize.toolkit.fluxcd.io/name: workload-prod-eu-02
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  namespace: workload-prod-eu-02
+  finalizers:
+    - cnrm.cloud.google.com/finalizer
+    - cnrm.cloud.google.com/deletion-defender
+  annotations:
+    cnrm.cloud.google.com/project-id: workload-prod-eu-02
+    cnrm.cloud.google.com/state-into-spec: merge
+    cnrm.cloud.google.com/observed-secret-versions: '{}'
+    cnrm.cloud.google.com/remove-default-node-pool: 'true'
+    cnrm.cloud.google.com/mutable-but-unreadable-fields: '{}'
+    cnrm.cloud.google.com/management-conflict-prevention-policy: none
+    expected-health: unhealthy
+    expected-status: UpdateFailed
+    expected-ready: 'true'
+    expected-message: >+
+      Update call failed: error calculating diff: 1 error occurred:
+        * node_version can only be specified if remove_default_node_pool is not true
+
+  creationTimestamp: 2024-11-15T10:21:33Z
+spec:
+  location: europe-west1
+
+  networkRef:
+    external: projects/flanksource-prod/global/networks/flanksource-workload
+  nodeConfig:
+    diskType: pd-balanced
+    metadata:
+      disable-legacy-endpoints: 'true'
+    imageType: COS_CONTAINERD
+    diskSizeGb: 100
+    machineType: e2-medium
+    oauthScopes:
+      - https://www.googleapis.com/auth/service.management.readonly
+      - https://www.googleapis.com/auth/servicecontrol
+      - https://www.googleapis.com/auth/trace.append
+      - https://www.googleapis.com/auth/devstorage.read_only
+      - https://www.googleapis.com/auth/logging.write
+      - https://www.googleapis.com/auth/monitoring
+    loggingVariant: DEFAULT
+    serviceAccountRef:
+      external: default
+    shieldedInstanceConfig:
+      enableIntegrityMonitoring: true
+    workloadMetadataConfig:
+      mode: GKE_METADATA
+      nodeMetadata: GKE_METADATA_SERVER
+  resourceID: workload-prod-eu-02
+  description: Flanksource Prod Workload Cluster
+  nodeVersion: 1.30.5-gke.1014003
+  addonsConfig:
+    networkPolicyConfig:
+      disabled: true
+    configConnectorConfig:
+      enabled: false
+    gcsFuseCsiDriverConfig:
+      enabled: true
+    gcpFilestoreCsiDriverConfig:
+      enabled: true
+    gcePersistentDiskCsiDriverConfig:
+      enabled: true
+  loggingConfig:
+    enableComponents:
+      - SYSTEM_COMPONENTS
+      - WORKLOADS
+  networkPolicy:
+    enabled: false
+    provider: PROVIDER_UNSPECIFIED
+  nodeLocations:
+    - europe-west1-b
+    - europe-west1-c
+    - europe-west1-d
+  protectConfig:
+    workloadConfig:
+      auditMode: BASIC
+    workloadVulnerabilityMode: WORKLOAD_VULNERABILITY_MODE_UNSPECIFIED
+  subnetworkRef:
+    name: workload-prod-eu-02-cluster
+  loggingService: logging.googleapis.com/kubernetes
+  networkingMode: VPC_NATIVE
+  releaseChannel:
+    channel: STABLE
+  clusterIpv4Cidr: 10.1.96.0/20
+  clusterTelemetry:
+    type: ENABLED
+  initialNodeCount: 1
+  monitoringConfig:
+    enableComponents:
+      - SYSTEM_COMPONENTS
+      - STORAGE
+      - HPA
+      - POD
+      - DAEMONSET
+      - DEPLOYMENT
+      - STATEFULSET
+      - CADVISOR
+      - KUBELET
+    managedPrometheus:
+      enabled: true
+  nodePoolDefaults:
+    nodeConfigDefaults:
+      loggingVariant: DEFAULT
+  defaultSnatStatus:
+    disabled: false
+  maintenancePolicy:
+    dailyMaintenanceWindow:
+      duration: PT4H0M0S
+      startTime: 00:00
+  monitoringService: monitoring.googleapis.com/kubernetes
+  clusterAutoscaling:
+    enabled: false
+    autoscalingProfile: BALANCED
+  databaseEncryption:
+    state: DECRYPTED
+  ipAllocationPolicy:
+    stackType: IPV4
+    clusterIpv4CidrBlock: 10.1.96.0/20
+    servicesIpv4CidrBlock: 10.1.56.0/22
+    clusterSecondaryRangeName: pods
+    podCidrOverprovisionConfig:
+      disabled: false
+    servicesSecondaryRangeName: services
+  notificationConfig:
+    pubsub:
+      enabled: true
+      topicRef:
+        name: workload-prod-eu-02-cluster-notifications
+  enableShieldedNodes: true
+  privateClusterConfig:
+    publicEndpoint: 34.79.132.104
+    privateEndpoint: 10.1.239.210
+    enablePrivateNodes: true
+    masterIpv4CidrBlock: 10.1.239.208/28
+    enablePrivateEndpoint: true
+    masterGlobalAccessConfig:
+      enabled: true
+  defaultMaxPodsPerNode: 110
+  workloadIdentityConfig:
+    workloadPool: workload-prod-eu-02.svc.id.goog
+  podSecurityPolicyConfig:
+    enabled: false
+  serviceExternalIpsConfig:
+    enabled: false
+  masterAuthorizedNetworksConfig:
+    cidrBlocks:
+      - cidrBlock: 10.1.140.0/22
+        displayName: Tailscale exit range
+      - cidrBlock: 10.1.112.0/20
+        displayName: Hub Pods
+status:
+  endpoint: 10.1.239.210
+  selfLink: https://container.googleapis.com/v1beta1/projects/workload-prod-eu-02/locations/europe-west1/clusters/workload-prod-eu-02
+  conditions:
+    - type: Ready
+      reason: UpdateFailed
+      status: 'False'
+      message: >+
+        Update call failed: error calculating diff: 1 error occurred:
+          * node_version can only be specified if remove_default_node_pool is not true
+
+  masterVersion: 1.30.5-gke.1014003
+  labelFingerprint: 837da224
+  servicesIpv4Cidr: 10.1.56.0/22

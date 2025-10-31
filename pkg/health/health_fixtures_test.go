@@ -17,7 +17,7 @@ func TestFixtures(t *testing.T) {
 	}
 
 	for _, file := range files {
-		// if file != "testdata/GCP/Sqladmin/Instance/ready.yaml" {
+		// if file != "testdata/Kubernetes/ContainerCluster/update-failed.yaml" {
 		// 	continue
 		// }
 
