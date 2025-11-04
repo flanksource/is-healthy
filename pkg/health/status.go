@@ -25,8 +25,8 @@ func init() {
 
 type status struct {
 	Status struct {
-		Conditions []metav1.Condition
-	}
+		Conditions []metav1.Condition `json:"conditions"`
+	} `json:"status"`
 }
 
 type GenericStatus struct {
@@ -245,6 +245,7 @@ func GetHealthFromStatus(k GenericStatus, statusMap StatusMap) (*HealthStatus, e
 	health := &HealthStatus{
 		Health: HealthUnknown,
 	}
+
 	if len(statusMap.Conditions) == 0 {
 		return health, nil
 	}
