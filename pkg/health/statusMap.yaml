@@ -113,12 +113,6 @@ HelmRelease: &flux
       onUnknown:
         status: Reconciling
         nonReady: true
-    Released:
-      reasons:
-        InstallSucceeded:
-          ready: true
-          health: healthy
-          status: ReconciliationSucceeded
     Reconciling:
       status: Reconciling
       reasons:

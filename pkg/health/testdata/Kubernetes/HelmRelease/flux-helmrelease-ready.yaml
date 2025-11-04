@@ -3,7 +3,7 @@ kind: HelmRelease
 metadata:
   annotations:
     kustomize/patched: "true"
-    expected-status: ReconciliationSucceeded 
+    expected-status: InstallSucceeded
     expected-health: healthy
     expected-ready: "true"
   creationTimestamp: "2025-11-03T05:08:53Z"
