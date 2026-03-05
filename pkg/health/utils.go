@@ -31,6 +31,7 @@ const (
 	APIServiceKind               = "APIService"
 	NamespaceKind                = "Namespace"
 	HorizontalPodAutoscalerKind  = "HorizontalPodAutoscaler"
+	RolloutKind                  = "Rollout"
 )
 
 type HealthStatus struct {
@@ -134,6 +135,30 @@ func IsPodAvailable(pod *corev1.Pod, minReadySeconds int32, now metav1.Time) boo
 // IsPodReady returns true if a pod is ready; false with message otherwise.
 func IsPodReady(pod *corev1.Pod) (bool, string) {
 	return isPodReadyConditionTrue(pod.Status)
+}
+
+// IsPodReadyUnstructured checks if an unstructured pod is ready.
+// Returns true if ready, false otherwise.
+func IsPodReadyUnstructured(pod *unstructured.Unstructured) bool {
+	var typedPod corev1.Pod
+	if err := convertFromUnstructured(pod, &typedPod); err != nil {
+		// If conversion fails, fall back to checking conditions directly
+		if conditions, found, _ := unstructured.NestedSlice(pod.Object, "status", "conditions"); found {
+			for _, conditionInterface := range conditions {
+				if condition, ok := conditionInterface.(map[string]interface{}); ok {
+					if condType, found, _ := unstructured.NestedString(condition, "type"); found && condType == "Ready" {
+						if status, found, _ := unstructured.NestedString(condition, "status"); found {
+							return status == "True"
+						}
+					}
+				}
+			}
+		}
+		return false
+	}
+
+	ready, _ := IsPodReady(&typedPod)
+	return ready
 }
 
 // IsPodReadyConditionTrue returns true if a pod is ready; false otherwise.

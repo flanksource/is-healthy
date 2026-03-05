@@ -43,7 +43,7 @@ func GetSeverity(event string) string {
 	case "ExternalProvisioning":
 		return SeverityLow
 	case "FailedCreatePodSandBox":
-		return SeverityLow
+		return SeverityInfo
 	case "FailedDelete":
 		return SeverityLow
 	case "FailedKillPod":
@@ -75,7 +75,7 @@ func GetSeverity(event string) string {
 	case "ModifyLoadBalancerAttributes":
 		return SeverityLow
 	case "ModifyNetworkInterfaceAttribute":
-		return SeverityLow
+		return SeverityInfo
 	case "NetworkNotReady":
 		return SeverityHigh
 	case "NewArtifact":
@@ -129,13 +129,13 @@ func GetSeverity(event string) string {
 	case "RedeployScheduled":
 		return SeverityLow
 	case "RegisteredNode":
-		return SeverityLow
+		return SeverityInfo
 	case "RegisterInstancesWithLoadBalancer":
 		return SeverityLow
 	case "RELOAD":
 		return SeverityLow
 	case "RemovingNode":
-		return SeverityLow
+		return SeverityInfo
 	case "Requested":
 		return SeverityLow
 	case "Resizing":
@@ -151,7 +151,7 @@ func GetSeverity(event string) string {
 	case "ScalingPaused":
 		return SeverityLow
 	case "ScalingReplicaSet":
-		return SeverityLow
+		return SeverityInfo
 	case "ScalingResumed":
 		return SeverityLow
 	case "SourceUnavailable":

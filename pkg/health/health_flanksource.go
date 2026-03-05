@@ -28,7 +28,7 @@ func getCanaryHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	if errorMsg != "" {
 		return &HealthStatus{
 			Ready:   true,
-			Message: lo.Elipse(errorMsg, maxMessageLength),
+			Message: lo.Ellipsis(errorMsg, maxMessageLength),
 			Health:  HealthUnhealthy,
 		}, nil
 	}
@@ -116,7 +116,7 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 
 		if len(errorMsgs) > 0 {
 			status.Message = strings.Join(lo.Map(errorMsgs, func(msg string, _ int) string {
-				return lo.Elipse(msg, maxMessageLength)
+				return lo.Ellipsis(msg, maxMessageLength)
 			}), ",")
 		}
 	}

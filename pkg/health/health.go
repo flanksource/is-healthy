@@ -157,7 +157,7 @@ func GetHealthByConfigType(configType string, obj map[string]any, states ...stri
 		if err != nil {
 			return HealthStatus{
 				Status:  "HealthParseError",
-				Message: lo.Elipse(err.Error(), 500),
+				Message: lo.Ellipsis(err.Error(), 500),
 			}
 		}
 	}
@@ -340,7 +340,7 @@ func GetResourceHealth(
 		if err != nil {
 			return &HealthStatus{
 				Status:  "HealthParseError",
-				Message: lo.Elipse(err.Error(), 500),
+				Message: lo.Ellipsis(err.Error(), 500),
 			}, nil
 		}
 		if health == nil {
