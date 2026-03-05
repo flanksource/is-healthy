@@ -2,7 +2,6 @@ package health
 
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type nodePhase string
@@ -17,42 +16,40 @@ const (
 	nodeError     nodePhase = "Error"
 )
 
-// An agnostic workflow object only considers Status.Phase and Status.Message. It is agnostic to the API version or any
-// other fields.
-type argoWorkflow struct {
-	Status struct {
-		Phase   nodePhase
-		Message string
-	}
-}
-
 func GetArgoWorkflowHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
-	var wf argoWorkflow
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &wf)
-	if err != nil {
-		return nil, err
+	var phase nodePhase
+	var message string
+
+	if status, ok := obj.Object["status"].(map[string]interface{}); ok {
+		if p, ok := status["phase"].(string); ok {
+			phase = nodePhase(p)
+		}
+		if m, ok := status["message"].(string); ok {
+			message = m
+		}
 	}
-	switch wf.Status.Phase {
+
+	switch phase {
 	case "", nodePending:
-		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusProgressing, Message: wf.Status.Message}, nil
+		return &HealthStatus{Health: HealthHealthy, Status: HealthStatusProgressing, Message: message}, nil
 	case nodeRunning:
 		return &HealthStatus{
 			Ready:   true,
 			Health:  HealthHealthy,
 			Status:  HealthStatusProgressing,
-			Message: wf.Status.Message,
+			Message: message,
 		}, nil
 	case nodeSucceeded:
 		return &HealthStatus{
 			Ready:   true,
 			Health:  HealthHealthy,
 			Status:  HealthStatusHealthy,
-			Message: wf.Status.Message,
+			Message: message,
 		}, nil
 	case nodeFailed, nodeError:
-		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: wf.Status.Message}, nil
+		return &HealthStatus{Health: HealthUnhealthy, Status: HealthStatusDegraded, Message: message}, nil
 	}
-	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: wf.Status.Message}, nil
+	return &HealthStatus{Health: HealthUnknown, Status: HealthStatusUnknown, Message: message}, nil
 }
 
 const (
