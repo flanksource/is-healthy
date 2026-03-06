@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  uid: 6b961542-f5a0-4426-87fe-79f6b125e873
+  name: gcsfusecsi-node-ml48b
+  namespace: kube-system
+  creationTimestamp: "@now-1h"
+spec:
+  containers:
+    - name: main-container
+      image: busybox
+      resources: {}
+    - name: csi-driver-registrar
+      image: gke.gcr.io/csi-node-driver-registrar:v2.10.1
+      resources: {}
+status:
+  phase: Running
+  conditions:
+    - type: ContainersReady
+      status: "True"
+    - type: Initialized
+      status: "True"
+    - type: PodScheduled
+      status: "True"
+    - type: Ready
+      status: "True"
+  containerStatuses:
+    - name: main-container
+      ready: true
+      state:
+        running:
+          startedAt: "@now-1h"
+      started: true
+      lastState: {}
+      restartCount: 0
+    - name: csi-driver-registrar
+      ready: true
+      state:
+        running:
+          startedAt: "@now-5m"
+      started: true
+      lastState:
+        terminated:
+          reason: Error
+          exitCode: 1
+          startedAt: "@now-10m"
+          finishedAt: "@now-5m"
+          containerID: containerd://b9f2c545900af072810408fd0fe25dc26cf9a62c70effca6a4e6b7d8d9d8ef5c
+      restartCount: 1

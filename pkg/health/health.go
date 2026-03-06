@@ -93,6 +93,7 @@ const (
 	HealthStatusCompleted        HealthStatusCode = "Completed"
 	HealthStatusCrashLoopBackoff HealthStatusCode = "CrashLoopBackOff"
 	HealthStatusCrashed          HealthStatusCode = "Crashed"
+	HealthStatusCrashedOnce      HealthStatusCode = "CrashedOnce"
 	HealthStatusCreating         HealthStatusCode = "Creating"
 	HealthStatusDeleted          HealthStatusCode = "Deleted"
 	HealthStatusDeleting         HealthStatusCode = "Deleting"
