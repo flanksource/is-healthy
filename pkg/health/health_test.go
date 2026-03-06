@@ -397,6 +397,17 @@ func TestStatefulSetOnDeleteHealth(t *testing.T) {
 	)
 }
 
+func TestPodCrashedOnce(t *testing.T) {
+	assertAppHealthMsg(
+		t,
+		"./testdata/Kubernetes/Pod/pod-crashed-once.yaml",
+		health.HealthStatusCrashedOnce,
+		health.HealthUnhealthy,
+		false,
+		"restarted 1 time",
+	)
+}
+
 func TestDaemonSetOnDeleteHealth(t *testing.T) {
 	assertAppHealthMsg(t, "./testdata/daemonset-ondelete.yaml", health.HealthStatusRunning, health.HealthHealthy, true)
 }
