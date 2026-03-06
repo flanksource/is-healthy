@@ -2,6 +2,7 @@ package health
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -92,7 +93,7 @@ func getContainerStatus(containerStatus corev1.ContainerStatus) (waiting *Health
 			}
 			if state.Reason == string(HealthStatusError) {
 				if age < 15*time.Minute {
-					terminated.Status = HealthStatusCrashLoopBackoff
+					terminated.Status = lo.Ternary(containerStatus.RestartCount == 1, HealthStatusCrashedOnce, HealthStatusCrashLoopBackoff)
 				} else if age < time.Hour {
 					terminated.Status = "Restarted"
 				}
@@ -185,7 +186,7 @@ func getCorev1PodHealth(pod *corev1.Pod) (*HealthStatus, error) {
 	case corev1.PodRunning, corev1.PodPending:
 		hr = hr.Merge(terminated, waiting)
 		if terminated != nil && terminated.Health.IsWorseThan(HealthWarning) {
-			if hr.Status == HealthStatusCrashLoopBackoff {
+			if slices.Contains([]HealthStatusCode{HealthStatusCrashLoopBackoff, HealthStatusCrashedOnce}, hr.Status) {
 				hr.Status = terminated.Status
 				hr.Health = hr.Health.Worst(terminated.Health)
 			}
