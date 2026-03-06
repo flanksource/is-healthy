@@ -146,7 +146,8 @@ func IsPodReadyUnstructured(pod *unstructured.Unstructured) bool {
 		if conditions, found, _ := unstructured.NestedSlice(pod.Object, "status", "conditions"); found {
 			for _, conditionInterface := range conditions {
 				if condition, ok := conditionInterface.(map[string]interface{}); ok {
-					if condType, found, _ := unstructured.NestedString(condition, "type"); found && condType == "Ready" {
+					if condType, found, _ := unstructured.NestedString(condition, "type"); found &&
+						condType == "Ready" {
 						if status, found, _ := unstructured.NestedString(condition, "status"); found {
 							return status == "True"
 						}
