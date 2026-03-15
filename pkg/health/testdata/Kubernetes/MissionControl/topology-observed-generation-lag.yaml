@@ -1,0 +1,15 @@
+apiVersion: canaries.flanksource.com/v1
+kind: Topology
+metadata:
+  name: lagging-topology
+  namespace: canaries
+  generation: 7
+  annotations:
+    expected-ready: 'false'
+    expected-health: 'warning'
+    expected-status: 'Degraded'
+spec:
+  schedule: '@every 5m'
+status:
+  observedGeneration: 3
+  status: Running

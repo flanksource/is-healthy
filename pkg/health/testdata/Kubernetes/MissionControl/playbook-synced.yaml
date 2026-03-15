@@ -1,0 +1,25 @@
+apiVersion: mission-control.flanksource.com/v1
+kind: Playbook
+metadata:
+  name: test-playbook
+  namespace: mc
+  generation: 5
+  annotations:
+    expected-ready: 'true'
+    expected-health: 'healthy'
+    expected-status: 'Synced'
+spec:
+  title: test
+  actions:
+    - name: noop
+      notification:
+        title: test
+        message: test
+status:
+  observedGeneration: 5
+  conditions:
+    - type: Ready
+      status: "True"
+      reason: Synced
+      message: ""
+      lastTransitionTime: "2026-03-15T10:00:00Z"

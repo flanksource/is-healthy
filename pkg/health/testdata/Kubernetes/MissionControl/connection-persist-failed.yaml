@@ -1,0 +1,20 @@
+apiVersion: mission-control.flanksource.com/v1
+kind: Connection
+metadata:
+  name: test-connection
+  namespace: mc
+  generation: 3
+  annotations:
+    expected-ready: 'false'
+    expected-health: 'unhealthy'
+    expected-status: 'PersistFailed'
+    expected-message: 'db write failed'
+spec: {}
+status:
+  observedGeneration: 3
+  conditions:
+    - type: Ready
+      status: "False"
+      reason: PersistFailed
+      message: db write failed
+      lastTransitionTime: "2026-03-15T10:00:00Z"

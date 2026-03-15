@@ -1,0 +1,30 @@
+apiVersion: mission-control.flanksource.com/v1
+kind: View
+metadata:
+  name: test-view
+  namespace: mc
+  generation: 3
+  annotations:
+    expected-ready: 'true'
+    expected-health: 'healthy'
+    expected-status: 'Synced'
+spec:
+  display:
+    table:
+      sort: id
+  queries:
+    main:
+      configs:
+        name: "*"
+  columns:
+    - name: id
+      primaryKey: true
+      type: string
+status:
+  observedGeneration: 3
+  conditions:
+    - type: Ready
+      status: "True"
+      reason: Synced
+      message: ""
+      lastTransitionTime: "2026-03-15T10:00:00Z"

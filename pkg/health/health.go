@@ -365,6 +365,14 @@ func GetResourceHealth(
 			Ready:  true,
 		}
 	}
+
+	if err := applyFlanksourceObservedGenerationHealth(obj, health); err != nil {
+		return &HealthStatus{
+			Status:  "HealthParseError",
+			Message: lo.Ellipsis(err.Error(), 500),
+		}, nil
+	}
+
 	if obj.GetDeletionTimestamp() != nil {
 		health.Status = HealthStatusTerminating
 		health.Ready = false
@@ -418,13 +426,7 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 			// 	case "ScrapePlugin":
 		}
 	case "mission-control.flanksource.com":
-		switch gvk.Kind {
-		case "Notification":
-			return getNotificationHealth
-			// 	case "Playbook":
-			// 	case "NotificationSilence":
-			// 	case "Connection":
-		}
+		return getMissionControlHealth
 	case "kustomize.toolkit.fluxcd.io", "helm.toolkit.fluxcd.io", "source.toolkit.fluxcd.io":
 		return GetDefaultHealth
 	case "cert-manager.io":

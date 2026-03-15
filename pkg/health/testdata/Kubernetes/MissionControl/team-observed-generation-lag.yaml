@@ -1,0 +1,21 @@
+apiVersion: mission-control.flanksource.com/v1
+kind: Team
+metadata:
+  name: lagging-team
+  namespace: mc
+  generation: 2
+  annotations:
+    expected-ready: 'false'
+    expected-health: 'warning'
+    expected-status: 'Degraded'
+spec:
+  members:
+    - user@example.com
+status:
+  observedGeneration: 1
+  conditions:
+    - type: Ready
+      status: "True"
+      reason: Synced
+      message: ""
+      lastTransitionTime: "2026-03-15T10:00:00Z"

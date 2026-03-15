@@ -1,0 +1,19 @@
+apiVersion: mission-control.flanksource.com/v1
+kind: IncidentRule
+metadata:
+  name: test-incident-rule
+  namespace: mc
+  generation: 2
+  annotations:
+    expected-ready: 'true'
+    expected-health: 'healthy'
+    expected-status: 'Synced'
+spec: {}
+status:
+  observedGeneration: 2
+  conditions:
+    - type: Ready
+      status: "True"
+      reason: Synced
+      message: ""
+      lastTransitionTime: "2026-03-15T10:00:00Z"

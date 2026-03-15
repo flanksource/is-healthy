@@ -9,6 +9,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/duration"
 )
@@ -18,6 +19,15 @@ const defaultMaxMessageLength = 512
 var maxMessageLength = defaultMaxMessageLength
 
 var re = regexp.MustCompile(`(?:\((\d+\.?\d*)%\))|(\d+\.?\d*)%`)
+
+const (
+	missionControlReadyConditionType = "Ready"
+
+	// See github.com/flanksource/kopper/reconciler.go for the canonical reasons.
+	missionControlReasonSynced        = "Synced"
+	missionControlReasonPersistFailed = "PersistFailed"
+	missionControlReasonDeleteFailed  = "DeleteFailed"
+)
 
 func getCanaryHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	errorMsg, _, err := unstructured.NestedString(obj.Object, "status", "errorMessage")
@@ -162,7 +172,117 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 	return status, nil
 }
 
+func getMissionControlHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
+	if obj.GetKind() == "Notification" {
+		return getNotificationHealth(obj)
+	}
+
+	status, hasMissionControlSignals, err := getMissionControlConditionHealth(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	if !hasMissionControlSignals {
+		return nil, nil
+	}
+
+	return status, nil
+}
+
+func getMissionControlConditionHealth(obj *unstructured.Unstructured) (*HealthStatus, bool, error) {
+	readyCondition := GetGenericStatus(obj).FindCondition(missionControlReadyConditionType)
+	_, hasObservedGeneration, err := unstructured.NestedInt64(obj.Object, "status", "observedGeneration")
+	if err != nil {
+		return nil, false, err
+	}
+
+	hasMissionControlSignals := readyCondition.Type != "" || hasObservedGeneration
+	if !hasMissionControlSignals {
+		return nil, false, nil
+	}
+
+	health := &HealthStatus{
+		Health: HealthUnknown,
+	}
+
+	switch readyCondition.Status {
+	case metav1.ConditionTrue:
+		health.Ready = true
+		health.Health = HealthHealthy
+		health.Status = HealthStatusCode(lo.CoalesceOrEmpty(readyCondition.Reason, missionControlReasonSynced))
+	case metav1.ConditionFalse:
+		health.Ready = false
+		health.Message = readyCondition.Message
+		health.Status = HealthStatusCode(readyCondition.Reason)
+
+		switch readyCondition.Reason {
+		case missionControlReasonPersistFailed, missionControlReasonDeleteFailed:
+			health.Health = HealthUnhealthy
+		default:
+			health.Health = HealthUnhealthy
+		}
+	case metav1.ConditionUnknown:
+		health.Ready = false
+		health.Health = HealthUnknown
+		health.Message = readyCondition.Message
+		health.Status = HealthStatusCode(lo.CoalesceOrEmpty(readyCondition.Reason, string(HealthStatusUnknown)))
+	}
+
+	return health, true, nil
+}
+
+func applyFlanksourceObservedGenerationHealth(obj *unstructured.Unstructured, health *HealthStatus) error {
+	if health == nil {
+		return nil
+	}
+
+	group := obj.GroupVersionKind().Group
+	if group == "" {
+		apiVersion := obj.GetAPIVersion()
+		if parts := strings.Split(apiVersion, "/"); len(parts) > 1 {
+			group = parts[0]
+		}
+	}
+
+	if !strings.HasSuffix(group, ".flanksource.com") {
+		return nil
+	}
+
+	observedGeneration, found, err := unstructured.NestedInt64(obj.Object, "status", "observedGeneration")
+	if err != nil {
+		return err
+	}
+
+	if !found || observedGeneration >= obj.GetGeneration() {
+		return nil
+	}
+
+	health.Status = HealthStatusDegraded
+	health.Health = HealthWarning
+	health.Ready = false
+
+	msg := fmt.Sprintf("observed generation %d is behind metadata generation %d", observedGeneration, obj.GetGeneration())
+	if !strings.Contains(health.Message, msg) {
+		health.PrependMessage("%s", msg)
+	}
+
+	return nil
+}
+
 func getNotificationHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
+	conditionHealth, hasMissionControlSignals, err := getMissionControlConditionHealth(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	if hasMissionControlSignals {
+		return conditionHealth, nil
+	}
+
+	return getNotificationLegacyHealth(obj)
+}
+
+func getNotificationLegacyHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 	failedCount, _, err := unstructured.NestedInt64(obj.Object, "status", "failed")
 	if err != nil {
 		return nil, err

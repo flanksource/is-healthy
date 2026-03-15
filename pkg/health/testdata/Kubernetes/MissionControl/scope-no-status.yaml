@@ -1,0 +1,19 @@
+apiVersion: mission-control.flanksource.com/v1
+kind: Scope
+metadata:
+  uid: 456af3ef-d35c-49b3-b462-adf975e2cb95
+  name: kind-configs
+  namespace: mc
+  finalizers:
+    - scope.mission-control.flanksource.com
+  creationTimestamp: 2025-10-14T11:56:55Z
+  annotations:
+    expected-ready: 'false'
+    expected-health: 'unknown'
+    expected-status: ''
+spec:
+  targets:
+    - config:
+        agent: kind
+  description: All configs from the kind cluster
+status: {}

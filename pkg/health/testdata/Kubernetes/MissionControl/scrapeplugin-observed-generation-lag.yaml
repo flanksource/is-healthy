@@ -1,0 +1,14 @@
+apiVersion: configs.flanksource.com/v1
+kind: ScrapePlugin
+metadata:
+  name: lagging-scrape-plugin
+  namespace: mc
+  generation: 3
+  annotations:
+    expected-ready: 'false'
+    expected-health: 'warning'
+    expected-status: 'Degraded'
+spec:
+  properties: []
+status:
+  observedGeneration: 1
