@@ -1,0 +1,26 @@
+apiVersion: mission-control.flanksource.com/v1
+kind: Playbook
+metadata:
+  name: lagging-playbook
+  namespace: mc
+  generation: 3
+  annotations:
+    expected-ready: 'false'
+    expected-health: 'warning'
+    expected-status: 'Degraded'
+spec:
+  title: test
+  actions:
+    - name: noop
+      notification:
+        title: test
+        message: test
+status:
+  observedGeneration: 2
+  conditions:
+    - type: Ready
+      status: "True"
+      reason: Synced
+      message: ""
+      observedGeneration: 2
+      lastTransitionTime: "2026-03-15T10:00:00Z"

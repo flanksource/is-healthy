@@ -25,7 +25,7 @@ GOFUMPT ?= $(LOCALBIN)/gofumpt
 GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
-GOLANGCI_LINT_VERSION ?= v2.10.1
+GOLANGCI_LINT_VERSION ?= v2.11.3
 
 $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
