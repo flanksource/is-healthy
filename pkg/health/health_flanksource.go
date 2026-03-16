@@ -261,7 +261,11 @@ func applyFlanksourceObservedGenerationHealth(obj *unstructured.Unstructured, he
 	health.Health = HealthWarning
 	health.Ready = false
 
-	msg := fmt.Sprintf("observed generation %d is behind metadata generation %d", observedGeneration, obj.GetGeneration())
+	msg := fmt.Sprintf(
+		"observed generation %d is behind metadata generation %d",
+		observedGeneration,
+		obj.GetGeneration(),
+	)
 	if !strings.Contains(health.Message, msg) {
 		health.PrependMessage("%s", msg)
 	}
