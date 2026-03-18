@@ -1,0 +1,22 @@
+apiVersion: configs.flanksource.com/v1
+kind: ScrapeConfig
+metadata:
+  annotations:
+    expected-ready: "true"
+    expected-health: "healthy"
+  creationTimestamp: "2024-12-04T12:21:48Z"
+  generation: 5
+  name: homelab
+  namespace: mc
+spec:
+  kubernetes:
+    - clusterName: homelab
+  schedule: "@every 1h"
+status:
+  lastRun:
+    success: 901
+    timestamp: "@now-2h"
+  incremental:
+    count: 3201
+    success: 12431
+    timestamp: "@now-1m"
