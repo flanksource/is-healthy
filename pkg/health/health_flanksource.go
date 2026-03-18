@@ -89,12 +89,19 @@ func parseCanaryUptime(uptime string) *float64 {
 }
 
 func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
-	errorCount, _, err := unstructured.NestedInt64(obj.Object, "status", "lastRun", "error")
+	// Use incremental status when present, falling back to lastRun
+	statusPath := []string{"status", "lastRun"}
+	_, hasIncremental, _ := unstructured.NestedMap(obj.Object, "status", "incremental")
+	if hasIncremental {
+		statusPath = []string{"status", "incremental"}
+	}
+
+	errorCount, _, err := unstructured.NestedInt64(obj.Object, append(statusPath, "error")...)
 	if err != nil {
 		return nil, err
 	}
 
-	successCount, _, err := unstructured.NestedInt64(obj.Object, "status", "lastRun", "success")
+	successCount, _, err := unstructured.NestedInt64(obj.Object, append(statusPath, "success")...)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +126,7 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 	}
 
 	if errorCount > 0 {
-		errorMsgs, _, err := unstructured.NestedStringSlice(obj.Object, "status", "lastRun", "errors")
+		errorMsgs, _, err := unstructured.NestedStringSlice(obj.Object, append(statusPath, "errors")...)
 		if err != nil {
 			return nil, err
 		}
@@ -129,6 +136,11 @@ func getScrapeConfigHealth(obj *unstructured.Unstructured) (*HealthStatus, error
 				return lo.Ellipsis(msg, maxMessageLength)
 			}), ",")
 		}
+	}
+
+	// Skip staleness check when incremental status is present
+	if hasIncremental {
+		return status, nil
 	}
 
 	if lastRunTime, _, err := unstructured.NestedString(obj.Object, "status", "lastRun", "timestamp"); err != nil {

@@ -1,0 +1,26 @@
+apiVersion: configs.flanksource.com/v1
+kind: ScrapeConfig
+metadata:
+  annotations:
+    expected-ready: "true"
+    expected-health: "warning"
+    expected-message: "scrape timeout"
+  creationTimestamp: "2024-12-04T12:21:48Z"
+  generation: 5
+  name: homelab
+  namespace: mc
+spec:
+  kubernetes:
+    - clusterName: homelab
+  schedule: "@every 1h"
+status:
+  lastRun:
+    success: 901
+    timestamp: "@now-5m"
+  incremental:
+    count: 3201
+    error: 2
+    errors:
+      - "scrape timeout"
+    success: 12431
+    timestamp: "@now-1m"
