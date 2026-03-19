@@ -1,0 +1,182 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  uid: a3920312-f64b-4cc5-b9ac-c9080eaf0a7b
+  name: longhorn-manager
+  labels:
+    app: longhorn-manager
+    helm.sh/chart: longhorn-1.10.1
+    app.kubernetes.io/name: longhorn
+    app.kubernetes.io/version: v1.10.1
+    app.kubernetes.io/instance: longhorn
+    helm.toolkit.fluxcd.io/name: longhorn
+    app.kubernetes.io/managed-by: Helm
+    helm.toolkit.fluxcd.io/namespace: storage
+  namespace: storage
+  annotations:
+    meta.helm.sh/release-name: longhorn
+    meta.helm.sh/release-namespace: storage
+    deprecated.daemonset.template.generation: '12'
+    expected-status: PartiallyAvailable
+    expected-health: warning
+    expected-ready: 'false'
+    expected-message: >
+      DaemonSet not fully available: 1 unavailable replica (2/3 available, 2/3 ready)
+  creationTimestamp: 2025-08-16T19:31:25Z
+spec:
+  selector:
+    matchLabels:
+      app: longhorn-manager
+  template:
+    spec:
+      volumes:
+        - name: boot
+          hostPath:
+            path: /boot/
+            type: ''
+        - name: dev
+          hostPath:
+            path: /dev/
+            type: ''
+        - name: proc
+          hostPath:
+            path: /proc/
+            type: ''
+        - name: etc
+          hostPath:
+            path: /etc/
+            type: ''
+        - name: longhorn
+          hostPath:
+            path: /var/lib/longhorn/
+            type: ''
+        - name: longhorn-grpc-tls
+          secret:
+            optional: true
+            secretName: longhorn-grpc-tls
+            defaultMode: 420
+      dnsPolicy: ClusterFirst
+      containers:
+        - env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+                  apiVersion: v1
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+                  apiVersion: v1
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+                  apiVersion: v1
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+                  apiVersion: v1
+          name: longhorn-manager
+          image: longhornio/longhorn-manager:v1.10.1
+          ports:
+            - name: manager
+              protocol: TCP
+              containerPort: 9500
+            - name: admission-wh
+              protocol: TCP
+              containerPort: 9502
+            - name: recov-backend
+              protocol: TCP
+              containerPort: 9503
+          command:
+            - longhorn-manager
+            - -d
+            - daemon
+            - --engine-image
+            - longhornio/longhorn-engine:v1.10.1
+            - --instance-manager-image
+            - longhornio/longhorn-instance-manager:v1.10.1
+            - --share-manager-image
+            - longhornio/longhorn-share-manager:v1.10.1
+            - --backing-image-manager-image
+            - longhornio/backing-image-manager:v1.10.1
+            - --support-bundle-manager-image
+            - longhornio/support-bundle-kit:v0.0.71
+            - --manager-image
+            - longhornio/longhorn-manager:v1.10.1
+            - --service-account
+            - longhorn-service-account
+            - --upgrade-version-check
+          resources: {}
+          volumeMounts:
+            - name: boot
+              readOnly: true
+              mountPath: /host/boot/
+            - name: dev
+              mountPath: /host/dev/
+            - name: proc
+              readOnly: true
+              mountPath: /host/proc/
+            - name: etc
+              readOnly: true
+              mountPath: /host/etc/
+            - name: longhorn
+              mountPath: /var/lib/longhorn/
+              mountPropagation: Bidirectional
+            - name: longhorn-grpc-tls
+              mountPath: /tls-files/
+          readinessProbe:
+            httpGet:
+              path: /v1/healthz
+              port: 9502
+              scheme: HTTPS
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
+            successThreshold: 1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - name: pre-pull-share-manager-image
+          image: longhornio/longhorn-share-manager:v1.10.1
+          command:
+            - sh
+            - -c
+            - echo share-manager image pulled && sleep infinity
+          resources: {}
+          imagePullPolicy: IfNotPresent
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccount: longhorn-service-account
+      securityContext: {}
+      priorityClassName: longhorn-critical
+      serviceAccountName: longhorn-service-account
+      terminationGracePeriodSeconds: 30
+    metadata:
+      labels:
+        app: longhorn-manager
+        helm.sh/chart: longhorn-1.10.1
+        app.kubernetes.io/name: longhorn
+        app.kubernetes.io/version: v1.10.1
+        app.kubernetes.io/instance: longhorn
+        app.kubernetes.io/managed-by: Helm
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 100%
+  revisionHistoryLimit: 10
+status:
+  numberReady: 2
+  numberAvailable: 2
+  numberUnavailable: 1
+  numberMisscheduled: 0
+  currentNumberScheduled: 3
+  desiredNumberScheduled: 3
+  updatedNumberScheduled: 3
