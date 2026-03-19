@@ -23,62 +23,70 @@ func getDaemonSetHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getAppsv1DaemonSetHealth(daemon *appsv1.DaemonSet) (*HealthStatus, error) {
-	health := HealthUnknown
+	desired := daemon.Status.DesiredNumberScheduled
+	updated := daemon.Status.UpdatedNumberScheduled
+	available := daemon.Status.NumberAvailable
+	ready := daemon.Status.NumberReady
+	unavailable := daemon.Status.NumberUnavailable
 
-	if daemon.Status.NumberAvailable == daemon.Status.DesiredNumberScheduled {
+	fullyUpdated := updated == desired
+	fullyAvailable := desired == 0 || (available == desired && ready == desired)
+
+	var health Health
+	switch {
+	case desired == 0:
+		health = HealthUnknown
+	case fullyAvailable:
 		health = HealthHealthy
-	} else if daemon.Status.NumberAvailable > 0 {
+	case available > 0 || ready > 0:
 		health = HealthWarning
-	} else if daemon.Status.NumberAvailable == 0 {
+	default:
 		health = HealthUnhealthy
-	}
-
-	if daemon.Generation == daemon.Status.ObservedGeneration &&
-		daemon.Status.UpdatedNumberScheduled == daemon.Status.DesiredNumberScheduled {
-		return &HealthStatus{
-			Health: HealthHealthy,
-			Ready:  true,
-			Status: HealthStatusRunning,
-		}, nil
 	}
 
 	if daemon.Spec.UpdateStrategy.Type == appsv1.OnDeleteDaemonSetStrategyType {
 		return &HealthStatus{
-			Health: health,
-			Ready:  daemon.Status.NumberAvailable == daemon.Status.DesiredNumberScheduled,
-			Status: HealthStatusRunning,
-			Message: fmt.Sprintf(
-				"%d of %d pods updated",
-				daemon.Status.UpdatedNumberScheduled,
-				daemon.Status.DesiredNumberScheduled,
-			),
+			Health:  health,
+			Ready:   fullyAvailable,
+			Status:  HealthStatusRunning,
+			Message: fmt.Sprintf("%d of %d pods updated", updated, desired),
 		}, nil
 	}
-	if daemon.Status.UpdatedNumberScheduled < daemon.Status.DesiredNumberScheduled {
+
+	if !fullyUpdated {
 		return &HealthStatus{
-			Health: health,
-			Status: HealthStatusRollingOut,
-			Message: fmt.Sprintf(
-				"%d of %d pods updated",
-				daemon.Status.UpdatedNumberScheduled,
-				daemon.Status.DesiredNumberScheduled,
-			),
+			Health:  health,
+			Ready:   false,
+			Status:  HealthStatusRollingOut,
+			Message: fmt.Sprintf("%d of %d pods updated", updated, desired),
 		}, nil
 	}
-	if daemon.Status.NumberAvailable < daemon.Status.DesiredNumberScheduled {
+
+	if !fullyAvailable {
+		replicaWord := "replica"
+		if unavailable != 1 {
+			replicaWord = "replicas"
+		}
+
 		return &HealthStatus{
 			Health: health,
-			Status: HealthStatusRollingOut,
+			Ready:  false,
+			Status: HealthStatusPartiallyAvailable,
 			Message: fmt.Sprintf(
-				"%d of %d pods ready",
-				daemon.Status.NumberAvailable,
-				daemon.Status.DesiredNumberScheduled,
+				"DaemonSet not fully available: %d unavailable %s (%d/%d available, %d/%d ready)\n",
+				unavailable,
+				replicaWord,
+				available,
+				desired,
+				ready,
+				desired,
 			),
 		}, nil
 	}
 
 	return &HealthStatus{
-		Status: HealthStatusRunning,
 		Health: health,
+		Ready:  true,
+		Status: HealthStatusRunning,
 	}, nil
 }
