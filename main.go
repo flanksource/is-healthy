@@ -20,8 +20,10 @@ var (
 	date    = "unknown"
 )
 
-var jsonOut bool
-var file string
+var (
+	jsonOut bool
+	file    string
+)
 
 func main() {
 	if len(commit) > 8 {
