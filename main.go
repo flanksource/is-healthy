@@ -21,6 +21,7 @@ var (
 )
 
 var jsonOut bool
+var file string
 
 func main() {
 	if len(commit) > 8 {
@@ -30,13 +31,19 @@ func main() {
 	root := &cobra.Command{
 		Use: "is-healthy",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			stdin, err := io.ReadAll(os.Stdin)
+			var data []byte
+			var err error
+			if file != "" {
+				data, err = os.ReadFile(file)
+			} else {
+				data, err = io.ReadAll(os.Stdin)
+			}
 			if err != nil {
 				return err
 			}
 
 			obj := make(map[string]interface{})
-			err = yaml.Unmarshal([]byte(stdin), &obj)
+			err = yaml.Unmarshal(data, &obj)
 			if err != nil {
 				return err
 			}
@@ -93,6 +100,7 @@ func main() {
 	root.SetUsageTemplate(root.UsageTemplate() + fmt.Sprintf("\nversion: %s\n ", version))
 
 	root.Flags().BoolVarP(&jsonOut, "json", "j", false, "Output in json format")
+	root.Flags().StringVarP(&file, "file", "f", "", "Path to yaml file (if set, stdin is ignored)")
 	if err := root.Execute(); err != nil {
 		if jsonOut {
 			data, _ := json.MarshalIndent(map[string]interface{}{"error": err.Error()}, "", "  ")
