@@ -33,7 +33,8 @@ func getAppsv1StatefulSetHealth(sts *appsv1.StatefulSet, obj *unstructured.Unstr
 			Containers: sts.Spec.Template.Spec.Containers,
 			Desired:    int(replicas), Replicas: int(sts.Status.Replicas),
 			Ready: int(sts.Status.ReadyReplicas), Updated: int(sts.Status.UpdatedReplicas),
-		})
+		},
+	)
 
 	replicaHealth.Ready = sts.Status.Replicas == sts.Status.UpdatedReplicas
 

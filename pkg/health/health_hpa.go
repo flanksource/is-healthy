@@ -6,9 +6,16 @@ import (
 
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
-	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
-	autoscalingv2beta2 "k8s.io/api/autoscaling/v2beta2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+)
+
+// autoscalingv2beta1/v2beta2 were removed from k8s.io/api in v0.36. Their HPA
+// status condition structure is identical to autoscaling/v2, so objects still
+// carrying those legacy GVKs are decoded into the v2 type for health checks.
+var (
+	hpaV2beta1GVK = schema.GroupVersionKind{Group: "autoscaling", Version: "v2beta1", Kind: HorizontalPodAutoscalerKind}
+	hpaV2beta2GVK = schema.GroupVersionKind{Group: "autoscaling", Version: "v2beta2", Kind: HorizontalPodAutoscalerKind}
 )
 
 var progressingStatus = &HealthStatus{
@@ -35,21 +42,7 @@ func getHPAHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 			return nil, err
 		}
 		return getAutoScalingV1HPAHealth(&hpa)
-	case autoscalingv2beta1.SchemeGroupVersion.WithKind(HorizontalPodAutoscalerKind):
-		var hpa autoscalingv2beta1.HorizontalPodAutoscaler
-		err := convertFromUnstructured(obj, &hpa)
-		if err != nil {
-			return nil, err
-		}
-		return getAutoScalingV2beta1HPAHealth(&hpa)
-	case autoscalingv2beta2.SchemeGroupVersion.WithKind(HorizontalPodAutoscalerKind):
-		var hpa autoscalingv2beta2.HorizontalPodAutoscaler
-		err := convertFromUnstructured(obj, &hpa)
-		if err != nil {
-			return nil, err
-		}
-		return getAutoScalingV2beta2HPAHealth(&hpa)
-	case autoscalingv2.SchemeGroupVersion.WithKind(HorizontalPodAutoscalerKind):
+	case autoscalingv2.SchemeGroupVersion.WithKind(HorizontalPodAutoscalerKind), hpaV2beta1GVK, hpaV2beta2GVK:
 		var hpa autoscalingv2.HorizontalPodAutoscaler
 		err := convertFromUnstructured(obj, &hpa)
 		if err != nil {
@@ -62,36 +55,6 @@ func getHPAHealth(obj *unstructured.Unstructured) (*HealthStatus, error) {
 }
 
 func getAutoScalingV2HPAHealth(hpa *autoscalingv2.HorizontalPodAutoscaler) (*HealthStatus, error) {
-	statusConditions := hpa.Status.Conditions
-	conditions := make([]hpaCondition, 0, len(statusConditions))
-	for _, statusCondition := range statusConditions {
-		conditions = append(conditions, hpaCondition{
-			Type:    string(statusCondition.Type),
-			Reason:  statusCondition.Reason,
-			Message: statusCondition.Message,
-			Status:  string(statusCondition.Status),
-		})
-	}
-
-	return checkConditions(conditions, progressingStatus)
-}
-
-func getAutoScalingV2beta2HPAHealth(hpa *autoscalingv2beta2.HorizontalPodAutoscaler) (*HealthStatus, error) {
-	statusConditions := hpa.Status.Conditions
-	conditions := make([]hpaCondition, 0, len(statusConditions))
-	for _, statusCondition := range statusConditions {
-		conditions = append(conditions, hpaCondition{
-			Type:    string(statusCondition.Type),
-			Reason:  statusCondition.Reason,
-			Message: statusCondition.Message,
-			Status:  string(statusCondition.Status),
-		})
-	}
-
-	return checkConditions(conditions, progressingStatus)
-}
-
-func getAutoScalingV2beta1HPAHealth(hpa *autoscalingv2beta1.HorizontalPodAutoscaler) (*HealthStatus, error) {
 	statusConditions := hpa.Status.Conditions
 	conditions := make([]hpaCondition, 0, len(statusConditions))
 	for _, statusCondition := range statusConditions {
