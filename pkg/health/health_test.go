@@ -276,9 +276,10 @@ func TestCertificateRequest(t *testing.T) {
 	)
 
 	// approved in the last 1h
-	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-request-pending.yaml", map[string]string{
-		"2024-10-28T08:22:13Z": time.Now().Add(-time.Minute * 10).Format(time.RFC3339),
-	},
+	assertAppHealthWithOverwriteMsg(
+		t, "./testdata/certificate-request-pending.yaml", map[string]string{
+			"2024-10-28T08:22:13Z": time.Now().Add(-time.Minute * 10).Format(time.RFC3339),
+		},
 		"Pending",
 		health.HealthUnknown,
 		false,

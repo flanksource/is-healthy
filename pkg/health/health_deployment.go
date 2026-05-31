@@ -138,7 +138,8 @@ func getAppsv1DeploymentHealth(deployment *appsv1.Deployment, obj *unstructured.
 			Desired:    int(replicas), Replicas: int(deployment.Status.Replicas),
 			Ready: int(deployment.Status.ReadyReplicas), Updated: int(deployment.Status.UpdatedReplicas),
 			Unavailable: int(deployment.Status.UnavailableReplicas),
-		})
+		},
+	)
 
 	if deployment.Spec.Paused {
 		replicaHealth.Status = HealthStatusSuspended

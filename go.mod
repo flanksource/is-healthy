@@ -1,6 +1,6 @@
 module github.com/flanksource/is-healthy
 
-go 1.25.1
+go 1.26.0
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.1
@@ -15,8 +15,8 @@ require (
 	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.35.2
-	k8s.io/apimachinery v0.35.2
+	k8s.io/api v0.36.1
+	k8s.io/apimachinery v0.36.1
 	layeh.com/gopher-json v0.0.0-20201124131017-552bb3c4c3bf
 	sigs.k8s.io/yaml v1.6.0
 )
@@ -38,9 +38,9 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	k8s.io/apiextensions-apiserver v0.35.2 // indirect
-	k8s.io/klog/v2 v2.130.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20260304202019-5b3e3fdb0acf // indirect
+	k8s.io/apiextensions-apiserver v0.36.1 // indirect
+	k8s.io/klog/v2 v2.140.0 // indirect
+	k8s.io/kube-openapi v0.0.0-20260317180543-43fb72c5454a // indirect
 	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
 	sigs.k8s.io/gateway-api v1.5.0 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
