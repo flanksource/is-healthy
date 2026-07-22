@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.1
 	github.com/cert-manager/cert-manager v1.19.4
-	github.com/flanksource/commons v1.47.2
+	github.com/flanksource/commons v1.53.1
 	github.com/gobwas/glob v0.2.3
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.53.0
