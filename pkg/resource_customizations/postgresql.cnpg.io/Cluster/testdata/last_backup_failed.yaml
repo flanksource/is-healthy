@@ -1,0 +1,21 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: tenant-database
+  namespace: tenant-database
+  generation: 1
+spec:
+  instances: 3
+status:
+  phase: Cluster in healthy state
+  instances: 3
+  readyInstances: 3
+  conditions:
+    - type: LastBackupSucceeded
+      reason: LastBackupFailed
+      status: "False"
+      message: "rpc error: code = Unknown desc = exit status 1"
+    - type: Ready
+      reason: ClusterIsReady
+      status: "True"
+      message: Cluster is Ready

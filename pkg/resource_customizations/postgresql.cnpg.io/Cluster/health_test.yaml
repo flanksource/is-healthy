@@ -1,0 +1,38 @@
+tests:
+  - healthStatus:
+      status: Progressing
+      message: Waiting for CloudNativePG cluster status
+    inputPath: testdata/no_status.yaml
+  - healthStatus:
+      ready: true
+      health: healthy
+      message: Cluster is Ready
+    inputPath: testdata/healthy.yaml
+  - healthStatus:
+      status: Progressing
+      message: Creating primary instance cluster-example-1
+    inputPath: testdata/progressing.yaml
+  - healthStatus:
+      ready: true
+      health: unhealthy
+      message: Initiating a failover from cluster-example-2
+    inputPath: testdata/degraded.yaml
+  - healthStatus:
+      status: Suspended
+      message: Cluster reconciliation is suspended
+    inputPath: testdata/suspended.yaml
+  - healthStatus:
+      ready: true
+      health: warning
+      status: LastBackupFailed
+      message: 'rpc error: code = Unknown desc = exit status 1'
+    inputPath: testdata/last_backup_failed.yaml
+  - healthStatus:
+      status: Progressing
+      message: Waiting for CloudNativePG to reconcile the latest generation
+    inputPath: testdata/stale_ready.yaml
+  - healthStatus:
+      ready: true
+      health: healthy
+      message: Cluster is Ready
+    inputPath: testdata/backup_started.yaml

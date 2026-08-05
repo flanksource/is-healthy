@@ -1,0 +1,10 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: backup-example
+spec:
+  cluster:
+    name: cluster-example
+status:
+  phase: walArchivingFailing
+  commandError: WAL archiving is not working

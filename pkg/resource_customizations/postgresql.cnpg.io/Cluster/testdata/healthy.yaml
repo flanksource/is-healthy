@@ -1,0 +1,16 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cluster-example
+  generation: 1
+spec:
+  instances: 3
+status:
+  phase: Cluster in healthy state
+  instances: 3
+  readyInstances: 3
+  conditions:
+    - type: Ready
+      status: "True"
+      reason: ClusterIsReady
+      message: Cluster is Ready

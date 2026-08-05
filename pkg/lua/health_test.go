@@ -36,12 +36,12 @@ func getObj(path string) *unstructured.Unstructured {
 }
 
 func TestLuaHealthScript(t *testing.T) {
-	err := filepath.Walk("../../resource_customizations", func(path string, f os.FileInfo, err error) error {
-		if !strings.Contains(path, "health.lua") {
-			return nil
-		}
+	err := filepath.Walk("../resource_customizations", func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+		if !strings.Contains(path, "health.lua") {
+			return nil
 		}
 		dir := filepath.Dir(path)
 		yamlBytes, err := os.ReadFile(dir + "/health_test.yaml")
@@ -70,7 +70,9 @@ func TestLuaHealthScript(t *testing.T) {
 					t.Error(err)
 					return
 				}
-				assert.Equal(t, &test.HealthStatus, result)
+				expected := test.HealthStatus
+				normalizeHealthStatus(&expected)
+				assert.Equal(t, &expected, result)
 			})
 		}
 		return nil
