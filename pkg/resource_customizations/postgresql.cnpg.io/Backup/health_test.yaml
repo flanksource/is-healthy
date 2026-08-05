@@ -1,0 +1,41 @@
+tests:
+  - healthStatus:
+      status: Progressing
+      message: Waiting for CloudNativePG backup status
+    inputPath: testdata/no_status.yaml
+  - healthStatus:
+      status: Progressing
+      message: Backup pending
+    inputPath: testdata/pending.yaml
+  - healthStatus:
+      status: Progressing
+      message: Backup running
+    inputPath: testdata/running.yaml
+  - healthStatus:
+      status: Progressing
+      message: Backup finalizing
+    inputPath: testdata/finalizing.yaml
+  - healthStatus:
+      ready: true
+      health: healthy
+      message: Backup completed
+    inputPath: testdata/completed.yaml
+  - healthStatus:
+      ready: true
+      health: unhealthy
+      message: 'rpc error: code = Unknown desc = while getting secret cnpg-backup-sa: secrets "cnpg-backup-sa" not found'
+    inputPath: testdata/failed.yaml
+  - healthStatus:
+      ready: true
+      health: unhealthy
+      message: WAL archiving is not working
+    inputPath: testdata/wal_archiving_failing.yaml
+  - healthStatus:
+      ready: true
+      health: unhealthy
+      message: backup configuration is invalid
+    inputPath: testdata/invalid.yaml
+  - healthStatus:
+      status: Unknown
+      message: 'Unknown CloudNativePG backup phase: retrying'
+    inputPath: testdata/unknown.yaml

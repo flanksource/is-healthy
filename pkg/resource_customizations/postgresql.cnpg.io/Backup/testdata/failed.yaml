@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: tenant-database-20251012010330
+  namespace: tenant-database
+spec:
+  method: plugin
+  cluster:
+    name: tenant-database
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+status:
+  phase: failed
+  method: plugin
+  error: 'rpc error: code = Unknown desc = while getting secret cnpg-backup-sa: secrets "cnpg-backup-sa" not found'
+  instanceID:
+    podName: tenant-database-3

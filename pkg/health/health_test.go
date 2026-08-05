@@ -340,6 +340,35 @@ func TestExternalSecrets(t *testing.T) {
 	assertAppHealthMsg(t, b+"healthy.yaml", "SecretSynced", health.HealthHealthy, true)
 }
 
+func TestCloudNativePG(t *testing.T) {
+	b := "../resource_customizations/postgresql.cnpg.io/"
+	assertAppHealthMsg(
+		t,
+		b+"Cluster/testdata/last_backup_failed.yaml",
+		"LastBackupFailed",
+		health.HealthWarning,
+		true,
+		"rpc error: code = Unknown desc = exit status 1",
+	)
+	assertAppHealthMsg(
+		t,
+		b+"Cluster/testdata/backup_started.yaml",
+		"ClusterIsReady",
+		health.HealthHealthy,
+		true,
+		"Cluster is Ready",
+	)
+	assertAppHealthMsg(
+		t,
+		b+"Backup/testdata/failed.yaml",
+		"",
+		health.HealthUnhealthy,
+		true,
+		`rpc error: code = Unknown desc = while getting secret cnpg-backup-sa: secrets "cnpg-backup-sa" not found`,
+	)
+	assertAppHealthMsg(t, b+"Backup/testdata/completed.yaml", "", health.HealthHealthy, true, "Backup completed")
+}
+
 func TestStatefulSetHealth(t *testing.T) {
 	starting := "./testdata/Kubernetes/StatefulSet/statefulset-starting.yaml"
 	assertAppHealthMsg(

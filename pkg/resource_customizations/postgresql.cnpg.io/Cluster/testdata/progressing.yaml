@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cluster-example
+  generation: 1
+spec:
+  instances: 3
+status:
+  phase: Setting up primary
+  phaseReason: Creating primary instance cluster-example-1
+  conditions:
+    - type: Ready
+      status: "False"
+      reason: ClusterIsNotReady
+      message: Cluster is not ready

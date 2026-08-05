@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cluster-example
+  generation: 1
+spec:
+  instances: 3
+status:
+  phase: Failing over
+  phaseReason: Initiating a failover from cluster-example-2
+  instances: 3
+  readyInstances: 2
+  conditions:
+    - type: Ready
+      status: "False"
+      reason: ClusterIsNotReady
+      message: Cluster is not ready

@@ -1,0 +1,11 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: backup-example
+spec:
+  cluster:
+    name: cluster-example
+status:
+  phase: completed
+  startedAt: "2026-06-08T03:31:27Z"
+  stoppedAt: "2026-06-08T03:35:27Z"

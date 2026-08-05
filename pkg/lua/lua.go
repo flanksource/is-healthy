@@ -100,6 +100,29 @@ func (vm VM) runLua(obj *unstructured.Unstructured, script string) (*lua.LState,
 	return l, err
 }
 
+func normalizeHealthStatus(healthStatus *health.HealthStatus) {
+	if healthStatus.Status != "" && healthStatus.Health == "" {
+		switch healthStatus.Status {
+		case health.HealthStatusUnknown:
+			healthStatus.Health = health.HealthUnknown
+			healthStatus.Status = ""
+		case health.HealthStatusProgressing, health.HealthStatusSuspended:
+			healthStatus.Health = health.HealthUnknown
+		case health.HealthStatusHealthy:
+			healthStatus.Status = ""
+			healthStatus.Health = health.HealthHealthy
+			healthStatus.Ready = true
+		case health.HealthStatusDegraded:
+			healthStatus.Status = ""
+			healthStatus.Health = health.HealthUnhealthy
+			healthStatus.Ready = true
+		case health.HealthStatusMissing:
+			healthStatus.Ready = true
+		}
+	}
+	healthStatus.Health = health.Health(strings.ToLower(string(healthStatus.Health)))
+}
+
 // ExecuteHealthLua runs the lua script to generate the health status of a resource
 func (vm VM) ExecuteHealthLua(obj *unstructured.Unstructured, script string) (*health.HealthStatus, error) {
 	l, err := vm.runLua(obj, script)
@@ -119,29 +142,7 @@ func (vm VM) ExecuteHealthLua(obj *unstructured.Unstructured, script string) (*h
 			return nil, err
 		}
 
-		if healthStatus.Status != "" && healthStatus.Health == "" {
-			switch healthStatus.Status {
-			case health.HealthStatusUnknown:
-				healthStatus.Health = health.HealthUnknown
-				healthStatus.Status = ""
-			case health.HealthStatusProgressing:
-				healthStatus.Health = health.HealthUnknown
-			case health.HealthStatusSuspended:
-				healthStatus.Health = health.HealthUnknown
-			case health.HealthStatusHealthy:
-				healthStatus.Status = ""
-				healthStatus.Health = health.HealthHealthy
-				healthStatus.Ready = true
-			case health.HealthStatusDegraded:
-				healthStatus.Status = ""
-				healthStatus.Health = health.HealthUnhealthy
-				healthStatus.Ready = true
-			case health.HealthStatusMissing:
-				healthStatus.Ready = true
-			}
-		}
-		healthStatus.Health = health.Health(strings.ToLower(string(healthStatus.Health)))
-
+		normalizeHealthStatus(healthStatus)
 		return healthStatus, nil
 	}
 	return nil, fmt.Errorf(incorrectReturnType, "table", returnValue.Type().String())
