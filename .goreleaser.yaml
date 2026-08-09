@@ -23,6 +23,12 @@ changelog:
       - "^test:"
       - "^chore:"
 
+release:
+  draft: true
+  use_existing_draft: true
+  replace_existing_artifacts: true
+  mode: keep-existing
+
 upx:
   - enabled: true
     goos: [linux]
@@ -30,6 +36,6 @@ upx:
 
 archives:
   - name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    format: binary
+    formats: [binary]
     files:
       - none*
