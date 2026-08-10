@@ -30,7 +30,7 @@ status:
       reason: Ready
       status: "True"
       type: Ready
-    - lastTransitionTime: "2025-01-16T11:52:26Z"
+    - lastTransitionTime: "@now-10m"
       message: Certificate re-issuance manually triggered
       observedGeneration: 1
       reason: ManuallyTriggered

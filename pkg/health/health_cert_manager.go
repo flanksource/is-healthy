@@ -156,7 +156,7 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 			Ready:   false,
 		}
 
-		if time.Since(certReq.CreationTimestamp.Time) > time.Hour {
+		if time.Since(certReq.CreationTimestamp.Time) > certRenewalWarningPeriod {
 			h.Health = HealthUnhealthy
 		}
 
@@ -181,19 +181,19 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 		if c.Type == certmanagerv1.CertificateConditionIssuing {
 			hs := &HealthStatus{
 				Status:  HealthStatusCode(c.Reason),
+				Health:  HealthUnknown,
 				Ready:   false,
 				Message: c.Message,
 			}
 
 			switch c.Reason {
 			case "ManuallyTriggered":
-				// We check for expiry below
 				hs.Status = "Issuing"
-				hs.Health = HealthUnknown
+				hs.Health = certIssuingHealth(c)
 
 			case DoesNotExist:
-				inIssuingState := time.Since(obj.GetCreationTimestamp().Time)
-				if inIssuingState > time.Minute*30 {
+				if c.LastTransitionTime != nil &&
+					time.Since(c.LastTransitionTime.Time) > certRenewalWarningPeriod {
 					return &HealthStatus{
 						Status:  HealthStatusCode(c.Reason),
 						Health:  HealthUnhealthy,
@@ -202,13 +202,15 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 					}, nil
 				}
 
-				// We check for expiry below
 				hs.Status = "Issuing"
-				hs.Health = HealthUnknown
 
 			case Renewing:
-				renewalTime := cert.Status.RenewalTime.Time
+				if cert.Status.RenewalTime == nil {
+					hs.Health = certIssuingHealth(c)
+					break
+				}
 
+				renewalTime := cert.Status.RenewalTime.Time
 				if time.Since(renewalTime) > certRenewalWarningPeriod {
 					hs.Health = HealthWarning
 					hs.Message = fmt.Sprintf(
@@ -251,23 +253,18 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 						Message: msg,
 						Ready:   true,
 					}, nil
-				} else if cert.Status.NotBefore != nil {
-					if overdue := time.Since(cert.Status.NotBefore.Time); overdue > time.Hour {
-						hs.Health = HealthUnhealthy
-						return hs, nil
-					} else if overdue > time.Minute*15 {
-						hs.Health = HealthWarning
-						return hs, nil
-					}
 				}
+
+				hs.Health = certIssuingHealth(c)
 			}
 
-			// If we're issuing a new cert, at least ensure the existing cert hasn't expired
-			if expiryHealth := certExpiryCheck(cert); expiryHealth != nil {
+			// If we're issuing a new cert, at least ensure the existing cert hasn't expired.
+			if expiryHealth := certExpiryCheck(cert); expiryHealth != nil &&
+				expiryHealth.Health.IsWorseThan(hs.Health) {
 				return expiryHealth, nil
-			} else {
-				return hs, nil
 			}
+
+			return hs, nil
 		}
 	}
 
@@ -294,6 +291,22 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 	}
 
 	return status, nil
+}
+
+func certIssuingHealth(condition certmanagerv1.CertificateCondition) Health {
+	if condition.LastTransitionTime == nil {
+		return HealthUnknown
+	}
+
+	inIssuingState := time.Since(condition.LastTransitionTime.Time)
+	if inIssuingState > certRenewalWarningPeriod*2 {
+		return HealthUnhealthy
+	}
+	if inIssuingState > certRenewalWarningPeriod/2 {
+		return HealthWarning
+	}
+
+	return HealthUnknown
 }
 
 func certExpiryCheck(cert certmanagerv1.Certificate) *HealthStatus {
