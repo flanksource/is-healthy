@@ -179,6 +179,12 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 
 	for _, c := range cert.Status.Conditions {
 		if c.Type == certmanagerv1.CertificateConditionIssuing {
+			// cert-manager retains a false Issuing condition after successful
+			// issuance when server-side apply is enabled.
+			if c.Status != cmmeta.ConditionTrue && c.Reason != "Failed" {
+				continue
+			}
+
 			hs := &HealthStatus{
 				Status:  HealthStatusCode(c.Reason),
 				Health:  HealthUnknown,
@@ -205,20 +211,14 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 				hs.Status = "Issuing"
 
 			case Renewing:
-				if cert.Status.RenewalTime == nil {
-					hs.Health = certIssuingHealth(c)
-					break
-				}
-
-				renewalTime := cert.Status.RenewalTime.Time
-				if time.Since(renewalTime) > certRenewalWarningPeriod {
-					hs.Health = HealthWarning
+				hs.Health = certIssuingHealth(c)
+				if hs.Health == HealthUnknown && c.LastTransitionTime != nil {
+					hs.Health = HealthHealthy
+				} else if c.LastTransitionTime != nil {
 					hs.Message = fmt.Sprintf(
 						"Certificate has been in renewal state for > %s",
-						time.Since(renewalTime).Truncate(time.Minute),
+						time.Since(c.LastTransitionTime.Time).Truncate(time.Minute),
 					)
-				} else {
-					hs.Health = HealthHealthy
 				}
 
 			case "Failed":
@@ -260,7 +260,7 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 
 			// If we're issuing a new cert, at least ensure the existing cert hasn't expired.
 			if expiryHealth := certExpiryCheck(cert); expiryHealth != nil &&
-				expiryHealth.Health.IsWorseThan(hs.Health) {
+				expiryHealth.Health.CompareTo(hs.Health) > 0 {
 				return expiryHealth, nil
 			}
 

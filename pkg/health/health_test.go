@@ -312,20 +312,37 @@ func TestCertificate(t *testing.T) {
 	assertAppHealthWithOverwriteMsg(t, manuallyTriggered, map[string]string{
 		"@now-10m": time.Now().Add(-time.Hour * 2).UTC().Format(time.RFC3339),
 	}, "Issuing", health.HealthUnhealthy, false, "Certificate re-issuance manually triggered")
+	assertAppHealthWithOverwriteMsg(t, manuallyTriggered, map[string]string{
+		"@now-10m":             time.Now().Add(-time.Minute * 50).UTC().Format(time.RFC3339),
+		"2035-02-16T06:20:48Z": time.Now().Add(time.Hour).UTC().Format(time.RFC3339),
+	}, "Issuing", health.HealthWarning, false, "Certificate re-issuance manually triggered")
+	assertAppHealthWithOverwriteMsg(t, manuallyTriggered, map[string]string{
+		"@now-10m":                              time.Now().Add(-time.Hour * 2).UTC().Format(time.RFC3339),
+		"reason: ManuallyTriggered":             "reason: Issued",
+		"status: \"True\"\n      type: Issuing": "status: \"False\"\n      type: Issuing",
+	}, "Issued", health.HealthHealthy, true, "")
 
 	assertAppHealthMsg(t, "./testdata/certificate-expired.yaml", "Expired", health.HealthUnhealthy, true)
 
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-renewal.yaml", map[string]string{
 		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339),
-		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 10).UTC().Format(time.RFC3339),
+		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 40).UTC().Format(time.RFC3339),
+		"2025-01-16T15:03:24Z": time.Now().Add(-time.Minute * 10).UTC().Format(time.RFC3339),
 		"2025-04-16T14:04:52Z": time.Now().Add(time.Hour * 24 * 365).UTC().Format(time.RFC3339),
 	}, "Renewing", health.HealthHealthy, false, "Renewing certificate as renewal was scheduled at 2025-01-16 14:09:47 +0000 UTC")
 
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-renewal.yaml", map[string]string{
 		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339),
-		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 40).UTC().Format(time.RFC3339),
+		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 10).UTC().Format(time.RFC3339),
+		"2025-01-16T15:03:24Z": time.Now().Add(-time.Minute * 40).UTC().Format(time.RFC3339),
 		"2025-04-16T14:04:52Z": time.Now().Add(time.Hour * 24 * 365).UTC().Format(time.RFC3339),
 	}, "Renewing", health.HealthWarning, false, "Certificate has been in renewal state for > 40m0s")
+	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-renewal.yaml", map[string]string{
+		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339),
+		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 10).UTC().Format(time.RFC3339),
+		"2025-01-16T15:03:24Z": time.Now().Add(-time.Hour * 2).UTC().Format(time.RFC3339),
+		"2025-04-16T14:04:52Z": time.Now().Add(time.Hour * 24 * 365).UTC().Format(time.RFC3339),
+	}, "Renewing", health.HealthUnhealthy, false, "Certificate has been in renewal state for > 2h0m0s")
 
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-first-time.yaml", map[string]string{
 		"2025-01-16T14:27:19Z": time.Now().Add(-time.Minute * 5).UTC().Format(time.RFC3339),
@@ -347,7 +364,7 @@ func TestCertificate(t *testing.T) {
 	assertAppHealthWithOverwriteMsg(t, b+"progressing_issuing.yaml", map[string]string{
 		"2021-09-15T02:10:00Z": time.Now().Add(-time.Minute * 40).UTC().Format(time.RFC3339),
 		"DoesNotExist":         "Renewing",
-	}, "Renewing", health.HealthWarning, false, "Issuing certificate as Secret does not exist")
+	}, "Renewing", health.HealthWarning, false, "Certificate has been in renewal state for > 40m0s")
 	assertAppHealthWithOverwriteMsg(t, b+"progressing_issuing.yaml", map[string]string{
 		"lastTransitionTime: '2021-09-15T02:10:00Z'": "lastTransitionTime: null",
 		"DoesNotExist": "UnrecognizedReason",
