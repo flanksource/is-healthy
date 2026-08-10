@@ -275,7 +275,6 @@ func TestCertificateRequest(t *testing.T) {
 		`Referenced "ClusterIssuer" not found: clusterissuer.cert-manager.io "letsencrypt-staging" not found`,
 	)
 
-	// approved in the last 1h
 	assertAppHealthWithOverwriteMsg(
 		t, "./testdata/certificate-request-pending.yaml", map[string]string{
 			"2024-10-28T08:22:13Z": time.Now().Add(-time.Minute * 10).Format(time.RFC3339),
@@ -285,44 +284,58 @@ func TestCertificateRequest(t *testing.T) {
 		false,
 		`Waiting on certificate issuance from order gitlab/gitlab-registry-tls-1-751983884: "pending"`,
 	)
+
+	approvedRequest := "./testdata/certificate-request-pending.yaml"
+	assertAppHealthWithOverwriteMsg(t, approvedRequest, map[string]string{
+		"2024-10-28T08:22:13Z": time.Now().Add(-time.Minute * 10).UTC().Format(time.RFC3339),
+		"type: Ready":          "type: Waiting",
+	}, "Approved", health.HealthHealthy, false, "Certificate request has been approved by cert-manager.io")
+	assertAppHealthWithOverwriteMsg(t, approvedRequest, map[string]string{
+		"2024-10-28T08:22:13Z": time.Now().Add(-time.Minute * 40).UTC().Format(time.RFC3339),
+		"type: Ready":          "type: Waiting",
+	}, "Approved", health.HealthUnhealthy, false, "Certificate request has been approved by cert-manager.io")
 }
 
-//nolint:unused
-func testCertificate(t *testing.T) {
-	// assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-stuck.yaml", map[string]string{
-	// 	"2024-10-28T08:05:00Z": time.Now().Add(-time.Minute * 50).Format(time.RFC3339),
-	// }, "IncorrectIssuer", health.HealthWarning, false, `Issuing certificate as Secret was previously issued by "Issuer.cert-manager.io/"`)
+func TestCertificate(t *testing.T) {
+	manuallyTriggered := "./testdata/Kubernetes/CertManager/certificate-issuing-manually-triggered.yaml"
+	assertAppHealthMsg(
+		t,
+		manuallyTriggered,
+		"Issuing",
+		health.HealthUnknown,
+		false,
+		"Certificate re-issuance manually triggered",
+	)
+	assertAppHealthWithOverwriteMsg(t, manuallyTriggered, map[string]string{
+		"@now-10m": time.Now().Add(-time.Minute * 50).UTC().Format(time.RFC3339),
+	}, "Issuing", health.HealthWarning, false, "Certificate re-issuance manually triggered")
+	assertAppHealthWithOverwriteMsg(t, manuallyTriggered, map[string]string{
+		"@now-10m": time.Now().Add(-time.Hour * 2).UTC().Format(time.RFC3339),
+	}, "Issuing", health.HealthUnhealthy, false, "Certificate re-issuance manually triggered")
 
-	// assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-stuck.yaml", map[string]string{
-	// 	"2024-10-28T08:05:00Z": time.Now().Add(-time.Hour * 2).Format(time.RFC3339),
-	// }, "IncorrectIssuer", health.HealthUnhealthy, false, `Issuing certificate as Secret was previously issued by "Issuer.cert-manager.io/"`)
-
-	// assertAppHealthMsg(t, "./testdata/certificate-expired.yaml", "Expired", health.HealthUnhealthy, true)
-
-	// assertAppHealthWithOverwrite(t, "./testdata/about-to-expire.yaml", map[string]string{
-	// 	"2024-06-26T12:25:46Z": time.Now().Add(time.Hour).UTC().Format("2006-01-02T15:04:05Z"),
-	// }, health.HealthStatusWarning, health.HealthWarning, true)
+	assertAppHealthMsg(t, "./testdata/certificate-expired.yaml", "Expired", health.HealthUnhealthy, true)
 
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-renewal.yaml", map[string]string{
-		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339),        // not Before
-		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 10).UTC().Format(time.RFC3339), // renewal time
+		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339),
+		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 10).UTC().Format(time.RFC3339),
+		"2025-04-16T14:04:52Z": time.Now().Add(time.Hour * 24 * 365).UTC().Format(time.RFC3339),
 	}, "Renewing", health.HealthHealthy, false, "Renewing certificate as renewal was scheduled at 2025-01-16 14:09:47 +0000 UTC")
 
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-renewal.yaml", map[string]string{
-		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339), // not Before
-		"2025-01-16T14:09:52Z": time.Now().
-			Add(-time.Minute * 40).
-			UTC().
-			Format(time.RFC3339),
-		// renewal time over the grace period
+		"2025-01-16T14:04:53Z": time.Now().Add(-time.Hour).UTC().Format(time.RFC3339),
+		"2025-01-16T14:09:52Z": time.Now().Add(-time.Minute * 40).UTC().Format(time.RFC3339),
+		"2025-04-16T14:04:52Z": time.Now().Add(time.Hour * 24 * 365).UTC().Format(time.RFC3339),
 	}, "Renewing", health.HealthWarning, false, "Certificate has been in renewal state for > 40m0s")
 
 	assertAppHealthWithOverwriteMsg(t, "./testdata/certificate-issuing-first-time.yaml", map[string]string{
-		"2025-01-16T14:27:19Z": time.Now().Add(-time.Minute * 5).UTC().Format(time.RFC3339), // creation timestamp
+		"2025-01-16T14:27:19Z": time.Now().Add(-time.Minute * 5).UTC().Format(time.RFC3339),
 	}, "Failed", health.HealthUnhealthy, true, `The certificate request has failed to complete and will be retried: The CSR PEM requests a commonName that is not present in the list of dnsNames or ipAddresses. If a commonName is set, ACME requires that the value is also present in the list of dnsNames or ipAddresses: "example.com" does not exist in [testing-cert-manager.example.com] or []`)
 
 	b := "../resource_customizations/cert-manager.io/Certificate/testdata/"
 	assertAppHealthMsg(t, b+"degraded_configError.yaml", "ConfigError", health.HealthUnhealthy, true)
+	assertAppHealthWithOverwriteMsg(t, b+"progressing_issuing.yaml", map[string]string{
+		"2021-09-15T02:10:00Z": time.Now().Add(-time.Minute * 5).UTC().Format(time.RFC3339),
+	}, "Issuing", health.HealthUnknown, false, "Issuing certificate as Secret does not exist")
 	assertAppHealthMsg(
 		t,
 		b+"progressing_issuing.yaml",
@@ -331,6 +344,14 @@ func testCertificate(t *testing.T) {
 		false,
 		"Issuing certificate as Secret does not exist",
 	)
+	assertAppHealthWithOverwriteMsg(t, b+"progressing_issuing.yaml", map[string]string{
+		"2021-09-15T02:10:00Z": time.Now().Add(-time.Minute * 40).UTC().Format(time.RFC3339),
+		"DoesNotExist":         "Renewing",
+	}, "Renewing", health.HealthWarning, false, "Issuing certificate as Secret does not exist")
+	assertAppHealthWithOverwriteMsg(t, b+"progressing_issuing.yaml", map[string]string{
+		"lastTransitionTime: '2021-09-15T02:10:00Z'": "lastTransitionTime: null",
+		"DoesNotExist": "UnrecognizedReason",
+	}, "UnrecognizedReason", health.HealthUnknown, false, "Issuing certificate as Secret does not exist")
 }
 
 func TestExternalSecrets(t *testing.T) {
