@@ -53,7 +53,21 @@ tidy: fmt
 fmt: golines gofumpt
 	$(GOLINES) -m 120 -w pkg/
 	$(GOLINES) -m 120 -w events/
-	$(GOFUMPT) -w pkg/ events/ main.go
+	$(GOLINES) -m 120 -w internal/
+	$(GOFUMPT) -w pkg/ events/ internal/ main.go
+
+.PHONY: deps-rewrite deps-preview deps-check deps-report
+deps-rewrite:
+	task deps:rewrite
+
+deps-preview:
+	task deps:preview
+
+deps-check:
+	task deps:check
+
+deps-report:
+	task deps:report
 
 .PHONY: compress
 compress:

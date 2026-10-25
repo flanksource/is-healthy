@@ -1,0 +1,28 @@
+@@
+@@
+-import "github.com/samber/lo"
++import "github.com/flanksource/is-healthy/internal/lo"
+
+@@
+@@
+-import "github.com/flanksource/commons/duration"
++import "github.com/flanksource/is-healthy/internal/duration"
+
+@@
+@@
+-import "golang.org/x/exp/slices"
++import "slices"
+
+@@
+@@
+-import certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
++import certmanagerv1 "github.com/flanksource/is-healthy/internal/certmanager"
+
+@@
+var member identifier
+@@
+-import cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
++import certmanagerv1 "github.com/flanksource/is-healthy/internal/certmanager"
+
+-cmmeta.member
++certmanagerv1.member

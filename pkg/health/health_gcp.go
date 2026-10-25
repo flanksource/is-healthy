@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/samber/lo"
+	"github.com/flanksource/is-healthy/internal/lo"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 

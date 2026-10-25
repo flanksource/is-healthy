@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/samber/lo"
+	"github.com/flanksource/is-healthy/internal/lo"
 )
 
 func GetAWSResourceHealth(_, status string) (health HealthStatus) {

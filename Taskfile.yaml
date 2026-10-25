@@ -1,0 +1,45 @@
+version: '3'
+
+vars:
+  GOPATCH_FLAGS: ''
+
+tasks:
+  deps:rewrite:
+    desc: Rewrite imports to the attributed local source copies
+    preconditions:
+      - sh: command -v gopatch
+        msg: Install the flanksource/gopatch fork with the patch command
+    cmds:
+      - gopatch patch -p patches/dependency-imports.patch {{.GOPATCH_FLAGS}} ./pkg/health
+
+  deps:preview:
+    desc: Preview the import migration without changing files
+    cmds:
+      - task: deps:rewrite
+        vars:
+          GOPATCH_FLAGS: --diff
+
+  deps:check:
+    desc: Check that no import migration remains
+    silent: true
+    cmds:
+      - |
+        set -e
+        changes=$(task --silent deps:preview)
+        if [ -n "$changes" ]; then
+          printf '%s\n' "$changes"
+          exit 1
+        fi
+
+  deps:report:
+    desc: Report module graph and compiled test dependency counts (including this module)
+    silent: true
+    cmds:
+      - |
+        set -o pipefail
+        printf 'Module graph: '
+        go list -m all | wc -l
+      - |
+        set -o pipefail
+        printf 'Compiled test modules: '
+        go list -deps -test -f '{{`{{if .Module}}{{.Module.Path}}{{end}}`}}' ./... | sort -u | wc -l

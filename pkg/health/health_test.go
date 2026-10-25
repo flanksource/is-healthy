@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/flanksource/is-healthy/internal/lo"
 	"github.com/flanksource/is-healthy/pkg/health"
 	_ "github.com/flanksource/is-healthy/pkg/lua"
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	goyaml "gopkg.in/yaml.v3"
