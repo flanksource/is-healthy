@@ -55,6 +55,48 @@ Output:
 ```
 
 
+## Optional property updates
+
+Health checks use their built-in defaults unless an application opts into property updates. Applications using `github.com/flanksource/commons/properties` can enable the listener during startup, before loading or updating properties:
+
+```go
+import (
+    "github.com/flanksource/commons/properties"
+    "github.com/flanksource/is-healthy/pkg/health"
+)
+
+func configureHealth() {
+    health.RegisterPropertyListener(properties.RegisterListener)
+}
+```
+
+This replaces the previously automatic registration on importing `health`. Registration installs the callback; settings are applied when properties change. An individual properties instance's `RegisterListener` method also works. Applications enable the listener before concurrent health checks start.
+
+| Property | Default | Purpose |
+|----------|---------|---------|
+| `health.cert-manager.expiryGracePeriod` | `48h` | Warn when a certificate expires within this period. |
+| `health.cert-manager.renewalGracePeriod` | `30m` | Control overdue renewal and issuance thresholds. |
+| `health.azure.clientSecretExpiryGracePeriod` | `720h` | Warn when an Azure credential expires within this period. |
+| `health.maxMessageLength` | `512` | Limit messages where health checks truncate individual errors. |
+
+Removing a property restores its default on the next update. A zero value retains the current setting, preserving the previous listener behavior. The core library does not depend on commons; the caller owns that optional dependency.
+
+## Maintaining copied dependencies
+
+The small source subsets in `internal/certmanager`, `internal/lo`, and `internal/duration` are maintained manually. Their headers identify the upstream files, pinned source versions, and adaptations; license files sit alongside them. When refreshing a copy, review the attributed source and retain only the health-related declarations. The `lo.Capitalize` copy retains `golang.org/x/text` to preserve Unicode title casing.
+
+Install [Task](https://taskfile.dev/) and the [flanksource/gopatch fork](https://github.com/flanksource/gopatch) with its `patch` command, then use:
+
+```shell
+task deps:preview
+task deps:rewrite
+go mod tidy
+task deps:check
+task deps:report
+```
+
+The rewrite task only migrates imports; it does not fetch or regenerate copied source. The report counts the module graph and the modules compiled by `go test ./...` separately, including is-healthy itself. Equivalent Make targets are `deps-preview`, `deps-rewrite`, `deps-check`, and `deps-report`.
+
 ## Attribution
 
 This project builds upon the health check implementations from:

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/samber/lo"
+	"github.com/flanksource/is-healthy/internal/lo"
 	"k8s.io/apimachinery/pkg/util/json"
 
 	corev1 "k8s.io/api/core/v1"

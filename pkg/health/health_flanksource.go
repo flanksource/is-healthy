@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flanksource/is-healthy/internal/lo"
 	"github.com/robfig/cron/v3"
-	"github.com/samber/lo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/duration"

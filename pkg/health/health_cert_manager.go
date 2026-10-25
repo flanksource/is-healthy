@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	certmanagerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
-	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
+	certmanagerv1 "github.com/flanksource/is-healthy/internal/certmanager"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -87,7 +86,7 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 	conditionMap := make(map[certmanagerv1.CertificateRequestConditionType]certmanagerv1.CertificateRequestCondition)
 	for _, condition := range certReq.Status.Conditions {
 		if condition.Type == certmanagerv1.CertificateRequestConditionReady &&
-			condition.Status == cmmeta.ConditionFalse {
+			condition.Status == certmanagerv1.ConditionFalse {
 			// If the ready condition hasn't been met, look for failures or denial.
 			// Can initially be approved but then get failed (eg: CommonName mismatch)
 			switch condition.Reason {
@@ -115,7 +114,7 @@ func GetCertificateRequestHealth(obj *unstructured.Unstructured) (*HealthStatus,
 			}
 		}
 
-		if condition.Status == cmmeta.ConditionTrue {
+		if condition.Status == certmanagerv1.ConditionTrue {
 			conditionMap[condition.Type] = condition
 		}
 	}
@@ -181,7 +180,7 @@ func GetCertificateHealth(obj *unstructured.Unstructured) (*HealthStatus, error)
 		if c.Type == certmanagerv1.CertificateConditionIssuing {
 			// cert-manager retains a false Issuing condition after successful
 			// issuance when server-side apply is enabled.
-			if c.Status != cmmeta.ConditionTrue && c.Reason != "Failed" {
+			if c.Status != certmanagerv1.ConditionTrue && c.Reason != "Failed" {
 				continue
 			}
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flanksource/commons/duration"
+	"github.com/flanksource/is-healthy/internal/duration"
 )
 
 var now = time.Now

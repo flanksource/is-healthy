@@ -2,12 +2,11 @@ package health
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
-	"github.com/flanksource/commons/properties"
-	"github.com/samber/lo"
-	"golang.org/x/exp/slices"
+	"github.com/flanksource/is-healthy/internal/lo"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/duration"
@@ -467,24 +466,4 @@ func GetHealthCheckFunc(gvk schema.GroupVersionKind) func(obj *unstructured.Unst
 		}
 	}
 	return nil
-}
-
-func init() {
-	properties.RegisterListener(func(p *properties.Properties) {
-		if v := p.Duration(defaultCertExpiryWarningPeriod, "health.cert-manager.expiryGracePeriod"); v != 0 {
-			certExpiryWarningPeriod = v
-		}
-
-		if v := p.Duration(defaultCertRenewalWarningPeriod, "health.cert-manager.renewalGracePeriod"); v != 0 {
-			certRenewalWarningPeriod = v
-		}
-
-		if v := p.Duration(defaultAzureClientSecretExpiry, "health.azure.clientSecretExpiryGracePeriod"); v != 0 {
-			azureClientSecretExpiry = v
-		}
-
-		if v := p.Int(defaultMaxMessageLength, "health.maxMessageLength"); v != 0 {
-			maxMessageLength = v
-		}
-	})
 }
