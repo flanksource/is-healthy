@@ -3,13 +3,7 @@ branches:
 plugins:
   - - '@semantic-release/commit-analyzer'
     - releaseRules:
-        - { type: doc, scope: README, release: patch }
-        - { type: fix, release: patch }
-        - { type: chore, release: patch }
-        - { type: refactor, release: patch }
-        - { type: feat, release: patch }
-        - { type: ci, release: patch }
-        - { type: style, release: patch }
+        - { release: patch }
       parserOpts:
         noteKeywords:
           - MAJOR RELEASE
